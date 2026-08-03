@@ -1,0 +1,45 @@
+import asyncio
+from app.schemas.resume import (
+    ResumeSchema,
+    AnalysisResult,
+)
+from app.agents.resume_parser_agent import parse_resume_text
+from app.agents.ats_scoring_agent import evaluate_ats_score
+from app.agents.skill_gap_agent import analyze_skill_gaps
+from app.agents.resume_rewrite_agent import rewrite_resume
+from app.agents.interview_generator_agent import generate_interview_prep
+
+
+async def run_resumizer_pipeline(raw_resume_text: str, job_description: str) -> AnalysisResult:
+    """
+    Master Multi-Agent Orchestrator Pipeline for Resumizer.
+    
+    Flow:
+    1. Parse raw resume text into structured ResumeSchema.
+    2. Concurrently evaluate ATS score and Skill Gaps.
+    3. Concurrently rewrite experience bullet points and generate interview prep based on gap report.
+    4. Assemble and return AnalysisResult.
+    """
+    # Step 1: Parse Resume
+    parsed_resume = await parse_resume_text(raw_resume_text)
+
+    # Step 2: Concurrently evaluate ATS Score & Skill Gaps
+    ats_score_task = evaluate_ats_score(parsed_resume, job_description)
+    skill_gap_task = analyze_skill_gaps(parsed_resume, job_description)
+    
+    ats_score, skill_gap = await asyncio.gather(ats_score_task, skill_gap_task)
+
+    # Step 3: Concurrently generate Bullet Rewrites & Interview Prep based on skill gaps
+    rewrite_task = rewrite_resume(parsed_resume, job_description, skill_gap)
+    interview_task = generate_interview_prep(parsed_resume, job_description, skill_gap)
+    
+    rewrite_report, interview_prep = await asyncio.gather(rewrite_task, interview_task)
+
+    # Step 4: Assemble final result
+    return AnalysisResult(
+        resume_data=parsed_resume,
+        ats_score=ats_score,
+        skill_gap=skill_gap,
+        rewrite_report=rewrite_report,
+        interview_prep=interview_prep
+    )
