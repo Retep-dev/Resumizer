@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.env
+
+# Vector DB & Data
+chroma_db/
+*.chroma
+
+# Node / React
+node_modules/
+dist/
+.DS_Store
