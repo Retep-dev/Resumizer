@@ -24,7 +24,8 @@ def get_interview_generator_agent():
     llm = ChatNVIDIA(
         model=settings.NVIDIA_MODEL_NAME,
         nvidia_api_key=settings.NVIDIA_API_KEY,
-        temperature=0.3
+        temperature=0.3,
+        timeout=180
     )
     
     prompt = ChatPromptTemplate.from_messages([

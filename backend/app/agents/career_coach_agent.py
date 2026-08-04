@@ -42,7 +42,8 @@ async def chat_with_career_coach(
     llm = ChatNVIDIA(
         model=settings.NVIDIA_MODEL_NAME,
         nvidia_api_key=settings.NVIDIA_API_KEY,
-        temperature=0.4
+        temperature=0.4,
+        timeout=180
     )
 
     prompt = ChatPromptTemplate.from_messages([

@@ -22,7 +22,8 @@ def get_ats_scoring_agent():
     llm = ChatNVIDIA(
         model=settings.NVIDIA_MODEL_NAME,
         nvidia_api_key=settings.NVIDIA_API_KEY,
-        temperature=0.1
+        temperature=0.1,
+        timeout=180
     )
     
     prompt = ChatPromptTemplate.from_messages([

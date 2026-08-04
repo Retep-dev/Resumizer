@@ -19,7 +19,8 @@ def get_resume_rewrite_agent():
     llm = ChatNVIDIA(
         model=settings.NVIDIA_MODEL_NAME,
         nvidia_api_key=settings.NVIDIA_API_KEY,
-        temperature=0.2
+        temperature=0.2,
+        timeout=180
     )
     
     prompt = ChatPromptTemplate.from_messages([

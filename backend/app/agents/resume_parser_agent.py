@@ -22,8 +22,10 @@ def get_resume_parser_agent():
     llm = ChatNVIDIA(
         model=settings.NVIDIA_MODEL_NAME,
         nvidia_api_key=settings.NVIDIA_API_KEY,
-        temperature=0.1
+        temperature=0.1,
+        timeout=180
     )
+
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", PARSER_SYSTEM_PROMPT),
@@ -39,5 +41,6 @@ def get_resume_parser_agent():
 async def parse_resume_text(raw_resume_text: str) -> ResumeSchema:
     """Invokes the Resume Parser Agent to parse raw resume text into ResumeSchema."""
     agent = get_resume_parser_agent()
-    result = await agent.ainvoke({"raw_resume_text": raw_resume_text})
+    truncated_text = raw_resume_text[:12000]
+    result = await agent.ainvoke({"raw_resume_text": truncated_text})
     return result
