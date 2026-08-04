@@ -1,15 +1,30 @@
 import os
 from typing import List
-from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import SentenceTransformerEmbeddings
 from langchain_chroma import Chroma
 from app.config import settings
 
 
 def get_embedding_model():
-    """Initializes a fast, local embedding model for semantic RAG search."""
-    return SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+    """Returns NVIDIAEmbeddings if available, otherwise falls back to SentenceTransformerEmbeddings."""
+    if settings.NVIDIA_API_KEY and "your-key-here" not in settings.NVIDIA_API_KEY.lower():
+        try:
+            from langchain_nvidia_ai_endpoints import NVIDIAEmbeddings
+            return NVIDIAEmbeddings(
+                model="nvidia/nv-embedqa-e5-v5",
+                nvidia_api_key=settings.NVIDIA_API_KEY
+            )
+        except Exception as e:
+            print(f"[Warning] Could not initialize NVIDIAEmbeddings: {e}")
+
+    try:
+        from langchain_community.embeddings import SentenceTransformerEmbeddings
+        return SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+    except Exception as e:
+        print(f"[Warning] SentenceTransformer fallback failed: {e}")
+        # Final lightweight fallback
+        from langchain_community.embeddings import FakeEmbeddings
+        return FakeEmbeddings(size=384)
 
 
 def index_documents_for_rag(session_id: str, resume_text: str, job_description: str) -> Chroma:

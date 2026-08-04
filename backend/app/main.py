@@ -1,6 +1,14 @@
+import sys
+import os
+from pathlib import Path
+
+# Add backend directory to sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import uuid
 from typing import List, Dict, Optional
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
+
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -52,6 +60,8 @@ def root():
     return {"message": "Resumizer API is running smoothly!", "version": "1.0.0"}
 
 
+import traceback
+
 @app.post("/api/v1/analyze", response_model=AnalyzeResponse)
 async def analyze_resume(
     file: UploadFile = File(...),
@@ -61,6 +71,12 @@ async def analyze_resume(
     Primary endpoint: Uploads resume PDF/DOCX + Job Description,
     executes multi-agent analysis pipeline, and indexes document for RAG.
     """
+    if not settings.NVIDIA_API_KEY or "your-key-here" in settings.NVIDIA_API_KEY.lower():
+        raise HTTPException(
+            status_code=400,
+            detail="NVIDIA_API_KEY is not configured in backend/.env! Please add a valid nvapi-... key."
+        )
+
     if not job_description or not job_description.strip():
         raise HTTPException(status_code=400, detail="Job description cannot be empty.")
 
@@ -77,14 +93,20 @@ async def analyze_resume(
         analysis_result = await run_resumizer_pipeline(raw_resume_text, job_description)
 
         # Index text into ChromaDB for RAG Chat Coach
-        index_documents_for_rag(session_id, raw_resume_text, job_description)
+        try:
+            index_documents_for_rag(session_id, raw_resume_text, job_description)
+        except Exception as rag_err:
+            print(f"[Warning] RAG indexing error: {rag_err}")
 
         return AnalyzeResponse(
             session_id=session_id,
             analysis=analysis_result
         )
     except Exception as e:
+        print("=== PIPELINE ERROR TRACEBACK ===")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Pipeline error: {str(e)}")
+
 
 
 @app.post("/api/v1/chat", response_model=ChatResponse)
