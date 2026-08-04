@@ -13,13 +13,13 @@ export default function RewriteDiffView({ rewriteReport }) {
   };
 
   return (
-    <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-6">
+    <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-slate-800 space-y-6 w-full">
       <div className="flex items-center space-x-3 pb-4 border-b border-slate-800">
-        <div className="h-10 w-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+        <div className="h-10 w-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
           <FileEdit className="h-5 w-5" />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-white">Tailored Resume & STAR Rewriter</h3>
+          <h3 className="text-base sm:text-lg font-bold text-white">Tailored Resume & STAR Rewriter</h3>
           <p className="text-xs text-slate-400">Side-by-side original vs optimized bullet points incorporating metrics & missing skills</p>
         </div>
       </div>
@@ -31,7 +31,7 @@ export default function RewriteDiffView({ rewriteReport }) {
             <Sparkles className="h-4 w-4 text-indigo-400" />
             <span>Tailored Professional Summary</span>
           </div>
-          <p className="text-sm text-slate-200 leading-relaxed font-sans">
+          <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-sans">
             {rewriteReport.tailored_summary}
           </p>
         </div>
@@ -41,7 +41,7 @@ export default function RewriteDiffView({ rewriteReport }) {
       <div className="space-y-6">
         {rewriteReport.rewritten_experiences?.map((exp, expIdx) => (
           <div key={expIdx} className="space-y-3">
-            <div className="flex items-center space-x-2 text-sm font-bold text-white">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-white">
               <span className="text-indigo-400">{exp.job_title}</span>
               <span className="text-slate-500">•</span>
               <span className="text-slate-300">{exp.company}</span>
@@ -51,7 +51,7 @@ export default function RewriteDiffView({ rewriteReport }) {
               {exp.rewritten_bullets?.map((bullet, bulletIdx) => {
                 const uniqueId = `${expIdx}-${bulletIdx}`;
                 return (
-                  <div key={bulletIdx} className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-4 relative group">
+                  <div key={bulletIdx} className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 grid grid-cols-1 lg:grid-cols-2 gap-4 relative group">
                     {/* Original */}
                     <div className="space-y-1">
                       <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Original Bullet</span>
