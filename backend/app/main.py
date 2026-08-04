@@ -25,11 +25,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Enable CORS for React frontend development
+# Enable CORS for React frontend & Vercel cross-origin requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
