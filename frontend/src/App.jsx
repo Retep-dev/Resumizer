@@ -7,7 +7,7 @@ import SkillGapView from './components/SkillGapView';
 import RewriteDiffView from './components/RewriteDiffView';
 import InterviewPrep from './components/InterviewPrep';
 import CareerCoachChat from './components/CareerCoachChat';
-import { Award, Target, FileEdit, HelpCircle, MessageSquare } from 'lucide-react';
+import { Award, FileEdit, HelpCircle, MessageSquare } from 'lucide-react';
 
 export default function App() {
   const [analysisData, setAnalysisData] = useState(null);
@@ -45,7 +45,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans antialiased overflow-x-hidden">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col font-sans antialiased overflow-x-hidden">
       <Navbar onReset={analysisData ? handleReset : null} />
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
@@ -57,10 +57,10 @@ export default function App() {
           />
         ) : (
           <div className="space-y-6 sm:space-y-8 w-full">
-            {/* Clean Light Header Summary Banner */}
-            <div className="card-panel p-4 sm:p-6 rounded-3xl border border-slate-200 bg-white flex flex-col lg:flex-row items-center justify-between gap-4">
+            {/* SerioVerify Material Header Summary Banner */}
+            <div className="material-card p-4 sm:p-6 flex flex-col lg:flex-row items-center justify-between gap-4">
               <div className="text-center lg:text-left w-full lg:w-auto">
-                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#0F172A]">
                   Analysis Complete for <span className="text-[#069494]">{analysisData.analysis.resume_data.full_name || 'Candidate'}</span>
                 </h2>
                 <p className="text-xs text-slate-500 font-semibold mt-1 truncate max-w-xs sm:max-w-md mx-auto lg:mx-0">
@@ -68,54 +68,54 @@ export default function App() {
                 </p>
               </div>
 
-              {/* Scrollable Light Navigation Tabs */}
+              {/* Scrollable Material Segmented Navigation Tabs */}
               <div className="w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
-                <div className="flex items-center gap-1.5 sm:gap-2 p-1.5 rounded-2xl bg-slate-100 border border-slate-200 min-w-max">
+                <div className="flex items-center gap-1.5 sm:gap-2 p-1.5 rounded-xl bg-slate-100 border border-slate-200 min-w-max">
                   <button
                     onClick={() => setActiveTab('overview')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition ${
+                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${
                       activeTab === 'overview'
-                        ? 'bg-[#069494] text-white shadow-sm'
-                        : 'text-slate-700 hover:text-[#069494] hover:bg-slate-200/60'
+                        ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
+                        : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
                     }`}
                   >
-                    <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#069494]" />
                     <span>ATS & Gaps</span>
                   </button>
 
                   <button
                     onClick={() => setActiveTab('rewrite')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition ${
+                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${
                       activeTab === 'rewrite'
-                        ? 'bg-[#069494] text-white shadow-sm'
-                        : 'text-slate-700 hover:text-[#069494] hover:bg-slate-200/60'
+                        ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
+                        : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
                     }`}
                   >
-                    <FileEdit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <FileEdit className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#069494]" />
                     <span>STAR Rewriter</span>
                   </button>
 
                   <button
                     onClick={() => setActiveTab('interview')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition ${
+                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${
                       activeTab === 'interview'
-                        ? 'bg-[#069494] text-white shadow-sm'
-                        : 'text-slate-700 hover:text-[#069494] hover:bg-slate-200/60'
+                        ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
+                        : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
                     }`}
                   >
-                    <HelpCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <HelpCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#069494]" />
                     <span>Interview Prep</span>
                   </button>
 
                   <button
                     onClick={() => setActiveTab('chat')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition ${
+                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${
                       activeTab === 'chat'
-                        ? 'bg-[#069494] text-white shadow-sm'
-                        : 'text-slate-700 hover:text-[#069494] hover:bg-slate-200/60'
+                        ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
+                        : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
                     }`}
                   >
-                    <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#069494]" />
                     <span>AI Career Coach</span>
                   </button>
                 </div>

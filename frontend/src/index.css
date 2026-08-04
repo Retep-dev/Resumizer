@@ -8,8 +8,9 @@ html, body {
   overflow-x: hidden;
   margin: 0;
   padding: 0;
-  background-color: #FFFFFF !important;
-  color: #0f172a;
+  background-color: #F8FAFC !important;
+  color: #0F172A;
+  font-family: 'Inter', 'Outfit', sans-serif;
   box-sizing: border-box;
 }
 
@@ -18,31 +19,44 @@ html, body {
 }
 
 @layer utilities {
-  .card-panel {
+  /* Serio Verify Material Elevation Card Style */
+  .material-card {
     background-color: #FFFFFF;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 20px -2px rgba(6, 148, 148, 0.05);
+    border: 1px solid #E2E8F0;
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .material-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
   }
 
-  .btn-primary {
+  .btn-primary-serio {
     background-color: #069494;
     color: #FFFFFF;
+    font-weight: 700;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 4px rgba(6, 148, 148, 0.2);
     transition: all 0.2s ease;
   }
-  .btn-primary:hover {
-    background-color: #057a7a;
-    box-shadow: 0 4px 12px rgba(6, 148, 148, 0.25);
+  .btn-primary-serio:hover {
+    background-color: #057A7A;
+    box-shadow: 0 4px 12px rgba(6, 148, 148, 0.3);
   }
 
-  .btn-accent {
-    background-color: #14B8A6;
-    color: #FFFFFF;
-    font-weight: 700;
+  .btn-secondary-serio {
+    background-color: #FFFFFF;
+    color: #334155;
+    font-weight: 600;
+    border: 1px solid #CBD5E1;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
   }
-  .btn-accent:hover {
-    background-color: #0d9488;
-    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+  .btn-secondary-serio:hover {
+    background-color: #F8FAFC;
+    border-color: #94A3B8;
+    color: #0F172A;
   }
 }
 
@@ -52,12 +66,12 @@ html, body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f8fafc;
+  background: #F1F5F9;
 }
 ::-webkit-scrollbar-thumb {
   background: #069494;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #057a7a;
+  background: #057A7A;
 }

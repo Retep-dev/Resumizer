@@ -54,15 +54,15 @@ export default function CareerCoachChat({ sessionId }) {
   };
 
   return (
-    <div className="card-panel rounded-3xl flex flex-col h-[580px] overflow-hidden w-full">
+    <div className="material-card flex flex-col h-[580px] overflow-hidden w-full">
       {/* Header */}
       <div className="p-4 bg-[#069494] text-white flex items-center space-x-3">
-        <div className="h-9 w-9 rounded-xl bg-white text-[#069494] flex items-center justify-center font-bold shadow-sm">
+        <div className="h-9 w-9 rounded-xl bg-white text-[#069494] flex items-center justify-center font-bold shadow-xs">
           <Bot className="h-5 w-5" />
         </div>
         <div>
           <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
-            AI Career Coach <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#14B8A6] text-white font-extrabold">RAG Active</span>
+            AI Career Coach <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#14B8A6] text-white font-extrabold">RAG Active</span>
           </h3>
           <p className="text-[11px] text-slate-100 font-medium">Ask strategic questions backed by your resume & JD</p>
         </div>
@@ -90,8 +90,8 @@ export default function CareerCoachChat({ sessionId }) {
             <div
               className={`p-4 rounded-2xl text-xs leading-relaxed max-w-[85%] font-sans font-medium ${
                 msg.role === 'user'
-                  ? 'bg-[#069494] text-white rounded-tr-none whitespace-pre-wrap font-semibold'
-                  : 'bg-white border border-slate-200 text-slate-900 rounded-tl-none space-y-2 shadow-sm'
+                  ? 'bg-[#069494] text-white rounded-tr-none whitespace-pre-wrap font-semibold shadow-xs'
+                  : 'bg-white border border-slate-200 text-[#0F172A] rounded-tl-none space-y-2 shadow-xs'
               }`}
             >
               {msg.role === 'user' ? (
@@ -118,7 +118,7 @@ export default function CareerCoachChat({ sessionId }) {
             <div className="h-7 w-7 rounded-lg bg-[#069494] text-white flex items-center justify-center text-xs">
               <Bot className="h-4 w-4 animate-spin" />
             </div>
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200 text-xs text-slate-600 font-semibold flex items-center space-x-2 shadow-sm">
+            <div className="p-3.5 rounded-2xl bg-white border border-slate-200 text-xs text-slate-600 font-semibold flex items-center space-x-2 shadow-xs">
               <Loader2 className="h-3.5 w-3.5 animate-spin text-[#069494]" />
               <span>Coach is analyzing context & writing strategy...</span>
             </div>
@@ -134,7 +134,7 @@ export default function CareerCoachChat({ sessionId }) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask your Career Coach a question..."
-          className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 focus:border-[#069494] text-slate-900 text-xs focus:ring-2 focus:ring-[#14B8A6] font-medium"
+          className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 focus:border-[#069494] text-slate-900 text-xs focus:ring-2 focus:ring-[#14B8A6]/30 font-medium outline-none transition"
         />
         <button
           type="submit"
@@ -142,7 +142,7 @@ export default function CareerCoachChat({ sessionId }) {
           className={`p-2.5 rounded-xl transition font-bold ${
             !input.trim() || loading
               ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-              : 'btn-primary'
+              : 'btn-primary-serio'
           }`}
         >
           <Send className="h-4 w-4" />
