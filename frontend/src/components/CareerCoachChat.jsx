@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Send, User, Loader2, Sparkles, MessageSquare } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import axios from 'axios';
 
 export default function CareerCoachChat({ sessionId }) {
@@ -53,7 +54,7 @@ export default function CareerCoachChat({ sessionId }) {
   };
 
   return (
-    <div className="glass-panel rounded-3xl border border-slate-800 flex flex-col h-[550px] overflow-hidden">
+    <div className="glass-panel rounded-3xl border border-slate-800 flex flex-col h-[580px] overflow-hidden">
       {/* Header */}
       <div className="p-4 bg-slate-900/80 border-b border-slate-800 flex items-center space-x-3">
         <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-md">
@@ -87,13 +88,27 @@ export default function CareerCoachChat({ sessionId }) {
             </div>
 
             <div
-              className={`p-3.5 rounded-2xl text-xs leading-relaxed max-w-[82%] font-sans whitespace-pre-wrap ${
+              className={`p-4 rounded-2xl text-xs leading-relaxed max-w-[85%] font-sans ${
                 msg.role === 'user'
-                  ? 'bg-indigo-600 text-white rounded-tr-none'
-                  : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none'
+                  ? 'bg-indigo-600 text-white rounded-tr-none whitespace-pre-wrap'
+                  : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none space-y-2'
               }`}
             >
-              {msg.content}
+              {msg.role === 'user' ? (
+                msg.content
+              ) : (
+                <ReactMarkdown
+                  components={{
+                    p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                    strong: ({ node, ...props }) => <strong className="font-bold text-white" {...props} />,
+                    ul: ({ node, ...props }) => <ul className="list-disc list-inside space-y-1 my-1.5" {...props} />,
+                    ol: ({ node, ...props }) => <ol className="list-decimal list-inside space-y-1 my-1.5" {...props} />,
+                    li: ({ node, ...props }) => <li className="text-slate-300" {...props} />,
+                  }}
+                >
+                  {msg.content}
+                </ReactMarkdown>
+              )}
             </div>
           </div>
         ))}
@@ -105,7 +120,7 @@ export default function CareerCoachChat({ sessionId }) {
             </div>
             <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-400 flex items-center space-x-2">
               <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-400" />
-              <span>Coach is thinking...</span>
+              <span>Coach is analyzing context & writing strategy...</span>
             </div>
           </div>
         )}
