@@ -35,7 +35,7 @@ export default function FileUploader({ onAnalyze, isLoading, error }) {
 
         <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-[#069494] mb-3 sm:mb-4 leading-tight break-words max-w-full">
           Supercharge Your Resume with <br className="hidden sm:inline" />
-          <span className="text-[#069494] underline decoration-[#00F0FF] decoration-4 underline-offset-8">
+          <span className="text-[#069494] decoration-[#00F0FF] decoration-4 underline-offset-8">
             AI Multi-Agent RAG Pipeline
           </span>
         </h1>
@@ -62,11 +62,10 @@ export default function FileUploader({ onAnalyze, isLoading, error }) {
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`min-h-[180px] sm:h-64 border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all w-full ${
-                file
+              className={`min-h-[180px] sm:h-64 border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all w-full ${file
                   ? 'border-[#069494] bg-[#00F0FF]/10'
                   : 'border-slate-300 hover:border-[#069494] bg-slate-50 hover:bg-[#00F0FF]/5'
-              }`}
+                }`}
             >
               <input
                 ref={fileInputRef}
@@ -120,11 +119,10 @@ export default function FileUploader({ onAnalyze, isLoading, error }) {
           <button
             type="submit"
             disabled={!file || !jobDescription.trim() || isLoading}
-            className={`w-full sm:w-auto px-8 sm:px-10 py-3.5 sm:py-4 rounded-xl font-extrabold text-xs sm:text-lg flex items-center justify-center space-x-2.5 transition-all shadow-md ${
-              !file || !jobDescription.trim() || isLoading
+            className={`w-full sm:w-auto px-8 sm:px-10 py-3.5 sm:py-4 rounded-xl font-extrabold text-xs sm:text-lg flex items-center justify-center space-x-2.5 transition-all shadow-md ${!file || !jobDescription.trim() || isLoading
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300'
                 : 'btn-primary'
-            }`}
+              }`}
           >
             {isLoading ? (
               <>

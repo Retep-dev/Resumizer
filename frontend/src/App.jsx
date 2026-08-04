@@ -45,7 +45,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-slate-100 flex flex-col font-sans antialiased overflow-x-hidden">
+    <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans antialiased overflow-x-hidden">
       <Navbar onReset={analysisData ? handleReset : null} />
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
@@ -57,26 +57,26 @@ export default function App() {
           />
         ) : (
           <div className="space-y-6 sm:space-y-8 w-full">
-            {/* Responsive Header summary banner */}
-            <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-slate-800 flex flex-col lg:flex-row items-center justify-between gap-4">
+            {/* Clean Light Header Summary Banner */}
+            <div className="card-panel p-4 sm:p-6 rounded-3xl border border-slate-200 bg-white flex flex-col lg:flex-row items-center justify-between gap-4">
               <div className="text-center lg:text-left w-full lg:w-auto">
-                <h2 className="text-xl sm:text-2xl font-extrabold text-white">
-                  Analysis Complete for <span className="text-indigo-400">{analysisData.analysis.resume_data.full_name || 'Candidate'}</span>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+                  Analysis Complete for <span className="text-[#069494]">{analysisData.analysis.resume_data.full_name || 'Candidate'}</span>
                 </h2>
-                <p className="text-xs text-slate-400 mt-1 truncate max-w-xs sm:max-w-md mx-auto lg:mx-0">
-                  Session ID: <code className="text-slate-300 font-mono">{analysisData.session_id}</code>
+                <p className="text-xs text-slate-500 font-semibold mt-1 truncate max-w-xs sm:max-w-md mx-auto lg:mx-0">
+                  Session ID: <code className="text-[#069494] font-mono">{analysisData.session_id}</code>
                 </p>
               </div>
 
-              {/* Scrollable Responsive Navigation Tabs */}
+              {/* Scrollable Light Navigation Tabs */}
               <div className="w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
-                <div className="flex items-center gap-1.5 sm:gap-2 p-1.5 rounded-2xl bg-slate-900 border border-slate-800 min-w-max">
+                <div className="flex items-center gap-1.5 sm:gap-2 p-1.5 rounded-2xl bg-slate-100 border border-slate-200 min-w-max">
                   <button
                     onClick={() => setActiveTab('overview')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition ${
                       activeTab === 'overview'
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                        ? 'bg-[#069494] text-white shadow-sm'
+                        : 'text-slate-700 hover:text-[#069494] hover:bg-slate-200/60'
                     }`}
                   >
                     <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -85,10 +85,10 @@ export default function App() {
 
                   <button
                     onClick={() => setActiveTab('rewrite')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition ${
                       activeTab === 'rewrite'
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                        ? 'bg-[#069494] text-white shadow-sm'
+                        : 'text-slate-700 hover:text-[#069494] hover:bg-slate-200/60'
                     }`}
                   >
                     <FileEdit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -97,10 +97,10 @@ export default function App() {
 
                   <button
                     onClick={() => setActiveTab('interview')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition ${
                       activeTab === 'interview'
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                        ? 'bg-[#069494] text-white shadow-sm'
+                        : 'text-slate-700 hover:text-[#069494] hover:bg-slate-200/60'
                     }`}
                   >
                     <HelpCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -109,10 +109,10 @@ export default function App() {
 
                   <button
                     onClick={() => setActiveTab('chat')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition ${
                       activeTab === 'chat'
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                        ? 'bg-[#069494] text-white shadow-sm'
+                        : 'text-slate-700 hover:text-[#069494] hover:bg-slate-200/60'
                     }`}
                   >
                     <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
