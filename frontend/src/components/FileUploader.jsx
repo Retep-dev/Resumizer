@@ -28,14 +28,14 @@ export default function FileUploader({ onAnalyze, isLoading, error }) {
   return (
     <div className="w-full max-w-4xl mx-auto py-3 sm:py-8 px-3 sm:px-4 overflow-x-hidden">
       <div className="text-center mb-6 sm:mb-10 w-full">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#FF69B4]/10 border border-[#FF69B4]/30 text-[#FF69B4] text-xs font-extrabold uppercase tracking-wider mb-3">
+        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#F59E0B]/10 border border-[#F59E0B]/30 text-[#F59E0B] text-xs font-extrabold uppercase tracking-wider mb-3">
           <Sparkles className="h-3.5 w-3.5" />
           <span>Resume Optimization & Career Coach</span>
         </div>
 
         <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-[#069494] mb-3 sm:mb-4 leading-tight break-words max-w-full">
           Supercharge Your Resume with <br className="hidden sm:inline" />
-          <span className="text-[#069494] decoration-[#00F0FF] decoration-4 underline-offset-8">
+          <span className="text-[#069494] underline decoration-[#14B8A6] decoration-4 underline-offset-8">
             AI Multi-Agent RAG Pipeline
           </span>
         </h1>
@@ -62,10 +62,11 @@ export default function FileUploader({ onAnalyze, isLoading, error }) {
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`min-h-[180px] sm:h-64 border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all w-full ${file
-                  ? 'border-[#069494] bg-[#00F0FF]/10'
-                  : 'border-slate-300 hover:border-[#069494] bg-slate-50 hover:bg-[#00F0FF]/5'
-                }`}
+              className={`min-h-[180px] sm:h-64 border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all w-full ${
+                file
+                  ? 'border-[#069494] bg-[#14B8A6]/10'
+                  : 'border-slate-300 hover:border-[#069494] bg-slate-50 hover:bg-[#14B8A6]/5'
+              }`}
             >
               <input
                 ref={fileInputRef}
@@ -109,20 +110,21 @@ export default function FileUploader({ onAnalyze, isLoading, error }) {
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               placeholder="Paste the full job posting, key requirements, qualifications, and duties here..."
-              className="w-full min-h-[180px] sm:h-64 p-3.5 sm:p-4 rounded-2xl bg-slate-50 border border-slate-300 focus:border-[#069494] focus:ring-2 focus:ring-[#00F0FF] text-slate-900 placeholder-slate-400 text-xs sm:text-sm resize-none font-medium"
+              className="w-full min-h-[180px] sm:h-64 p-3.5 sm:p-4 rounded-2xl bg-slate-50 border border-slate-300 focus:border-[#069494] focus:ring-2 focus:ring-[#14B8A6] text-slate-900 placeholder-slate-400 text-xs sm:text-sm resize-none font-medium"
             />
           </div>
         </div>
 
-        {/* Submit CTA (Primary Teal #069494 with Accent Hover) */}
+        {/* Submit CTA */}
         <div className="flex justify-center pt-2 sm:pt-4 w-full">
           <button
             type="submit"
             disabled={!file || !jobDescription.trim() || isLoading}
-            className={`w-full sm:w-auto px-8 sm:px-10 py-3.5 sm:py-4 rounded-xl font-extrabold text-xs sm:text-lg flex items-center justify-center space-x-2.5 transition-all shadow-md ${!file || !jobDescription.trim() || isLoading
+            className={`w-full sm:w-auto px-8 sm:px-10 py-3.5 sm:py-4 rounded-xl font-extrabold text-xs sm:text-lg flex items-center justify-center space-x-2.5 transition-all shadow-md ${
+              !file || !jobDescription.trim() || isLoading
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300'
                 : 'btn-primary'
-              }`}
+            }`}
           >
             {isLoading ? (
               <>

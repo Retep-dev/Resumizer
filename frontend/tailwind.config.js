@@ -7,10 +7,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#069494',    // 20%: Buttons, Headings, Icons
-        active: '#00F0FF',     // 7%: Links, Active States, Progress Indicators
-        accent: '#FF69B4',     // 3%: Notifications, Badges, Important CTAs
-        canvas: '#FFFFFF',     // 70%: Background
+        primary: '#069494',    // Primary buttons, headings, icons
+        accent: '#14B8A6',     // Links, active states, progress indicators
+        highlight: '#F59E0B',  // Notifications, badges, important CTAs
+        canvas: '#FFFFFF',     // Background
       },
       fontFamily: {
         sans: ['Outfit', 'Inter', 'sans-serif'],

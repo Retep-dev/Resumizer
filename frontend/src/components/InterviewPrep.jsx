@@ -11,9 +11,9 @@ export default function InterviewPrep({ interviewPrep }) {
       case 'behavioral':
         return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#069494] text-white">Behavioral</span>;
       case 'technical':
-        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#00F0FF] text-slate-900">Technical</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#14B8A6] text-white">Technical</span>;
       case 'gap_focused':
-        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FF69B4] text-white">Gap Focused</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F59E0B] text-white">Gap Focused</span>;
       default:
         return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">General</span>;
     }
@@ -37,7 +37,7 @@ export default function InterviewPrep({ interviewPrep }) {
 
       {rawQuestions.length === 0 ? (
         <div className="p-8 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-3">
-          <AlertCircle className="h-8 w-8 text-[#FF69B4] mx-auto" />
+          <AlertCircle className="h-8 w-8 text-[#F59E0B] mx-auto" />
           <h4 className="font-bold text-slate-800 text-sm">No Interview Questions Generated</h4>
           <p className="text-xs text-slate-500 max-w-md mx-auto font-medium">
             The Interview Preparation Agent did not return structured questions for this specific resume run. Please re-run the analysis or ask your AI Career Coach in the Chat tab for tailored interview prep!
@@ -82,7 +82,7 @@ export default function InterviewPrep({ interviewPrep }) {
 
                     {/* STAR Guide */}
                     {q.star_guide && (
-                      <div className="space-y-1 p-3 rounded-xl bg-[#00F0FF]/15 border border-[#00F0FF]/40">
+                      <div className="space-y-1 p-3 rounded-xl bg-[#14B8A6]/15 border border-[#14B8A6]/40">
                         <span className="font-extrabold text-[#069494] uppercase text-[10px] tracking-wider flex items-center gap-1">
                           <Sparkles className="h-3 w-3" /> STAR Answer Strategy
                         </span>

@@ -35,14 +35,14 @@ html, body {
   }
 
   .btn-accent {
-    background-color: #00F0FF;
-    color: #0f172a;
+    background-color: #14B8A6;
+    color: #FFFFFF;
     font-weight: 700;
     transition: all 0.2s ease;
   }
   .btn-accent:hover {
-    background-color: #00d8e6;
-    box-shadow: 0 4px 12px rgba(0, 240, 255, 0.3);
+    background-color: #0d9488;
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
   }
 }
 

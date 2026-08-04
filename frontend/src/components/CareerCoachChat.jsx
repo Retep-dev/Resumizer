@@ -62,7 +62,7 @@ export default function CareerCoachChat({ sessionId }) {
         </div>
         <div>
           <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
-            AI Career Coach <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#00F0FF] text-slate-900 font-extrabold">RAG Active</span>
+            AI Career Coach <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#14B8A6] text-white font-extrabold">RAG Active</span>
           </h3>
           <p className="text-[11px] text-slate-100 font-medium">Ask strategic questions backed by your resume & JD</p>
         </div>
@@ -134,7 +134,7 @@ export default function CareerCoachChat({ sessionId }) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask your Career Coach a question..."
-          className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 focus:border-[#069494] text-slate-900 text-xs focus:ring-2 focus:ring-[#00F0FF] font-medium"
+          className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 focus:border-[#069494] text-slate-900 text-xs focus:ring-2 focus:ring-[#14B8A6] font-medium"
         />
         <button
           type="submit"

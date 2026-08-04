@@ -36,12 +36,12 @@ export default function SkillGapView({ skillGap }) {
             </div>
 
             <div className="pt-3 border-t border-slate-200">
-              <span className="text-xs text-[#FF69B4] font-bold flex items-center gap-1.5 mb-2">
+              <span className="text-xs text-[#F59E0B] font-bold flex items-center gap-1.5 mb-2">
                 <AlertCircle className="h-3.5 w-3.5" /> Missing Hard Skills
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {skillGap.missing_hard_skills?.map((skill, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#FF69B4] text-white">
+                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#F59E0B] text-white">
                     {skill}
                   </span>
                 ))}
@@ -69,12 +69,12 @@ export default function SkillGapView({ skillGap }) {
             </div>
 
             <div className="pt-3 border-t border-slate-200">
-              <span className="text-xs text-[#FF69B4] font-bold flex items-center gap-1.5 mb-2">
+              <span className="text-xs text-[#F59E0B] font-bold flex items-center gap-1.5 mb-2">
                 <AlertCircle className="h-3.5 w-3.5" /> Missing Soft Skills
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {skillGap.missing_soft_skills?.map((skill, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#FF69B4] text-white">
+                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#F59E0B] text-white">
                     {skill}
                   </span>
                 ))}
@@ -84,9 +84,9 @@ export default function SkillGapView({ skillGap }) {
         </div>
       </div>
 
-      {/* Priority Recommendations (Accent #00F0FF background) */}
+      {/* Priority Recommendations (Accent #14B8A6 background) */}
       {skillGap.priority_skill_recommendations?.length > 0 && (
-        <div className="p-4 rounded-2xl bg-[#00F0FF]/15 border border-[#00F0FF]/50">
+        <div className="p-4 rounded-2xl bg-[#14B8A6]/15 border border-[#14B8A6]/50">
           <div className="flex items-center space-x-2 mb-2">
             <Lightbulb className="h-4 w-4 text-[#069494]" />
             <h4 className="font-extrabold text-sm text-[#069494]">Priority Skill Recommendations</h4>
