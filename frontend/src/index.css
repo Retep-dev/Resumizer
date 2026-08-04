@@ -8,6 +8,8 @@ html, body {
   overflow-x: hidden;
   margin: 0;
   padding: 0;
+  background-color: #FFFFFF;
+  color: #0f172a;
   box-sizing: border-box;
 }
 
@@ -16,19 +18,30 @@ html, body {
 }
 
 @layer utilities {
-  .glass-panel {
-    background: rgba(30, 41, 59, 0.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+  .card-panel {
+    background-color: #FFFFFF;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 20px -2px rgba(6, 148, 148, 0.08);
   }
 
-  .glow-button {
-    box-shadow: 0 0 20px -5px rgba(99, 102, 241, 0.5);
-    transition: all 0.3s ease;
+  .solid-button-accent {
+    background-color: #FF69B4;
+    color: #FFFFFF;
+    transition: all 0.2s ease;
   }
-  .glow-button:hover {
-    box-shadow: 0 0 28px 0px rgba(99, 102, 241, 0.8);
+  .solid-button-accent:hover {
+    background-color: #e0559d;
+    box-shadow: 0 4px 14px rgba(255, 105, 180, 0.4);
+  }
+
+  .solid-button-primary {
+    background-color: #069494;
+    color: #FFFFFF;
+    transition: all 0.2s ease;
+  }
+  .solid-button-primary:hover {
+    background-color: #057a7a;
+    box-shadow: 0 4px 14px rgba(6, 148, 148, 0.3);
   }
 }
 
@@ -38,12 +51,12 @@ html, body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #f8fafc;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #069494;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #057a7a;
 }

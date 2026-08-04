@@ -5,43 +5,43 @@ export default function SkillGapView({ skillGap }) {
   if (!skillGap) return null;
 
   return (
-    <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-6">
-      <div className="flex items-center space-x-3 pb-4 border-b border-slate-800">
-        <div className="h-10 w-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+    <div className="card-panel p-4 sm:p-6 rounded-3xl space-y-6 w-full">
+      <div className="flex items-center space-x-3 pb-4 border-b border-slate-200">
+        <div className="h-10 w-10 rounded-xl bg-[#069494]/10 border border-[#069494]/30 flex items-center justify-center text-[#069494] shrink-0">
           <Target className="h-5 w-5" />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-white">Skill Gap Analysis</h3>
-          <p className="text-xs text-slate-400">Identified skill matches & missing prerequisites for target role</p>
+          <h3 className="text-base sm:text-lg font-extrabold text-[#069494]">Skill Gap Analysis</h3>
+          <p className="text-xs text-slate-500 font-medium">Identified skill matches & missing prerequisites for target role</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Hard Skills */}
         <div className="space-y-4">
-          <h4 className="text-sm font-semibold text-slate-200 uppercase tracking-wider text-xs">Technical Hard Skills</h4>
+          <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Technical Hard Skills</h4>
           
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
             <div>
-              <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1.5 mb-2">
+              <span className="text-xs text-[#069494] font-bold flex items-center gap-1.5 mb-2">
                 <CheckCircle className="h-3.5 w-3.5" /> Matched Hard Skills
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {skillGap.matched_hard_skills?.map((skill, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#069494] text-white">
                     {skill}
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-800">
-              <span className="text-xs text-rose-400 font-semibold flex items-center gap-1.5 mb-2">
+            <div className="pt-3 border-t border-slate-200">
+              <span className="text-xs text-[#FF69B4] font-bold flex items-center gap-1.5 mb-2">
                 <AlertCircle className="h-3.5 w-3.5" /> Missing Hard Skills
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {skillGap.missing_hard_skills?.map((skill, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs bg-rose-500/10 text-rose-300 border border-rose-500/20">
+                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#FF69B4] text-white">
                     {skill}
                   </span>
                 ))}
@@ -52,29 +52,29 @@ export default function SkillGapView({ skillGap }) {
 
         {/* Soft Skills */}
         <div className="space-y-4">
-          <h4 className="text-sm font-semibold text-slate-200 uppercase tracking-wider text-xs">Soft & Leadership Skills</h4>
+          <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Soft & Leadership Skills</h4>
           
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
             <div>
-              <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1.5 mb-2">
+              <span className="text-xs text-[#069494] font-bold flex items-center gap-1.5 mb-2">
                 <CheckCircle className="h-3.5 w-3.5" /> Matched Soft Skills
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {skillGap.matched_soft_skills?.map((skill, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#069494] text-white">
                     {skill}
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-800">
-              <span className="text-xs text-amber-400 font-semibold flex items-center gap-1.5 mb-2">
+            <div className="pt-3 border-t border-slate-200">
+              <span className="text-xs text-[#FF69B4] font-bold flex items-center gap-1.5 mb-2">
                 <AlertCircle className="h-3.5 w-3.5" /> Missing Soft Skills
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {skillGap.missing_soft_skills?.map((skill, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#FF69B4] text-white">
                     {skill}
                   </span>
                 ))}
@@ -86,12 +86,12 @@ export default function SkillGapView({ skillGap }) {
 
       {/* Priority Recommendations */}
       {skillGap.priority_skill_recommendations?.length > 0 && (
-        <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
+        <div className="p-4 rounded-2xl bg-[#00F0FF]/15 border border-[#00F0FF]">
           <div className="flex items-center space-x-2 mb-2">
-            <Lightbulb className="h-4 w-4 text-indigo-400" />
-            <h4 className="font-semibold text-sm text-indigo-300">Priority Skill Recommendations</h4>
+            <Lightbulb className="h-4 w-4 text-[#069494]" />
+            <h4 className="font-extrabold text-sm text-[#069494]">Priority Skill Recommendations</h4>
           </div>
-          <ul className="space-y-1 text-xs text-slate-300 list-disc list-inside">
+          <ul className="space-y-1 text-xs text-slate-700 font-semibold list-disc list-inside">
             {skillGap.priority_skill_recommendations.map((rec, i) => (
               <li key={i}>{rec}</li>
             ))}

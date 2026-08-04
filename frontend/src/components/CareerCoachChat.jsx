@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, Send, User, Loader2, Sparkles, MessageSquare } from 'lucide-react';
+import { Bot, Send, User, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import axios from 'axios';
 
@@ -36,7 +36,7 @@ export default function CareerCoachChat({ sessionId }) {
       const response = await axios.post('/api/v1/chat', {
         session_id: sessionId,
         message: userMsg,
-        chat_history: newMessages.slice(1, -1) // Exclude initial greeting and current msg
+        chat_history: newMessages.slice(1, -1)
       });
 
       setMessages((prev) => [
@@ -54,22 +54,22 @@ export default function CareerCoachChat({ sessionId }) {
   };
 
   return (
-    <div className="glass-panel rounded-3xl border border-slate-800 flex flex-col h-[580px] overflow-hidden">
+    <div className="card-panel rounded-3xl flex flex-col h-[580px] overflow-hidden w-full">
       {/* Header */}
-      <div className="p-4 bg-slate-900/80 border-b border-slate-800 flex items-center space-x-3">
-        <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-md">
+      <div className="p-4 bg-[#069494] text-white flex items-center space-x-3">
+        <div className="h-9 w-9 rounded-xl bg-white text-[#069494] flex items-center justify-center font-bold shadow-sm">
           <Bot className="h-5 w-5" />
         </div>
         <div>
-          <h3 className="font-bold text-sm text-white flex items-center gap-1.5">
-            AI Career Coach <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">RAG Active</span>
+          <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
+            AI Career Coach <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#00F0FF] text-slate-900 font-extrabold">RAG Active</span>
           </h3>
-          <p className="text-[11px] text-slate-400">Ask strategic questions backed by your resume & JD</p>
+          <p className="text-[11px] text-slate-100 font-medium">Ask strategic questions backed by your resume & JD</p>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-950/40">
+      <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50">
         {messages.map((msg, i) => (
           <div
             key={i}
@@ -78,20 +78,20 @@ export default function CareerCoachChat({ sessionId }) {
             }`}
           >
             <div
-              className={`h-7 w-7 rounded-lg flex items-center justify-center text-xs flex-shrink-0 ${
+              className={`h-7 w-7 rounded-lg flex items-center justify-center text-xs flex-shrink-0 font-bold ${
                 msg.role === 'user'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-800 text-indigo-400 border border-slate-700'
+                  ? 'bg-[#FF69B4] text-white'
+                  : 'bg-[#069494] text-white'
               }`}
             >
               {msg.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
             </div>
 
             <div
-              className={`p-4 rounded-2xl text-xs leading-relaxed max-w-[85%] font-sans ${
+              className={`p-4 rounded-2xl text-xs leading-relaxed max-w-[85%] font-sans font-medium ${
                 msg.role === 'user'
-                  ? 'bg-indigo-600 text-white rounded-tr-none whitespace-pre-wrap'
-                  : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none space-y-2'
+                  ? 'bg-[#FF69B4] text-white rounded-tr-none whitespace-pre-wrap font-semibold'
+                  : 'bg-white border border-slate-200 text-slate-900 rounded-tl-none space-y-2 shadow-sm'
               }`}
             >
               {msg.role === 'user' ? (
@@ -100,10 +100,10 @@ export default function CareerCoachChat({ sessionId }) {
                 <ReactMarkdown
                   components={{
                     p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
-                    strong: ({ node, ...props }) => <strong className="font-bold text-white" {...props} />,
+                    strong: ({ node, ...props }) => <strong className="font-extrabold text-[#069494]" {...props} />,
                     ul: ({ node, ...props }) => <ul className="list-disc list-inside space-y-1 my-1.5" {...props} />,
                     ol: ({ node, ...props }) => <ol className="list-decimal list-inside space-y-1 my-1.5" {...props} />,
-                    li: ({ node, ...props }) => <li className="text-slate-300" {...props} />,
+                    li: ({ node, ...props }) => <li className="text-slate-800" {...props} />,
                   }}
                 >
                   {msg.content}
@@ -115,11 +115,11 @@ export default function CareerCoachChat({ sessionId }) {
 
         {loading && (
           <div className="flex items-center space-x-3">
-            <div className="h-7 w-7 rounded-lg bg-slate-800 text-indigo-400 border border-slate-700 flex items-center justify-center text-xs">
+            <div className="h-7 w-7 rounded-lg bg-[#069494] text-white flex items-center justify-center text-xs">
               <Bot className="h-4 w-4 animate-spin" />
             </div>
-            <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-400 flex items-center space-x-2">
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-400" />
+            <div className="p-3.5 rounded-2xl bg-white border border-slate-200 text-xs text-slate-600 font-semibold flex items-center space-x-2 shadow-sm">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#069494]" />
               <span>Coach is analyzing context & writing strategy...</span>
             </div>
           </div>
@@ -128,21 +128,21 @@ export default function CareerCoachChat({ sessionId }) {
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} className="p-3 bg-slate-900/90 border-t border-slate-800 flex items-center space-x-2">
+      <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-200 flex items-center space-x-2">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask your Career Coach a question..."
-          className="flex-1 px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-indigo-500 text-slate-100 text-xs focus:ring-1 focus:ring-indigo-500"
+          className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 focus:border-[#069494] text-slate-900 text-xs focus:ring-2 focus:ring-[#00F0FF] font-medium"
         />
         <button
           type="submit"
           disabled={!input.trim() || loading}
-          className={`p-2.5 rounded-xl transition ${
+          className={`p-2.5 rounded-xl transition font-bold ${
             !input.trim() || loading
-              ? 'bg-slate-800 text-slate-600 cursor-not-allowed'
-              : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+              ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+              : 'solid-button-primary'
           }`}
         >
           <Send className="h-4 w-4" />
