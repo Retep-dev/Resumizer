@@ -24,7 +24,7 @@ export default function ATSScoreCard({ atsScore }) {
           </div>
         </div>
 
-        {/* Metric Progress Bars (cyan #00F0FF fill per 7% rule) */}
+        {/* Metric Progress Bars (Accent #00F0FF progress fill) */}
         <div className="w-full lg:w-80 space-y-3">
           <div>
             <div className="flex justify-between text-xs font-bold mb-1 text-slate-700">
@@ -60,8 +60,8 @@ export default function ATSScoreCard({ atsScore }) {
 
       {/* Keywords Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Matched Keywords */}
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
+        {/* Matched Keywords (Primary #069494) */}
+        <div className="p-4 rounded-2xl bg-[#069494]/5 border border-[#069494]/30">
           <div className="flex items-center space-x-2 mb-3">
             <CheckCircle className="h-4 w-4 text-[#069494]" />
             <h4 className="font-bold text-xs sm:text-sm text-[#069494]">Matched Keywords ({atsScore.matched_keywords?.length || 0})</h4>
@@ -75,8 +75,8 @@ export default function ATSScoreCard({ atsScore }) {
           </div>
         </div>
 
-        {/* Missing Keywords (Hot Pink #FF69B4 highlights per 3% rule) */}
-        <div className="p-4 rounded-2xl bg-pink-50 border border-pink-200">
+        {/* Missing Keywords (Highlight #FF69B4) */}
+        <div className="p-4 rounded-2xl bg-[#FF69B4]/5 border border-[#FF69B4]/30">
           <div className="flex items-center space-x-2 mb-3">
             <AlertTriangle className="h-4 w-4 text-[#FF69B4]" />
             <h4 className="font-bold text-xs sm:text-sm text-[#FF69B4]">Missing Critical Keywords ({atsScore.missing_keywords?.length || 0})</h4>

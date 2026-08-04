@@ -28,10 +28,15 @@ export default function FileUploader({ onAnalyze, isLoading, error }) {
   return (
     <div className="w-full max-w-4xl mx-auto py-3 sm:py-8 px-3 sm:px-4 overflow-x-hidden">
       <div className="text-center mb-6 sm:mb-10 w-full">
+        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#FF69B4]/10 border border-[#FF69B4]/30 text-[#FF69B4] text-xs font-extrabold uppercase tracking-wider mb-3">
+          <Sparkles className="h-3.5 w-3.5" />
+          <span>Resume Optimization & Career Coach</span>
+        </div>
+
         <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-[#069494] mb-3 sm:mb-4 leading-tight break-words max-w-full">
           Supercharge Your Resume with <br className="hidden sm:inline" />
           <span className="text-[#069494] underline decoration-[#00F0FF] decoration-4 underline-offset-8">
-            AI Multi-Agent RAG Coaching
+            AI Multi-Agent RAG Pipeline
           </span>
         </h1>
         <p className="text-slate-600 text-xs sm:text-base leading-relaxed max-w-2xl mx-auto px-1 break-words font-medium">
@@ -110,15 +115,15 @@ export default function FileUploader({ onAnalyze, isLoading, error }) {
           </div>
         </div>
 
-        {/* Submit CTA (Hot Pink #FF69B4 per palette) */}
+        {/* Submit CTA (Primary Teal #069494 with Accent Hover) */}
         <div className="flex justify-center pt-2 sm:pt-4 w-full">
           <button
             type="submit"
             disabled={!file || !jobDescription.trim() || isLoading}
-            className={`w-full sm:w-auto px-8 sm:px-10 py-3.5 sm:py-4 rounded-xl font-extrabold text-xs sm:text-lg flex items-center justify-center space-x-2.5 transition-all shadow-lg ${
+            className={`w-full sm:w-auto px-8 sm:px-10 py-3.5 sm:py-4 rounded-xl font-extrabold text-xs sm:text-lg flex items-center justify-center space-x-2.5 transition-all shadow-md ${
               !file || !jobDescription.trim() || isLoading
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300'
-                : 'solid-button-accent'
+                : 'btn-primary'
             }`}
           >
             {isLoading ? (

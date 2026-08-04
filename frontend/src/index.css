@@ -21,27 +21,28 @@ html, body {
   .card-panel {
     background-color: #FFFFFF;
     border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 20px -2px rgba(6, 148, 148, 0.08);
+    box-shadow: 0 4px 20px -2px rgba(6, 148, 148, 0.05);
   }
 
-  .solid-button-accent {
-    background-color: #FF69B4;
-    color: #FFFFFF;
-    transition: all 0.2s ease;
-  }
-  .solid-button-accent:hover {
-    background-color: #e0559d;
-    box-shadow: 0 4px 14px rgba(255, 105, 180, 0.4);
-  }
-
-  .solid-button-primary {
+  .btn-primary {
     background-color: #069494;
     color: #FFFFFF;
     transition: all 0.2s ease;
   }
-  .solid-button-primary:hover {
+  .btn-primary:hover {
     background-color: #057a7a;
-    box-shadow: 0 4px 14px rgba(6, 148, 148, 0.3);
+    box-shadow: 0 4px 12px rgba(6, 148, 148, 0.25);
+  }
+
+  .btn-accent {
+    background-color: #00F0FF;
+    color: #0f172a;
+    font-weight: 700;
+    transition: all 0.2s ease;
+  }
+  .btn-accent:hover {
+    background-color: #00d8e6;
+    box-shadow: 0 4px 12px rgba(0, 240, 255, 0.3);
   }
 }
 

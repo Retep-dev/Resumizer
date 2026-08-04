@@ -26,7 +26,7 @@ export default function RewriteDiffView({ rewriteReport }) {
 
       {/* Tailored Professional Summary */}
       {rewriteReport.tailored_summary && (
-        <div className="p-4 rounded-2xl bg-[#00F0FF]/10 border border-[#00F0FF]/40 space-y-2">
+        <div className="p-4 rounded-2xl bg-[#00F0FF]/15 border border-[#00F0FF]/40 space-y-2">
           <div className="flex items-center space-x-2 text-[#069494] font-extrabold text-xs uppercase tracking-wider">
             <Sparkles className="h-4 w-4 text-[#069494]" />
             <span>Tailored Professional Summary</span>
@@ -78,7 +78,7 @@ export default function RewriteDiffView({ rewriteReport }) {
                           )}
                         </button>
                       </div>
-                      <p className="text-xs text-slate-900 font-bold leading-relaxed bg-[#00F0FF]/15 p-3 rounded-xl border border-[#00F0FF]/40">
+                      <p className="text-xs text-slate-900 font-bold leading-relaxed bg-[#00F0FF]/20 p-3 rounded-xl border border-[#00F0FF]/50">
                         {bullet.rewritten_bullet}
                       </p>
                       {bullet.added_keywords?.length > 0 && (

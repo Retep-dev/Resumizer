@@ -84,14 +84,14 @@ export default function SkillGapView({ skillGap }) {
         </div>
       </div>
 
-      {/* Priority Recommendations */}
+      {/* Priority Recommendations (Accent #00F0FF background) */}
       {skillGap.priority_skill_recommendations?.length > 0 && (
-        <div className="p-4 rounded-2xl bg-[#00F0FF]/15 border border-[#00F0FF]">
+        <div className="p-4 rounded-2xl bg-[#00F0FF]/15 border border-[#00F0FF]/50">
           <div className="flex items-center space-x-2 mb-2">
             <Lightbulb className="h-4 w-4 text-[#069494]" />
             <h4 className="font-extrabold text-sm text-[#069494]">Priority Skill Recommendations</h4>
           </div>
-          <ul className="space-y-1 text-xs text-slate-700 font-semibold list-disc list-inside">
+          <ul className="space-y-1 text-xs text-slate-800 font-semibold list-disc list-inside">
             {skillGap.priority_skill_recommendations.map((rec, i) => (
               <li key={i}>{rec}</li>
             ))}

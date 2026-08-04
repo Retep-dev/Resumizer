@@ -80,7 +80,7 @@ export default function CareerCoachChat({ sessionId }) {
             <div
               className={`h-7 w-7 rounded-lg flex items-center justify-center text-xs flex-shrink-0 font-bold ${
                 msg.role === 'user'
-                  ? 'bg-[#FF69B4] text-white'
+                  ? 'bg-[#069494] text-white'
                   : 'bg-[#069494] text-white'
               }`}
             >
@@ -90,7 +90,7 @@ export default function CareerCoachChat({ sessionId }) {
             <div
               className={`p-4 rounded-2xl text-xs leading-relaxed max-w-[85%] font-sans font-medium ${
                 msg.role === 'user'
-                  ? 'bg-[#FF69B4] text-white rounded-tr-none whitespace-pre-wrap font-semibold'
+                  ? 'bg-[#069494] text-white rounded-tr-none whitespace-pre-wrap font-semibold'
                   : 'bg-white border border-slate-200 text-slate-900 rounded-tl-none space-y-2 shadow-sm'
               }`}
             >
@@ -142,7 +142,7 @@ export default function CareerCoachChat({ sessionId }) {
           className={`p-2.5 rounded-xl transition font-bold ${
             !input.trim() || loading
               ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-              : 'solid-button-primary'
+              : 'btn-primary'
           }`}
         >
           <Send className="h-4 w-4" />
