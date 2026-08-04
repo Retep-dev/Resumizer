@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import uuid
 from typing import List, Dict, Optional
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, BackgroundTasks
 
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -64,6 +64,7 @@ import traceback
 
 @app.post("/api/v1/analyze", response_model=AnalyzeResponse)
 async def analyze_resume(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     job_description: str = Form(...)
 ):
@@ -92,11 +93,8 @@ async def analyze_resume(
         # Execute multi-agent analysis pipeline
         analysis_result = await run_resumizer_pipeline(raw_resume_text, job_description)
 
-        # Index text into ChromaDB for RAG Chat Coach
-        try:
-            index_documents_for_rag(session_id, raw_resume_text, job_description)
-        except Exception as rag_err:
-            print(f"[Warning] RAG indexing error: {rag_err}")
+        # Index text into ChromaDB in background task so HTTP response is returned immediately
+        background_tasks.add_task(index_documents_for_rag, session_id, raw_resume_text, job_description)
 
         return AnalyzeResponse(
             session_id=session_id,

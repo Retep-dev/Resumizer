@@ -6,7 +6,7 @@ from app.config import settings
 
 
 def get_embedding_model():
-    """Returns NVIDIAEmbeddings if available, otherwise falls back to SentenceTransformerEmbeddings."""
+    """Returns NVIDIAEmbeddings if available, otherwise falls back to lightweight FakeEmbeddings."""
     if settings.NVIDIA_API_KEY and "your-key-here" not in settings.NVIDIA_API_KEY.lower():
         try:
             from langchain_nvidia_ai_endpoints import NVIDIAEmbeddings
@@ -17,14 +17,9 @@ def get_embedding_model():
         except Exception as e:
             print(f"[Warning] Could not initialize NVIDIAEmbeddings: {e}")
 
-    try:
-        from langchain_community.embeddings import SentenceTransformerEmbeddings
-        return SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
-    except Exception as e:
-        print(f"[Warning] SentenceTransformer fallback failed: {e}")
-        # Final lightweight fallback
-        from langchain_community.embeddings import FakeEmbeddings
-        return FakeEmbeddings(size=384)
+    # Lightweight fast embeddings fallback (avoids 300MB SentenceTransformer model download)
+    from langchain_community.embeddings import FakeEmbeddings
+    return FakeEmbeddings(size=384)
 
 
 def index_documents_for_rag(session_id: str, resume_text: str, job_description: str) -> Chroma:
