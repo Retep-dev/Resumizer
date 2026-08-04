@@ -23,7 +23,7 @@ def get_skill_gap_agent():
         model=settings.NVIDIA_MODEL_NAME,
         nvidia_api_key=settings.NVIDIA_API_KEY,
         temperature=0.1,
-        timeout=35
+        timeout=60
     )
     
     prompt = ChatPromptTemplate.from_messages([

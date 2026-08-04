@@ -25,7 +25,7 @@ def get_resume_parser_agent():
         model=settings.NVIDIA_MODEL_NAME,
         nvidia_api_key=settings.NVIDIA_API_KEY,
         temperature=0.1,
-        timeout=35
+        timeout=60
     )
 
     prompt = ChatPromptTemplate.from_messages([
@@ -89,7 +89,7 @@ def generate_fallback_resume_schema(raw_text: str) -> ResumeSchema:
 async def parse_resume_text(raw_resume_text: str) -> ResumeSchema:
     """Invokes the Resume Parser Agent with retries and robust fallback."""
     agent = get_resume_parser_agent()
-    truncated_text = raw_resume_text[:12000]
+    truncated_text = raw_resume_text[:7500]
 
     for attempt in range(2):
         try:
