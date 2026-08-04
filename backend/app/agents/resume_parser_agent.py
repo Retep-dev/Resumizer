@@ -25,7 +25,7 @@ def get_resume_parser_agent():
         model=settings.NVIDIA_MODEL_NAME,
         nvidia_api_key=settings.NVIDIA_API_KEY,
         temperature=0.1,
-        timeout=60
+        timeout=45
     )
 
     prompt = ChatPromptTemplate.from_messages([
