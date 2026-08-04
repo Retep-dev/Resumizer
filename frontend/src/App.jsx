@@ -30,9 +30,18 @@ export default function App() {
       setAnalysisData(response.data);
       setActiveTab('overview');
     } catch (err) {
-      setError(
-        err.response?.data?.detail || 'An error occurred while analyzing the resume. Please check backend logs.'
-      );
+      const detail = err.response?.data?.detail;
+      let msg = 'An error occurred while analyzing the resume. Please check backend logs.';
+      if (typeof detail === 'string') {
+        msg = detail;
+      } else if (Array.isArray(detail)) {
+        msg = detail.map(d => d.msg || JSON.stringify(d)).join(', ');
+      } else if (detail) {
+        msg = JSON.stringify(detail);
+      } else if (err.message) {
+        msg = err.message;
+      }
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
