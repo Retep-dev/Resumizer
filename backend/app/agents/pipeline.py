@@ -12,36 +12,30 @@ from app.agents.interview_generator_agent import generate_interview_prep
 
 async def run_resumizer_pipeline(raw_resume_text: str, job_description: str) -> AnalysisResult:
     """
-    Master Multi-Agent Orchestrator Pipeline for Resumizer.
+    Optimized Parallel Multi-Agent Orchestrator Pipeline for Resumizer.
     
-    Flow (Sequential with 2.0s pauses & individual retries/fallbacks to ensure 100% pipeline reliability):
-    1. Parse raw resume text into structured ResumeSchema.
-    2. Evaluate ATS score.
-    3. Analyze Skill Gaps.
-    4. Rewrite experience bullet points using STAR formula.
-    5. Generate Interview Preparation Questions.
-    6. Assemble and return AnalysisResult.
+    Flow:
+    Stage 1: Parse raw resume text into structured ResumeSchema.
+    Stage 2: Evaluate ATS score & Analyze Skill Gaps concurrently in PARALLEL.
+    Stage 3: Rewrite Experience bullets & Generate Interview Prep concurrently in PARALLEL.
+    Stage 4: Assemble and return AnalysisResult.
     """
-    # Step 1: Parse Resume
+    # Stage 1: Parse Resume
     parsed_resume = await parse_resume_text(raw_resume_text)
-    await asyncio.sleep(2.0)
 
-    # Step 2: Evaluate ATS Score
-    ats_score = await evaluate_ats_score(parsed_resume, job_description)
-    await asyncio.sleep(2.0)
+    # Stage 2: Evaluate ATS Score and Analyze Skill Gaps concurrently
+    ats_score, skill_gap = await asyncio.gather(
+        evaluate_ats_score(parsed_resume, job_description),
+        analyze_skill_gaps(parsed_resume, job_description)
+    )
 
-    # Step 3: Analyze Skill Gaps
-    skill_gap = await analyze_skill_gaps(parsed_resume, job_description)
-    await asyncio.sleep(2.0)
+    # Stage 3: Rewrite Experience & Generate Interview Prep concurrently
+    rewrite_report, interview_prep = await asyncio.gather(
+        rewrite_resume(parsed_resume, job_description, skill_gap),
+        generate_interview_prep(parsed_resume, job_description, skill_gap)
+    )
 
-    # Step 4: Rewrite Bullet Points
-    rewrite_report = await rewrite_resume(parsed_resume, job_description, skill_gap)
-    await asyncio.sleep(2.0)
-
-    # Step 5: Generate Interview Questions
-    interview_prep = await generate_interview_prep(parsed_resume, job_description, skill_gap)
-
-    # Step 6: Assemble final result
+    # Stage 4: Assemble final result
     return AnalysisResult(
         resume_data=parsed_resume,
         ats_score=ats_score,
