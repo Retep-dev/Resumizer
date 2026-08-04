@@ -55,9 +55,10 @@ class ExportRequest(BaseModel):
     format: str = "markdown"
 
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
+@app.api_route("/health", methods=["GET", "HEAD"])
 def root():
-    return {"message": "Resumizer API is running smoothly!", "version": "1.0.0"}
+    return {"status": "ok", "message": "Resumizer API is running smoothly!", "version": "1.0.0"}
 
 
 import traceback
