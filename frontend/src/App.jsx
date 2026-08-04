@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from './api';
 import Navbar from './components/Navbar';
 import FileUploader from './components/FileUploader';
 import ATSScoreCard from './components/ATSScoreCard';
@@ -24,7 +24,7 @@ export default function App() {
     formData.append('job_description', jobDescription);
 
     try {
-      const response = await axios.post('/api/v1/analyze', formData, {
+      const response = await api.post('/api/v1/analyze', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setAnalysisData(response.data);
@@ -73,11 +73,10 @@ export default function App() {
                 <div className="flex items-center gap-1.5 sm:gap-2 p-1.5 rounded-xl bg-slate-100 border border-slate-200 min-w-max">
                   <button
                     onClick={() => setActiveTab('overview')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${
-                      activeTab === 'overview'
-                        ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
-                        : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
-                    }`}
+                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${activeTab === 'overview'
+                      ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
+                      : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
+                      }`}
                   >
                     <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#069494]" />
                     <span>ATS & Gaps</span>
@@ -85,11 +84,10 @@ export default function App() {
 
                   <button
                     onClick={() => setActiveTab('rewrite')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${
-                      activeTab === 'rewrite'
-                        ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
-                        : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
-                    }`}
+                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${activeTab === 'rewrite'
+                      ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
+                      : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
+                      }`}
                   >
                     <FileEdit className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#069494]" />
                     <span>STAR Rewriter</span>
@@ -97,11 +95,10 @@ export default function App() {
 
                   <button
                     onClick={() => setActiveTab('interview')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${
-                      activeTab === 'interview'
-                        ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
-                        : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
-                    }`}
+                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${activeTab === 'interview'
+                      ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
+                      : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
+                      }`}
                   >
                     <HelpCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#069494]" />
                     <span>Interview Prep</span>
@@ -109,11 +106,10 @@ export default function App() {
 
                   <button
                     onClick={() => setActiveTab('chat')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${
-                      activeTab === 'chat'
-                        ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
-                        : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
-                    }`}
+                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${activeTab === 'chat'
+                      ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
+                      : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
+                      }`}
                   >
                     <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#069494]" />
                     <span>AI Career Coach</span>

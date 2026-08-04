@@ -5,7 +5,7 @@ export default function ATSScoreCard({ atsScore }) {
   if (!atsScore) return null;
 
   return (
-    <div className="material-card p-5 sm:p-7 space-y-6 w-full">
+    <div className="material-card p-5 sm:p-7 space-y-4 w-full">
       <div className="flex flex-col lg:flex-row items-center justify-between gap-6 pb-6 border-b border-slate-200/80">
         {/* Overall Score Meter */}
         <div className="flex flex-col sm:flex-row items-center text-center sm:text-left space-y-3 sm:space-y-0 sm:space-x-5 w-full lg:w-auto">

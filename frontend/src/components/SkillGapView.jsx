@@ -20,7 +20,7 @@ export default function SkillGapView({ skillGap }) {
         {/* Hard Skills */}
         <div className="space-y-3">
           <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Technical Hard Skills</h4>
-          
+
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
             <div>
               <span className="text-xs text-[#069494] font-bold flex items-center gap-1.5 mb-2">
@@ -53,7 +53,7 @@ export default function SkillGapView({ skillGap }) {
         {/* Soft Skills */}
         <div className="space-y-3">
           <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Soft & Leadership Skills</h4>
-          
+
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
             <div>
               <span className="text-xs text-[#069494] font-bold flex items-center gap-1.5 mb-2">

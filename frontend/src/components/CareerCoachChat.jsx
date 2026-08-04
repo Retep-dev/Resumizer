@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Send, User, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import axios from 'axios';
+import api from '../api';
 
 export default function CareerCoachChat({ sessionId }) {
   const [messages, setMessages] = useState([
@@ -33,7 +33,7 @@ export default function CareerCoachChat({ sessionId }) {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/v1/chat', {
+      const response = await api.post('/api/v1/chat', {
         session_id: sessionId,
         message: userMsg,
         chat_history: newMessages.slice(1, -1)
