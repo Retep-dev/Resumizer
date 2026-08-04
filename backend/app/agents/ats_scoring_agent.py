@@ -47,7 +47,7 @@ def generate_fallback_ats_score(resume: ResumeSchema, job_description: str) -> A
 
     match_ratio = len(matched) / max(len(matched) + len(missing), 1)
     kw_score = min(int(match_ratio * 100) + 40, 95)
-    exp_score = 75 if resume.experience else 50
+    exp_score = 75 if resume.work_experience else 50
     fmt_score = 90
     overall = int((kw_score * 0.5) + (exp_score * 0.3) + (fmt_score * 0.2))
 
