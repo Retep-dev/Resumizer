@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, Send, User, Loader2 } from 'lucide-react';
+import { Bot, Send, User, Loader2, FileText, Briefcase } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import api from '../api';
 
@@ -54,22 +54,39 @@ export default function CareerCoachChat({ sessionId }) {
   };
 
   return (
-    <div className="material-card flex flex-col h-[580px] overflow-hidden w-full">
+    <div className="surface-card flex flex-col h-[600px] overflow-hidden w-full">
       {/* Header */}
-      <div className="p-4 bg-[#069494] text-white flex items-center space-x-3">
-        <div className="h-9 w-9 rounded-xl bg-white text-[#069494] flex items-center justify-center font-bold shadow-xs">
-          <Bot className="h-5 w-5" />
+      <div className="p-4 bg-navy-800 border-b border-white/[0.06] flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="h-9 w-9 rounded-xl bg-teal-500/15 text-teal-400 flex items-center justify-center border border-teal-500/20">
+            <Bot className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-sm text-slate-100 flex items-center gap-2 font-display">
+              AI Career Coach
+              <span className="text-[10px] px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 font-bold border border-indigo-500/20">
+                RAG
+              </span>
+            </h3>
+            <p className="text-[11px] text-slate-500 font-medium">Grounded in your resume & target job description</p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
-            AI Career Coach <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#14B8A6] text-white font-extrabold">RAG Active</span>
-          </h3>
-          <p className="text-[11px] text-slate-100 font-medium">Ask strategic questions backed by your resume & JD</p>
+
+        {/* Context indicators */}
+        <div className="hidden sm:flex items-center gap-2">
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-navy-900 border border-white/[0.06] text-[10px] text-slate-500 font-medium">
+            <FileText className="h-3 w-3 text-teal-500" />
+            <span>Resume</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-navy-900 border border-white/[0.06] text-[10px] text-slate-500 font-medium">
+            <Briefcase className="h-3 w-3 text-indigo-400" />
+            <span>Job Desc</span>
+          </div>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50">
+      <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-navy-950/50">
         {messages.map((msg, i) => (
           <div
             key={i}
@@ -80,18 +97,18 @@ export default function CareerCoachChat({ sessionId }) {
             <div
               className={`h-7 w-7 rounded-lg flex items-center justify-center text-xs flex-shrink-0 font-bold ${
                 msg.role === 'user'
-                  ? 'bg-[#069494] text-white'
-                  : 'bg-[#069494] text-white'
+                  ? 'bg-teal-500/15 text-teal-400 border border-teal-500/20'
+                  : 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/20'
               }`}
             >
               {msg.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
             </div>
 
             <div
-              className={`p-4 rounded-2xl text-xs leading-relaxed max-w-[85%] font-sans font-medium ${
+              className={`p-3.5 rounded-2xl text-xs leading-relaxed max-w-[85%] font-medium ${
                 msg.role === 'user'
-                  ? 'bg-[#069494] text-white rounded-tr-none whitespace-pre-wrap font-semibold shadow-xs'
-                  : 'bg-white border border-slate-200 text-[#0F172A] rounded-tl-none space-y-2 shadow-xs'
+                  ? 'bg-teal-600 text-white rounded-tr-sm font-semibold'
+                  : 'bg-surface border border-white/[0.06] text-slate-300 rounded-tl-sm space-y-2'
               }`}
             >
               {msg.role === 'user' ? (
@@ -100,10 +117,10 @@ export default function CareerCoachChat({ sessionId }) {
                 <ReactMarkdown
                   components={{
                     p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
-                    strong: ({ node, ...props }) => <strong className="font-extrabold text-[#069494]" {...props} />,
+                    strong: ({ node, ...props }) => <strong className="font-extrabold text-teal-400" {...props} />,
                     ul: ({ node, ...props }) => <ul className="list-disc list-inside space-y-1 my-1.5" {...props} />,
                     ol: ({ node, ...props }) => <ol className="list-decimal list-inside space-y-1 my-1.5" {...props} />,
-                    li: ({ node, ...props }) => <li className="text-slate-800" {...props} />,
+                    li: ({ node, ...props }) => <li className="text-slate-300" {...props} />,
                   }}
                 >
                   {msg.content}
@@ -113,14 +130,16 @@ export default function CareerCoachChat({ sessionId }) {
           </div>
         ))}
 
+        {/* Typing Indicator */}
         {loading && (
-          <div className="flex items-center space-x-3">
-            <div className="h-7 w-7 rounded-lg bg-[#069494] text-white flex items-center justify-center text-xs">
-              <Bot className="h-4 w-4 animate-spin" />
+          <div className="flex items-start space-x-3">
+            <div className="h-7 w-7 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+              <Bot className="h-4 w-4" />
             </div>
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200 text-xs text-slate-600 font-semibold flex items-center space-x-2 shadow-xs">
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#069494]" />
-              <span>Coach is analyzing context & writing strategy...</span>
+            <div className="p-3.5 rounded-2xl bg-surface border border-white/[0.06] rounded-tl-sm flex items-center space-x-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-teal-400 animate-typing-dot-1"></span>
+              <span className="h-1.5 w-1.5 rounded-full bg-teal-400 animate-typing-dot-2"></span>
+              <span className="h-1.5 w-1.5 rounded-full bg-teal-400 animate-typing-dot-3"></span>
             </div>
           </div>
         )}
@@ -128,20 +147,20 @@ export default function CareerCoachChat({ sessionId }) {
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-200 flex items-center space-x-2">
+      <form onSubmit={handleSend} className="p-3 bg-navy-800 border-t border-white/[0.06] flex items-center space-x-2">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask your Career Coach a question..."
-          className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 focus:border-[#069494] text-slate-900 text-xs focus:ring-2 focus:ring-[#14B8A6]/30 font-medium outline-none transition"
+          className="flex-1 px-4 py-2.5 rounded-xl bg-navy-900 border border-white/[0.08] focus:border-teal-500/40 text-slate-200 text-xs focus:ring-2 focus:ring-teal-500/15 font-medium outline-none transition placeholder-slate-600"
         />
         <button
           type="submit"
           disabled={!input.trim() || loading}
           className={`p-2.5 rounded-xl transition font-bold ${
             !input.trim() || loading
-              ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+              ? 'bg-navy-700 text-slate-600 cursor-not-allowed'
               : 'btn-primary-serio'
           }`}
         >

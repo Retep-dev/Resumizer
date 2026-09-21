@@ -8,10 +8,12 @@ html, body {
   overflow-x: hidden;
   margin: 0;
   padding: 0;
-  background-color: #F8FAFC !important;
-  color: #0F172A;
-  font-family: 'Inter', 'Outfit', sans-serif;
+  background-color: #060A14;
+  color: #E2E8F0;
+  font-family: 'Inter', 'Outfit', system-ui, sans-serif;
   box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 *, *:before, *:after {
@@ -19,59 +21,99 @@ html, body {
 }
 
 @layer utilities {
-  /* Serio Verify Material Elevation Card Style */
-  .material-card {
-    background-color: #FFFFFF;
-    border: 1px solid #E2E8F0;
+  /* Dark surface card — primary container */
+  .surface-card {
+    background-color: #111827;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 1rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .surface-card:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Legacy alias — keeps existing markup working during migration */
+  .material-card {
+    background-color: #111827;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
     transition: box-shadow 0.2s ease, border-color 0.2s ease;
   }
   .material-card:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
   }
 
+  /* Primary CTA button */
   .btn-primary-serio {
-    background-color: #069494;
+    background: linear-gradient(135deg, #0D9488, #0F766E);
     color: #FFFFFF;
     font-weight: 700;
     border-radius: 0.75rem;
-    box-shadow: 0 2px 4px rgba(6, 148, 148, 0.2);
+    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
     transition: all 0.2s ease;
   }
   .btn-primary-serio:hover {
-    background-color: #057A7A;
-    box-shadow: 0 4px 12px rgba(6, 148, 148, 0.3);
+    background: linear-gradient(135deg, #14B8A6, #0D9488);
+    box-shadow: 0 4px 16px rgba(13, 148, 136, 0.35);
+    transform: translateY(-1px);
+  }
+  .btn-primary-serio:active {
+    transform: translateY(0);
   }
 
+  /* Secondary / ghost button */
   .btn-secondary-serio {
-    background-color: #FFFFFF;
-    color: #334155;
+    background-color: transparent;
+    color: #94A3B8;
     font-weight: 600;
-    border: 1px solid #CBD5E1;
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 0.75rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
   }
   .btn-secondary-serio:hover {
-    background-color: #F8FAFC;
-    border-color: #94A3B8;
-    color: #0F172A;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(20, 184, 166, 0.4);
+    color: #E2E8F0;
+  }
+
+  /* Inner surface — nested containers */
+  .surface-inner {
+    background-color: #0B1120;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 0.75rem;
+  }
+
+  /* Gradient text utility */
+  .gradient-text-teal {
+    background: linear-gradient(135deg, #14B8A6, #5EEAD4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar — dark theme */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: #0B1120;
 }
 ::-webkit-scrollbar-thumb {
-  background: #069494;
+  background: #1A2332;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #057A7A;
+  background: #0D9488;
+}
+
+/* Selection */
+::selection {
+  background-color: rgba(13, 148, 136, 0.3);
+  color: #FFFFFF;
 }

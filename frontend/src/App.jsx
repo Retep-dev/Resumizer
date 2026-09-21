@@ -9,6 +9,13 @@ import InterviewPrep from './components/InterviewPrep';
 import CareerCoachChat from './components/CareerCoachChat';
 import { Award, FileEdit, HelpCircle, MessageSquare } from 'lucide-react';
 
+const tabs = [
+  { id: 'overview', label: 'ATS & Gaps', icon: Award },
+  { id: 'rewrite', label: 'STAR Rewriter', icon: FileEdit },
+  { id: 'interview', label: 'Interview Prep', icon: HelpCircle },
+  { id: 'chat', label: 'AI Career Coach', icon: MessageSquare },
+];
+
 export default function App() {
   const [analysisData, setAnalysisData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +61,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col font-sans antialiased overflow-x-hidden">
+    <div className="min-h-screen bg-navy-950 text-slate-200 flex flex-col font-sans antialiased overflow-x-hidden">
       <Navbar onReset={analysisData ? handleReset : null} />
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8 space-y-6 sm:space-y-8">
@@ -65,87 +72,68 @@ export default function App() {
             error={error}
           />
         ) : (
-          <div className="space-y-6 sm:space-y-8 w-full">
-            {/* SerioVerify Material Header Summary Banner */}
-            <div className="material-card p-4 sm:p-6 flex flex-col lg:flex-row items-center justify-between gap-4">
+          <div className="space-y-6 sm:space-y-8 w-full animate-fade-in">
+            {/* Analysis Header Banner */}
+            <div className="surface-card p-4 sm:p-6 flex flex-col lg:flex-row items-center justify-between gap-4">
               <div className="text-center lg:text-left w-full lg:w-auto">
-                <h2 className="text-xl sm:text-2xl font-extrabold text-[#0F172A]">
-                  Analysis Complete for <span className="text-[#069494]">{analysisData.analysis.resume_data.full_name || 'Candidate'}</span>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-100 font-display">
+                  Analysis Complete for{' '}
+                  <span className="gradient-text-teal">
+                    {analysisData.analysis.resume_data.full_name || 'Candidate'}
+                  </span>
                 </h2>
                 <p className="text-xs text-slate-500 font-semibold mt-1 truncate max-w-xs sm:max-w-md mx-auto lg:mx-0">
-                  Session ID: <code className="text-[#069494] font-mono">{analysisData.session_id}</code>
+                  Session ID:{' '}
+                  <code className="text-teal-400 font-mono text-[11px]">{analysisData.session_id}</code>
                 </p>
               </div>
 
-              {/* Scrollable Material Segmented Navigation Tabs */}
+              {/* Segmented Tab Navigation */}
               <div className="w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
-                <div className="flex items-center gap-1.5 sm:gap-2 p-1.5 rounded-xl bg-slate-100 border border-slate-200 min-w-max">
-                  <button
-                    onClick={() => setActiveTab('overview')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${activeTab === 'overview'
-                      ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
-                      : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
-                      }`}
-                  >
-                    <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#069494]" />
-                    <span>ATS & Gaps</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab('rewrite')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${activeTab === 'rewrite'
-                      ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
-                      : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
-                      }`}
-                  >
-                    <FileEdit className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#069494]" />
-                    <span>STAR Rewriter</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab('interview')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${activeTab === 'interview'
-                      ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
-                      : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
-                      }`}
-                  >
-                    <HelpCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#069494]" />
-                    <span>Interview Prep</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab('chat')}
-                    className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition ${activeTab === 'chat'
-                      ? 'bg-white text-[#069494] shadow-xs border border-slate-200/80'
-                      : 'text-slate-600 hover:text-[#069494] hover:bg-slate-200/50'
-                      }`}
-                  >
-                    <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#069494]" />
-                    <span>AI Career Coach</span>
-                  </button>
+                <div className="flex items-center gap-1 p-1 rounded-xl bg-navy-900 border border-white/[0.06] min-w-max">
+                  {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${
+                          isActive
+                            ? 'bg-surface-raised text-teal-400 shadow-card border border-white/[0.08]'
+                            : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]'
+                        }`}
+                      >
+                        <Icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isActive ? 'text-teal-400' : ''}`} />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
             {/* Tab Views */}
-            {activeTab === 'overview' && (
-              <div className="space-y-6 sm:space-y-8 w-full">
-                <ATSScoreCard atsScore={analysisData.analysis.ats_score} />
-                <SkillGapView skillGap={analysisData.analysis.skill_gap} />
-              </div>
-            )}
+            <div className="animate-fade-in">
+              {activeTab === 'overview' && (
+                <div className="space-y-6 sm:space-y-8 w-full">
+                  <ATSScoreCard atsScore={analysisData.analysis.ats_score} />
+                  <SkillGapView skillGap={analysisData.analysis.skill_gap} />
+                </div>
+              )}
 
-            {activeTab === 'rewrite' && (
-              <RewriteDiffView rewriteReport={analysisData.analysis.rewrite_report} />
-            )}
+              {activeTab === 'rewrite' && (
+                <RewriteDiffView rewriteReport={analysisData.analysis.rewrite_report} />
+              )}
 
-            {activeTab === 'interview' && (
-              <InterviewPrep interviewPrep={analysisData.analysis.interview_prep} />
-            )}
+              {activeTab === 'interview' && (
+                <InterviewPrep interviewPrep={analysisData.analysis.interview_prep} />
+              )}
 
-            {activeTab === 'chat' && (
-              <CareerCoachChat sessionId={analysisData.session_id} />
-            )}
+              {activeTab === 'chat' && (
+                <CareerCoachChat sessionId={analysisData.session_id} />
+              )}
+            </div>
           </div>
         )}
       </main>
