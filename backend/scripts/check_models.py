@@ -66,10 +66,22 @@ def check(model: str) -> dict:
     return {"model": model, "ok": True, "accurate_extraction": accurate, "seconds": secs}
 
 
+def key_shape(key: str) -> str:
+    """Describe the key's format without revealing any of it."""
+    lines = [l for l in key.splitlines() if l.strip()]
+    return (f"length={len(key)}, non-empty lines={len(lines)}, starts with 'nvapi-'={key.startswith('nvapi-')}, "
+            f"contains spaces={' ' in key}, contains '='={'=' in key}, "
+            f"lines starting with 'nvapi-'={sum(1 for l in lines if l.strip().startswith('nvapi-'))}")
+
+
 def main(argv):
     if not settings.api_key_configured:
         print("NVIDIA_API_KEY is not set (environment or backend/.env).")
         return 2
+    shape = key_shape(settings.NVIDIA_API_KEY)
+    print("Key format:", shape)
+    if os.getenv("GITHUB_ACTIONS"):
+        print(f"::notice title=key format::{shape}")
     try:
         listed = {m["id"] for m in requests.get(f"{settings.NVIDIA_BASE_URL}/models", timeout=20).json().get("data", [])}
     except Exception:
