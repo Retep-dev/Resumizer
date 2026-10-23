@@ -107,6 +107,8 @@ class NvidiaChatClient(ChatClient):
                 body.pop("response_format", None)
                 body.pop("chat_template_kwargs", None)
                 r = self._post(body)
+        except requests.exceptions.InvalidHeader:
+            raise ProviderError("auth", "The NVIDIA API key is malformed (it contains spaces or line breaks)", model)
         except requests.Timeout:
             raise ProviderError("timeout", f"{model} did not respond within {int(self.timeout)}s", model)
         except requests.RequestException as e:
@@ -136,6 +138,7 @@ class NvidiaChatClient(ChatClient):
         raise ProviderError("bad_request", f"Provider rejected the request ({r.status_code}): {detail}", model, r.status_code)
 
     def _complete_sync(self, messages, temperature, max_tokens, json_mode) -> Completion:
+        self.api_key = (self.api_key or "").strip()
         if not self.api_key or "your-key-here" in self.api_key.lower():
             raise ProviderError("not_configured", "NVIDIA_API_KEY is not configured on the server")
         last: Optional[ProviderError] = None

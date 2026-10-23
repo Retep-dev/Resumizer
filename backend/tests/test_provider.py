@@ -147,3 +147,25 @@ def test_key_only_in_authorization_header():
     call = c.session.calls[0]
     assert call["headers"]["Authorization"] == f"Bearer {KEY}"
     assert KEY not in json.dumps(call["json"])
+
+
+def test_key_whitespace_is_stripped_before_use():
+    c = NvidiaChatClient(api_key=KEY + "\n", models=["m"], session=FakeSession([ok("x")]))
+    complete(c)
+    assert c.session.calls[0]["headers"]["Authorization"] == f"Bearer {KEY}"
+
+
+def test_malformed_key_is_reported_as_auth_not_network():
+    c = client([requests.exceptions.InvalidHeader("bad header")], models=("m",))
+    with pytest.raises(ProviderError) as e:
+        complete(c)
+    assert e.value.kind == "auth" and "malformed" in e.value.message and len(c.session.calls) == 1
+
+
+def test_settings_strip_pasted_key(monkeypatch):
+    import importlib
+    import app.config as cfg
+    monkeypatch.setenv("NVIDIA_API_KEY", f'  "{KEY}"\n')
+    assert importlib.reload(cfg).settings.NVIDIA_API_KEY == KEY
+    monkeypatch.delenv("NVIDIA_API_KEY")
+    importlib.reload(cfg)

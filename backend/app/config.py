@@ -9,7 +9,9 @@ def _csv(value: str):
 
 
 class Settings:
-    NVIDIA_API_KEY: str = os.getenv("NVIDIA_API_KEY", "")
+    # Strip whitespace and quotes: keys pasted into secret stores often pick up a
+    # trailing newline, which makes the Authorization header invalid.
+    NVIDIA_API_KEY: str = os.getenv("NVIDIA_API_KEY", "").strip().strip('"').strip("'").strip()
     NVIDIA_BASE_URL: str = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1").rstrip("/")
     # Primary chat model. If NVIDIA reports it as retired/unknown (404/410), the
     # provider moves on to NVIDIA_FALLBACK_MODELS in order and remembers the
