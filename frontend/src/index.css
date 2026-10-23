@@ -487,8 +487,11 @@ button:disabled { cursor: not-allowed; }
 }
 @media (max-width: 560px) {
   .features__grid { grid-template-columns: 1fr; }
-  .wordmark { font-size: 21px; }
-  .site-header__actions .btn { padding: 0 14px; min-height: 40px; font-size: 14.5px; }
+  .wordmark { font-size: 19px; font-variation-settings: 'wdth' 125; }
+  .wordmark__dot { width: 7px; height: 7px; box-shadow: 3px 0 0 var(--yellow), 6px 0 0 var(--blue); }
+  .site-header__bar { gap: 10px; }
+  .site-header__actions .btn { padding: 0 12px; min-height: 40px; font-size: 14px; }
+  .confirm-reset__q { display: none; }
   .tab { padding: 8px 13px 7px; font-size: 15px; min-height: 44px; }
   .tab[aria-selected='true'] { padding-bottom: 11px; }
   .tab__count { display: none; }

@@ -15,7 +15,9 @@ import CareerCoachChat from './components/CareerCoachChat';
 const TAB_IDS = ['score', 'rewrite', 'interview', 'coach'];
 
 function countRewrites(report) {
-  return (report?.rewritten_experiences || []).reduce((n, e) => n + (e.rewritten_bullets?.length || 0), 0);
+  // Matches the "kept" total on the Rewrites tab: every bullet plus the summary.
+  const bullets = (report?.rewritten_experiences || []).reduce((n, e) => n + (e.rewritten_bullets?.length || 0), 0);
+  return bullets + (report?.tailored_summary ? 1 : 0);
 }
 
 export default function App() {
@@ -166,6 +168,7 @@ export default function App() {
         onStart={() => navigate('analyze')}
         onReset={handleReset}
         hasResults={hasResults}
+        busy={isLoading}
         showTabs={onResults && !isLoading}
         tabs={tabs}
         activeTab={activeTab}
