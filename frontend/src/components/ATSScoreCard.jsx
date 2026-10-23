@@ -30,6 +30,8 @@ export default function ATSScoreCard({ atsScore }) {
   const overall = pct(atsScore.overall_score);
   const matched = atsScore.matched_keywords || [];
   const missing = atsScore.missing_keywords || [];
+  const evidence = Object.fromEntries((atsScore.keyword_evidence || []).map((e) => [e.keyword, e]));
+  const criteria = atsScore.criteria || [];
 
   return (
     <>
@@ -56,6 +58,23 @@ export default function ATSScoreCard({ atsScore }) {
               );
             })}
           </ul>
+          {criteria.length > 0 && (
+            <details className="criteria">
+              <summary>How this score is calculated</summary>
+              <p>
+                The score is calculated in code, not guessed by the AI: 50% keywords, 30% experience and 20% formatting.
+                {atsScore.method === 'ai' ? ' The AI only listed the posting’s requirements; every match below was checked against your resume text.' : ' The posting’s requirements were matched against a fixed skills list because the AI was unavailable.'}
+              </p>
+              <dl>
+                {criteria.map((c) => (
+                  <div key={c.name}>
+                    <dt>{c.name} <span>{c.score} × {Math.round(c.weight * 100)}%</span></dt>
+                    <dd>{c.detail}</dd>
+                  </div>
+                ))}
+              </dl>
+            </details>
+          )}
         </div>
       </section>
 
@@ -66,7 +85,7 @@ export default function ATSScoreCard({ atsScore }) {
             <h3 className="t-h3">On your resume <span className="sticker sticker--ink-outline">{matched.length}</span></h3>
             {matched.length ? (
               <ul className="kw-list">
-                {matched.map((k, i) => <li key={`${k}-${i}`}><span className="sticker sticker--yellow" style={{ '--tilt': `${(i % 3) - 1}deg` }}>{k}</span></li>)}
+                {matched.map((k, i) => <li key={`${k}-${i}`}><span className="sticker sticker--yellow" style={{ '--tilt': `${(i % 3) - 1}deg` }} title={evidence[k]?.evidence ? `Found in: ${evidence[k].evidence}` : undefined}>{k}</span></li>)}
               </ul>
             ) : <p className="empty-line">None of the posting’s keywords were found.</p>}
           </div>
@@ -74,11 +93,21 @@ export default function ATSScoreCard({ atsScore }) {
             <h3 className="t-h3">Missing <span className="sticker sticker--ink-outline">{missing.length}</span></h3>
             {missing.length ? (
               <ul className="kw-list">
-                {missing.map((k, i) => <li key={`${k}-${i}`}><span className="sticker sticker--outline" style={{ '--tilt': `${((i + 1) % 3) - 1}deg` }}>{k}</span></li>)}
+                {missing.map((k, i) => <li key={`${k}-${i}`}><span className="sticker sticker--outline" style={{ '--tilt': `${((i + 1) % 3) - 1}deg` }}>{k}{evidence[k]?.importance === 'preferred' ? <small className="kw-pref"> preferred</small> : null}</span></li>)}
               </ul>
             ) : <p className="empty-line">No missing keywords — nice.</p>}
           </div>
         </div>
+        {matched.some((k) => evidence[k]?.evidence) && (
+          <details className="criteria">
+            <summary>Where each keyword appears in your resume</summary>
+            <dl>
+              {matched.filter((k) => evidence[k]?.evidence).map((k) => (
+                <div key={k}><dt>{k}</dt><dd>“{evidence[k].evidence}”</dd></div>
+              ))}
+            </dl>
+          </details>
+        )}
       </section>
     </>
   );

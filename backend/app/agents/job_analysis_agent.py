@@ -1,0 +1,105 @@
+"""Stage 1b — extract requirements from the job description, independently of the resume."""
+from __future__ import annotations
+
+import re
+from typing import List, Tuple
+
+from app.llm import ChatClient, complete_json
+from app.schemas.resume import JobRequirement, JobRequirements
+from app.services.text_utils import normalize, required_years, term_in_text
+
+MAX_JD_CHARS = 10000
+
+JOB_SYSTEM_PROMPT = """You read a job description and list what it asks candidates for. You do not see any resume.
+
+Rules:
+- List each distinct skill, tool, technology, method, qualification or soft skill that the posting names.
+- Use the posting's own wording for "term". Add common alternative spellings to "aliases" (e.g. "A/B testing" → ["AB testing", "split testing"]).
+- category: "hard" for technical skills, tools, methods and qualifications; "soft" for interpersonal or working-style skills.
+- importance: "preferred" if the posting marks it as a plus, nice-to-have, bonus or preferred; otherwise "required".
+- Do not add requirements the posting doesn't state. Do not list generic words like "experience" or "team".
+- min_years: the minimum years of experience the posting asks for, or null.
+- title: the job title, or null.
+
+Return one JSON object: {"title": str|null, "min_years": int|null,
+ "requirements": [{"term": str, "category": "hard"|"soft", "importance": "required"|"preferred", "aliases": [str]}]}"""
+
+
+def ground_requirements(reqs: JobRequirements, jd: str) -> Tuple[JobRequirements, List[str]]:
+    """Keep only requirements whose term (or an alias) is actually in the posting."""
+    kept, dropped, seen = [], 0, set()
+    for r in reqs.requirements:
+        term = r.term.strip()
+        if not term or term.lower() in seen:
+            continue
+        if term_in_text(term, jd) or any(term_in_text(a, jd) for a in r.aliases):
+            seen.add(term.lower())
+            kept.append(JobRequirement(term=term, category=r.category, importance=r.importance, aliases=[a for a in r.aliases if a.strip()][:5]))
+        else:
+            dropped += 1
+    warnings = [f"Ignored {dropped} requirement(s) the AI listed that aren't in the job description."] if dropped else []
+    years = reqs.min_years if reqs.min_years and str(reqs.min_years) in jd else required_years(jd)
+    title = reqs.title if reqs.title and term_in_text(reqs.title, jd) else _title_guess(jd)
+    return JobRequirements(title=title, min_years=years, requirements=kept[:40]), warnings
+
+
+async def analyze_job_with_ai(client: ChatClient, jd: str) -> Tuple[JobRequirements, List[str], str]:
+    reqs, model = await complete_json(client, JOB_SYSTEM_PROMPT, f"Job description:\n\n{jd[:MAX_JD_CHARS]}", JobRequirements, temperature=0.0, max_tokens=2500)
+    grounded, warnings = ground_requirements(reqs, jd)
+    return grounded, warnings, model
+
+
+# ───────────────────────── Rule-based extraction ─────────────────────────
+
+HARD_SKILLS = [
+    # languages & data
+    "Python", "SQL", "R", "Java", "JavaScript", "TypeScript", "Go", "Golang", "C#", "C++", "Rust", "Scala", "Kotlin", "Swift", "PHP", "Ruby",
+    "HTML", "CSS", "Bash", "Excel", "VBA", "Power BI", "Tableau", "Looker", "Amplitude", "Mixpanel", "Google Analytics", "Snowflake",
+    "BigQuery", "Redshift", "Databricks", "Spark", "Hadoop", "Kafka", "Airflow", "dbt", "Pandas", "NumPy", "scikit-learn", "TensorFlow",
+    "PyTorch", "Machine learning", "Deep learning", "NLP", "Statistics", "A/B testing", "Experimentation", "Causal inference",
+    "Regression", "Forecasting", "Cohort analysis", "Retention", "Data modeling", "ETL", "Data visualization", "Data warehousing",
+    # engineering
+    "React", "Next.js", "Vue", "Angular", "Node.js", "Express", "Django", "Flask", "FastAPI", "Spring", ".NET", "GraphQL", "REST",
+    "REST API", "Microservices", "System design", "Docker", "Kubernetes", "Terraform", "AWS", "Azure", "GCP", "Google Cloud", "CI/CD",
+    "Git", "Linux", "PostgreSQL", "MySQL", "MongoDB", "Redis", "Elasticsearch", "Unit testing", "Security", "DevOps",
+    # product, design, business
+    "Product management", "Roadmapping", "Agile", "Scrum", "Jira", "Figma", "Sketch", "Adobe Creative Suite", "Photoshop", "Illustrator",
+    "UX research", "User research", "Prototyping", "Wireframing", "Accessibility", "SEO", "SEM", "Content marketing", "Salesforce",
+    "HubSpot", "CRM", "Financial modeling", "Budgeting", "Accounting", "IFRS", "GAAP", "Project management", "PMP", "Six Sigma",
+    "Supply chain management", "Customer success", "Copywriting",
+]
+SOFT_SKILLS = [
+    "Communication", "Stakeholder management", "Stakeholder communication", "Leadership", "Mentoring", "Collaboration", "Teamwork",
+    "Problem solving", "Critical thinking", "Presentation", "Storytelling", "Executive storytelling", "Negotiation", "Time management",
+    "Attention to detail", "Adaptability", "Ownership", "Cross-functional", "Coaching", "Prioritization", "Decision making",
+]
+_PREFERRED_RE = re.compile(r"\b(nice to have|nice-to-have|a plus|bonus|preferred|desirable|ideally)\b", re.IGNORECASE)
+
+
+def _title_guess(jd: str):
+    for line in normalize(jd).splitlines():
+        s = line.strip()
+        if s:
+            s = re.split(r"\s+-\s+|\(|\|", s)[0].strip()
+            return s if 3 <= len(s) <= 80 else None
+    return None
+
+
+def rule_based_requirements(jd: str) -> Tuple[JobRequirements, List[str]]:
+    text = normalize(jd)
+    lines = text.splitlines()
+    reqs: List[JobRequirement] = []
+    seen = set()
+    for category, vocab in (("hard", HARD_SKILLS), ("soft", SOFT_SKILLS)):
+        for term in vocab:
+            if term.lower() in seen or not term_in_text(term, text):
+                continue
+            # 'R' and 'Go' are too ambiguous without context.
+            if term in ("R", "Go") and not re.search(rf"\b{term}\b(?:\s*(?:,|and|or|/))", text):
+                continue
+            line = next((l for l in lines if term_in_text(term, l)), "")
+            importance = "preferred" if _PREFERRED_RE.search(line) else "required"
+            seen.add(term.lower())
+            reqs.append(JobRequirement(term=term, category=category, importance=importance))
+    warnings = ["The AI was unavailable, so requirements were matched against a fixed skills list; unusual skills in the posting may be missed."]
+    return JobRequirements(title=_title_guess(jd), min_years=required_years(jd), requirements=reqs), warnings

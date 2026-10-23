@@ -16,7 +16,7 @@ const api = axios.create({
 
 export default api;
 
-export const ACCEPTED_EXTENSIONS = ['pdf', 'docx', 'doc', 'txt', 'md'];
+export const ACCEPTED_EXTENSIONS = ['pdf', 'docx', 'txt', 'md'];
 export const MAX_FILE_MB = 10;
 
 /** POST /api/v1/analyze — runs the multi-agent pipeline. Returns { session_id, analysis }. */
@@ -31,14 +31,27 @@ export async function analyzeResume(file, jobDescription, { signal } = {}) {
   return response.data;
 }
 
-/** POST /api/v1/chat — RAG career coach. Returns the reply text. */
-export async function askCoach(sessionId, message, chatHistory) {
+/**
+ * POST /api/v1/chat — career coach grounded in the analysis.
+ * The analysis and job description are sent along so the coach still works if
+ * the server restarted and lost its copy of the session.
+ */
+export async function askCoach(sessionId, message, chatHistory, { analysis, jobDescription } = {}) {
   const response = await api.post('/api/v1/chat', {
     session_id: sessionId,
     message,
     chat_history: chatHistory,
+    analysis,
+    job_description: jobDescription,
   });
   return response.data.reply;
+}
+
+/** Backend errors are { detail: { code, message } } (older servers send a string). */
+export function errorInfo(err) {
+  const d = err?.response?.data?.detail;
+  if (d && typeof d === 'object' && !Array.isArray(d)) return { code: d.code || '', message: d.message || '' };
+  return { code: '', message: detailText(err) };
 }
 
 export function isCancel(err) {
@@ -58,8 +71,23 @@ function detailText(err) {
  * Returns { title, body, detail } — detail is the raw server text, shown on request.
  */
 export function describeAnalyzeError(err) {
-  const detail = detailText(err);
+  const { code, message } = errorInfo(err);
+  const detail = message;
   const status = err?.response?.status;
+
+  if (code === 'ai_unavailable') {
+    return {
+      title: 'The AI analysis is unavailable right now',
+      body: message,
+      detail: err?.response?.data?.detail?.provider?.message || '',
+    };
+  }
+  if (code === 'parsing_failed') {
+    return { title: 'We couldn’t read your resume', body: message, detail: '' };
+  }
+  if (code === 'validation_failed') {
+    return { title: 'Something needs fixing before we can analyse this', body: message, detail: '' };
+  }
 
   if (err?.code === 'ECONNABORTED' || /timeout/i.test(err?.message || '')) {
     return {

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { askCoach } from '../api';
+import { askCoach, errorInfo } from '../api';
 
 const GREETING =
   'I’ve read your resume and the job description you pasted. Ask me what to fix first, how to handle a gap, or how to answer a question you’re dreading.';
@@ -14,13 +14,15 @@ function suggestionsFor(analysis) {
 }
 
 function coachError(err) {
-  const detail = err?.response?.data?.detail;
-  const text = typeof detail === 'string' ? detail : err?.message || '';
+  const { code, message } = errorInfo(err);
+  const text = message || err?.message || '';
   if (!err?.response) return { msg: 'Couldn’t reach the coach. Check your connection and try again.', text };
+  if (code === 'session_expired') return { msg: 'This session has expired, so the coach can’t see your resume any more. Run the analysis again to keep chatting.', text: '', final: true };
+  if (code === 'ai_unavailable') return { msg: 'The coach is unavailable right now because the AI service isn’t responding. No answer was made up — try again later.', text };
   return { msg: 'The coach couldn’t answer just now.', text };
 }
 
-export default function CareerCoachChat({ sessionId, analysis }) {
+export default function CareerCoachChat({ sessionId, analysis, jobDescription }) {
   const [messages, setMessages] = useState([{ role: 'assistant', content: GREETING }]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,7 +45,7 @@ export default function CareerCoachChat({ sessionId, analysis }) {
     setLoading(true);
     try {
       // Same contract as before: history excludes the greeting and the new message.
-      const reply = await askCoach(sessionId, userMsg, next.slice(1, -1));
+      const reply = await askCoach(sessionId, userMsg, next.slice(1, -1), { analysis, jobDescription });
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
       setFailed({ message: userMsg, base, error: coachError(err) });
@@ -82,7 +84,7 @@ export default function CareerCoachChat({ sessionId, analysis }) {
           <div className="slip slip--error" role="alert">
             <span className="slip__who">Coach</span>
             <p>{failed.error.msg}</p>
-            <button type="button" className="link" onClick={() => send(failed.message, failed.base)}>Try again</button>
+            {!failed.error.final && <button type="button" className="link" onClick={() => send(failed.message, failed.base)}>Try again</button>}
             {failed.error.text && (
               <details style={{ marginTop: 8, fontSize: 14 }}>
                 <summary style={{ cursor: 'pointer', fontWeight: 700 }}>Technical details</summary>

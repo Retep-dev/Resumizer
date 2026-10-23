@@ -11,12 +11,13 @@ import SkillGapView from './components/SkillGapView';
 import RewriteDiffView from './components/RewriteDiffView';
 import InterviewPrep from './components/InterviewPrep';
 import CareerCoachChat from './components/CareerCoachChat';
+import AnalysisStatus from './components/AnalysisStatus';
 
 const TAB_IDS = ['score', 'rewrite', 'interview', 'coach'];
 
 function countRewrites(report) {
   // Matches the "kept" total on the Rewrites tab: every bullet plus the summary.
-  const bullets = (report?.rewritten_experiences || []).reduce((n, e) => n + (e.rewritten_bullets?.length || 0), 0);
+  const bullets = (report?.rewritten_experiences || []).reduce((n, e) => n + (e.rewritten_bullets || []).filter((b) => b.status !== 'kept_original').length, 0);
   return bullets + (report?.tailored_summary ? 1 : 0);
 }
 
@@ -129,6 +130,7 @@ export default function App() {
               </details>
             )}
           </div>
+          <AnalysisStatus analysis={analysis} />
           {TAB_IDS.map((id) => (
             <div key={id} id={`panel-${id}`} role="tabpanel" aria-labelledby={`tab-${id}`} hidden={activeTab !== id} className={activeTab === id ? 'panel' : undefined}>
               {id === 'score' && (
@@ -137,9 +139,9 @@ export default function App() {
                   <SkillGapView skillGap={analysis.skill_gap} />
                 </>
               )}
-              {id === 'rewrite' && <RewriteDiffView rewriteReport={analysis.rewrite_report} kept={kept} onToggleKeep={toggleKeep} />}
-              {id === 'interview' && <InterviewPrep interviewPrep={analysis.interview_prep} />}
-              {id === 'coach' && <CareerCoachChat sessionId={analysisData.session_id} analysis={analysis} />}
+              {id === 'rewrite' && <RewriteDiffView rewriteReport={analysis.rewrite_report} kept={kept} onToggleKeep={toggleKeep} stage={analysis.stages?.rewrite} />}
+              {id === 'interview' && <InterviewPrep interviewPrep={analysis.interview_prep} stage={analysis.stages?.interview} />}
+              {id === 'coach' && <CareerCoachChat sessionId={analysisData.session_id} analysis={analysis} jobDescription={analyzedFor?.jd} />}
             </div>
           ))}
         </div>

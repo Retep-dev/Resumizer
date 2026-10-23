@@ -11,6 +11,7 @@ function extOf(name = '') {
 
 export function validateFile(file) {
   if (!file) return 'Choose your resume file.';
+  if (extOf(file.name) === 'doc') return `${file.name} is a legacy Word file. Save it as DOCX or PDF and upload it again.`;
   if (!ACCEPTED_EXTENSIONS.includes(extOf(file.name))) return `${file.name} isn’t a supported format. Use PDF, DOCX, TXT or MD.`;
   if (file.size === 0) return `${file.name} is empty. Choose the file that contains your resume.`;
   if (file.size > MAX_FILE_MB * 1024 * 1024) return `${file.name} is larger than ${MAX_FILE_MB} MB. Export a smaller copy and try again.`;
@@ -100,7 +101,7 @@ export default function FileUploader({ file, onFileChange, jobDescription, onJob
                   ref={input}
                   id="resume-file"
                   type="file"
-                  accept=".pdf,.docx,.doc,.txt,.md"
+                  accept=".pdf,.docx,.txt,.md"
                   className="sr-only"
                   aria-describedby={`resume-file-hint${showFileError ? ' resume-file-error' : ''}`}
                   aria-invalid={!!showFileError}

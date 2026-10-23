@@ -4,7 +4,7 @@ const TYPE_LABEL = { behavioral: 'Behavioural', technical: 'Technical', gap_focu
 const typeOf = (t) => (TYPE_LABEL[t] ? t : 'other');
 const labelOf = (t) => TYPE_LABEL[t] || 'General';
 
-export default function InterviewPrep({ interviewPrep }) {
+export default function InterviewPrep({ interviewPrep, stage }) {
   const all = useMemo(() => interviewPrep?.questions || interviewPrep?.interview_questions || [], [interviewPrep]);
   const types = useMemo(() => [...new Set(all.map((q) => typeOf(q.question_type)))], [all]);
   const [mode, setMode] = useState('cards');
@@ -34,6 +34,11 @@ export default function InterviewPrep({ interviewPrep }) {
 
   return (
     <>
+      {stage?.status === 'rule_based' && (
+        <p className="iv-template-note">
+          <span className="sticker sticker--ink-outline">Template questions</span> The AI was unavailable, so these questions come from the posting’s requirements and have no sample answers.
+        </p>
+      )}
       <div className="iv-top">
         <div className="seg" role="group" aria-label="View">
           <button type="button" aria-pressed={mode === 'cards'} onClick={() => setMode('cards')}>Flashcards</button>
@@ -68,7 +73,9 @@ export default function InterviewPrep({ interviewPrep }) {
               </span>
               <span className="flashcard__face flashcard__back" aria-hidden={!flipped}>
                 {q.star_guide && (<><span className="flashcard__label">How to structure it</span><span className="flashcard__star">{q.star_guide}</span></>)}
-                {q.sample_answer && (<><span className="flashcard__label">A strong answer</span><span className="flashcard__answer">{q.sample_answer}</span></>)}
+                {q.sample_answer
+                  ? (<><span className="flashcard__label">A strong answer, built from your resume</span><span className="flashcard__answer">{q.sample_answer}</span><span className="flashcard__star">Replace anything in [brackets] with your real details.</span></>)
+                  : (<span className="flashcard__star">No sample answer for this one — answer it with a real example from your own experience.</span>)}
               </span>
             </button>
           </div>
@@ -90,7 +97,7 @@ export default function InterviewPrep({ interviewPrep }) {
                 <div className="iv-list__body">
                   {qq.context_or_reason && (<><h4>Why they’ll ask</h4><p>{qq.context_or_reason}</p></>)}
                   {qq.star_guide && (<><h4>How to structure it</h4><p>{qq.star_guide}</p></>)}
-                  {qq.sample_answer && (<><h4>A strong answer</h4><p>{qq.sample_answer}</p></>)}
+                  {qq.sample_answer ? (<><h4>A strong answer, built from your resume</h4><p>{qq.sample_answer}</p></>) : <p className="empty-line">No sample answer — use a real example from your experience.</p>}
                 </div>
               </details>
             </li>

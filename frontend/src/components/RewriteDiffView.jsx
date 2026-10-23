@@ -18,18 +18,30 @@ function buildText(report, filter) {
   return parts.join('\n\n');
 }
 
-export default function RewriteDiffView({ rewriteReport, kept, onToggleKeep }) {
+/** Questions the rewriter wants answered before it adds detail it can't verify. */
+function Confirm({ items }) {
+  return (
+    <div className="rw-confirm">
+      <p>Could be stronger — add this only if it’s true:</p>
+      <ul>{items.map((q, i) => <li key={i}>{q}</li>)}</ul>
+    </div>
+  );
+}
+
+export default function RewriteDiffView({ rewriteReport, kept, onToggleKeep, stage }) {
   const toast = useToast();
   if (!rewriteReport) return null;
   const experiences = (rewriteReport.rewritten_experiences || []).filter((e) => e.rewritten_bullets?.length);
-  const total = experiences.reduce((n, e) => n + e.rewritten_bullets.length, 0) + (rewriteReport.tailored_summary ? 1 : 0);
+  const total = experiences.reduce((n, e) => n + e.rewritten_bullets.filter((b) => b.status !== 'kept_original').length, 0) + (rewriteReport.tailored_summary ? 1 : 0);
 
   if (!total) {
     return (
       <div className="empty">
         <div className="empty__plate" aria-hidden="true" />
-        <h2 className="t-h2">No rewrites came back</h2>
-        <p>The rewriting step didn’t return any bullets for this resume. Try running the analysis again, or ask the coach to rewrite a specific bullet.</p>
+        <h2 className="t-h2">{stage?.status === 'unavailable' ? 'Rewrites weren’t produced' : 'No rewrites came back'}</h2>
+        <p>{stage?.status === 'unavailable'
+          ? `${stage.message || 'The AI was unavailable.'} Rewrites need the AI, so none were made up. Run the analysis again later.`
+          : 'The rewriting step didn’t return any bullets for this resume. Try running the analysis again.'}</p>
       </div>
     );
   }
@@ -43,6 +55,7 @@ export default function RewriteDiffView({ rewriteReport, kept, onToggleKeep }) {
     <>
       <div className="rw-toolbar" role="toolbar" aria-label="Rewrite actions">
         <span className="rw-toolbar__count" aria-live="polite">{kept.size} of {total} kept</span>
+        <span className="rw-toolbar__note">Rewrites never add numbers or skills your resume doesn’t show.</span>
         <div className="rw-toolbar__actions">
           <button type="button" className="btn btn--sm btn--green" disabled={!kept.size} onClick={() => copy(buildText(rewriteReport, (k) => kept.has(k)), `${kept.size} kept ${kept.size === 1 ? 'rewrite' : 'rewrites'}`)}>
             Copy kept
@@ -72,12 +85,22 @@ export default function RewriteDiffView({ rewriteReport, kept, onToggleKeep }) {
           {exp.rewritten_bullets.map((b, bi) => {
             const key = bulletKey(ei, bi);
             const on = kept.has(key);
+            if (b.status === 'kept_original') {
+              return (
+                <article key={key} className="card rw-item rw-item--withheld" aria-label={`Original bullet ${bi + 1}, rewrite withheld`}>
+                  <p className="rw-original">{b.original_bullet}</p>
+                  <p className="rw-note"><span className="sticker sticker--ink-outline">Kept your wording</span> {b.note}</p>
+                  {b.needs_confirmation?.length > 0 && <Confirm items={b.needs_confirmation} />}
+                </article>
+              );
+            }
             return (
               <article key={key} className={`card rw-item ${on ? 'is-kept' : ''}`} aria-label={`Rewrite ${bi + 1} for ${exp.job_title || 'this role'}`}>
                 <Wipe before={b.original_bullet} after={b.rewritten_bullet} label={`bullet ${bi + 1}`} />
                 {b.star_action && b.star_result && (
                   <p className="rw-star"><b>Action:</b> {b.star_action} <b>Result:</b> {b.star_result}</p>
                 )}
+                {b.needs_confirmation?.length > 0 && <Confirm items={b.needs_confirmation} />}
                 <div className="rw-meta">
                   <div className="rw-tags">
                     {(b.added_keywords || []).map((k, i) => <span key={i} className="sticker sticker--outline">+ {k}</span>)}

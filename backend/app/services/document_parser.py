@@ -1,36 +1,76 @@
 import io
-from typing import Union
-import pdfplumber
+import re
+
 import docx
+import pdfplumber
+
+from app.services.text_utils import normalize
+
+SUPPORTED_EXTENSIONS = (".pdf", ".docx", ".txt", ".md")
+
+
+class DocumentError(Exception):
+    """The file can't be turned into resume text. `code` is 'validation_failed' or 'parsing_failed'."""
+
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code
+        self.message = message
 
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:
-    """Extract clean text from PDF file bytes using pdfplumber."""
-    extracted_text = []
-    with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-        for page in pdf.pages:
-            text = page.extract_text()
-            if text:
-                extracted_text.append(text)
-    return "\n\n".join(extracted_text)
+    """Extract text from PDF bytes. Uses layout-aware extraction so columns don't interleave."""
+    pages = []
+    try:
+        with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text(x_tolerance=1.5, y_tolerance=3) or ""
+                if text.strip():
+                    pages.append(text)
+    except Exception as e:  # corrupt or encrypted PDF
+        raise DocumentError("parsing_failed", f"This PDF couldn't be opened ({type(e).__name__}). Try exporting it again or upload a DOCX.")
+    return "\n\n".join(pages)
 
 
 def extract_text_from_docx(file_bytes: bytes) -> str:
-    """Extract text from DOCX file bytes using python-docx."""
-    doc = docx.Document(io.BytesIO(file_bytes))
-    paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
-    return "\n".join(paragraphs)
+    """Extract paragraphs and table cells (many resume templates use tables for layout)."""
+    try:
+        document = docx.Document(io.BytesIO(file_bytes))
+    except Exception:
+        raise DocumentError("parsing_failed", "This DOCX file couldn't be opened. Re-save it in Word or upload a PDF.")
+    lines = [p.text for p in document.paragraphs if p.text.strip()]
+    for table in document.tables:
+        for row in table.rows:
+            seen = []
+            for cell in row.cells:
+                t = cell.text.strip()
+                if t and t not in seen:  # merged cells repeat their text
+                    seen.append(t)
+            lines.extend(seen)
+    return "\n".join(lines)
+
+
+def _clean(text: str) -> str:
+    t = normalize(text)
+    t = t.replace("ﬁ", "fi").replace("ﬂ", "fl")
+    t = re.sub(r"(\w)-\n(\w)", r"\1\2", t)  # re-join words hyphenated across lines
+    t = re.sub(r"\n{3,}", "\n\n", t)
+    return t.strip()
 
 
 def extract_text_from_file(file_bytes: bytes, filename: str) -> str:
-    """Unified file text extractor supporting PDF, DOCX, TXT, and MD."""
-    filename_lower = filename.lower()
-    if filename_lower.endswith(".pdf"):
-        return extract_text_from_pdf(file_bytes)
-    elif filename_lower.endswith(".docx") or filename_lower.endswith(".doc"):
-        return extract_text_from_docx(file_bytes)
-    elif filename_lower.endswith(".txt") or filename_lower.endswith(".md"):
-        return file_bytes.decode("utf-8", errors="ignore")
+    """Unified extractor for PDF, DOCX, TXT and MD. Raises DocumentError."""
+    name = (filename or "").lower()
+    if name.endswith(".doc"):
+        raise DocumentError("validation_failed", "Legacy .doc files aren't supported. Save your resume as DOCX or PDF and upload it again.")
+    if not name.endswith(SUPPORTED_EXTENSIONS):
+        raise DocumentError("validation_failed", "Upload a PDF, DOCX, TXT or MD file.")
+    if not file_bytes:
+        raise DocumentError("validation_failed", "The uploaded file is empty.")
+    if name.endswith(".pdf"):
+        text = extract_text_from_pdf(file_bytes)
+    elif name.endswith(".docx"):
+        text = extract_text_from_docx(file_bytes)
     else:
-        # Fallback to UTF-8 decoding
-        return file_bytes.decode("utf-8", errors="ignore")
+        text = file_bytes.decode("utf-8", errors="ignore")
+    return _clean(text)

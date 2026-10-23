@@ -2,16 +2,17 @@ import React from 'react';
 import StretchType from './ui/StretchType';
 import Wipe from './ui/Wipe';
 
-// Illustrative copy only — shown as a labelled example of what a rewrite looks like.
+// Illustrative copy only — a labelled example of the kind of edit Resumizer makes.
+// It tightens wording and leads with the action; it never adds facts or numbers.
 const EXAMPLE = {
-  before: 'Ran A/B tests on the pricing page.',
-  after: 'Designed and analysed 14 pricing-page A/B tests; the winning annual-plan layout raised paid conversion 6.2% at 95% confidence.',
+  before: 'Responsible for weekly reporting to leadership.',
+  after: 'Produce the weekly performance report for the leadership team.',
 };
 
 const FEATURES = [
-  { title: 'ATS match score', body: 'A score out of 100 against the posting, split into keywords, experience and formatting.' },
-  { title: 'Rewritten bullets', body: 'Your experience rewritten with the STAR method, with numbers and the posting’s keywords worked in.' },
-  { title: 'Interview prep', body: 'Six likely questions — behavioural, technical and gap-focused — each with a model answer.' },
+  { title: 'ATS match score', body: 'A score out of 100 from published criteria — keywords, experience and formatting — with every match traced to your resume.' },
+  { title: 'Rewritten bullets', body: 'Clearer, stronger bullets in the posting’s language. Nothing is added that your resume doesn’t say — if a number would help, you’re asked for it.' },
+  { title: 'Interview prep', body: 'Six likely questions — behavioural, technical and about your gaps — with answers built only from your resume.' },
   { title: 'Career coach', body: 'Ask follow-up questions. The coach answers using your resume and the job description.' },
 ];
 
@@ -94,8 +95,8 @@ export default function Landing({ onStart }) {
               </li>
             </ol>
             <p className="privacy-note">
-              Your resume is sent to Resumizer’s server for analysis and indexed for your session so the coach can
-              answer questions about it.
+              Your resume is sent to Resumizer’s server for analysis and kept in memory for up to six hours so the
+              coach can answer questions about it. It isn’t saved to disk.
             </p>
           </div>
           <div>
