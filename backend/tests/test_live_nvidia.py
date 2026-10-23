@@ -8,6 +8,13 @@ import asyncio
 import os
 import re
 
+
+def notice(title, text):
+    """Print, and in GitHub Actions also publish as an annotation."""
+    print(f"{title}: {text}")
+    if os.getenv("GITHUB_ACTIONS"):
+        print(f"::notice title={title}::{' '.join(str(text).split())[:900]}")
+
 import pytest
 
 from app.config import settings
@@ -23,12 +30,13 @@ def test_live_pipeline_is_accurate_and_grounded():
     from tests.conftest import DATA_JD, PRIYA_RESUME
 
     result = asyncio.run(run_resumizer_pipeline(PRIYA_RESUME, DATA_JD))
-    print("\nSTATUS", result.status, {k: (v.status, v.model) for k, v in result.stages.items()})
-    print("WARNINGS", result.warnings)
+    notice("live status", f"{result.status} {({k: (v.status, v.model) for k, v in result.stages.items()})}")
+    notice("live warnings", result.warnings)
     assert result.status == "complete", result.stages
 
     jobs = [(j.job_title, j.company) for j in result.resume_data.work_experience]
-    print("JOBS", jobs)
+    notice("live parsed roles", jobs)
+    notice("live score", f"{result.ats_score.overall_score} {[(c.name, c.score) for c in result.ats_score.criteria]} missing={result.ats_score.missing_keywords}")
     assert ("Senior Data Engineer", "Halcyon Freight") in jobs and ("Data Analyst", "Brightwell Insurance") in jobs
     assert result.resume_data.full_name == "Priya Raman"
     assert {"Kafka", "Terraform"} <= set(result.ats_score.missing_keywords)
@@ -38,12 +46,12 @@ def test_live_pipeline_is_accurate_and_grounded():
     rewrites = [b for e in result.rewrite_report.rewritten_experiences for b in e.rewritten_bullets]
     assert rewrites, "expected AI rewrites"
     for b in rewrites:
-        print("REWRITE", b.status, "|", b.original_bullet, "=>", b.rewritten_bullet, "| ask:", b.needs_confirmation)
+        notice("live rewrite", f"[{b.status}] {b.original_bullet} => {b.rewritten_bullet} | ask: {b.needs_confirmation} | {b.note or ''}")
         assert set(re.findall(r"\d+", b.rewritten_bullet)) <= resume_numbers
         assert "Kafka" not in b.rewritten_bullet and "Terraform" not in b.rewritten_bullet
     assert len(result.interview_prep.questions) >= 4
     for q in result.interview_prep.questions:
-        print("Q", q.question_type, q.question)
+        notice("live question", f"{q.question_type}: {q.question} | answer: {(q.sample_answer or '')[:300]}")
 
 
 def test_live_coach_multi_turn():
@@ -55,7 +63,7 @@ def test_live_coach_multi_turn():
     history = []
     for q in ("What should I fix first for this job?", "Do I have Kafka experience? Answer yes or no first.", "Rewrite my Airflow bullet."):
         reply = asyncio.run(chat_with_career_coach(q, history, PRIYA_RESUME, DATA_JD, analysis))
-        print(f"\nUSER: {q}\nCOACH: {reply[:600]}")
+        notice("live coach turn", f"USER: {q} || COACH: {reply[:700]}")
         assert reply.strip()
         history += [{"role": "user", "content": q}, {"role": "assistant", "content": reply}]
     assert re.match(r"\W*no\b", history[3]["content"].strip(), re.IGNORECASE), "coach must not claim Kafka"

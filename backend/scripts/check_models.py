@@ -11,6 +11,7 @@ correctly. The key is never printed.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -82,6 +83,9 @@ def main(argv):
         result = "OK" if r["ok"] else r["error"]
         acc = ("yes" if r.get("accurate_extraction") else "no") if r["ok"] else "-"
         print(f"{m:45} {'yes' if m in listed else 'no':7} {result:10} {acc:9} {r['seconds']:>5}  {r.get('detail', '')}")
+        if os.getenv("GITHUB_ACTIONS"):
+            # Surface results as annotations (readable through the GitHub API).
+            print(f"::notice title=model {m}::{result}; accurate={acc}; {r['seconds']}s; listed={'yes' if m in listed else 'no'}; {r.get('detail', '')[:100]}")
         if r["ok"] and r.get("accurate_extraction"):
             usable.append(m)
     print("\nUsable and accurate:", ", ".join(usable) or "none")
