@@ -1,116 +1,99 @@
-import React, { useState } from 'react';
-import { FileEdit, Copy, Check, Sparkles, ArrowRight } from 'lucide-react';
+import React from 'react';
+import Wipe from './ui/Wipe';
+import { copyText, useToast } from './ui/Toast';
 
-export default function RewriteDiffView({ rewriteReport }) {
-  const [copiedIndex, setCopiedIndex] = useState(null);
+const SUMMARY_KEY = 'summary';
+export const bulletKey = (ei, bi) => `${ei}:${bi}`;
 
+/** Plain-text export of the chosen rewrites, grouped by role, ready to paste. */
+function buildText(report, filter) {
+  const parts = [];
+  if (report.tailored_summary && filter(SUMMARY_KEY)) parts.push(`SUMMARY\n${report.tailored_summary}`);
+  (report.rewritten_experiences || []).forEach((exp, ei) => {
+    const lines = (exp.rewritten_bullets || [])
+      .map((b, bi) => (filter(bulletKey(ei, bi)) ? `• ${b.rewritten_bullet}` : null))
+      .filter(Boolean);
+    if (lines.length) parts.push(`${[exp.job_title, exp.company].filter(Boolean).join(' — ')}\n${lines.join('\n')}`);
+  });
+  return parts.join('\n\n');
+}
+
+export default function RewriteDiffView({ rewriteReport, kept, onToggleKeep }) {
+  const toast = useToast();
   if (!rewriteReport) return null;
+  const experiences = (rewriteReport.rewritten_experiences || []).filter((e) => e.rewritten_bullets?.length);
+  const total = experiences.reduce((n, e) => n + e.rewritten_bullets.length, 0) + (rewriteReport.tailored_summary ? 1 : 0);
 
-  const handleCopy = (text, idx) => {
-    navigator.clipboard.writeText(text);
-    setCopiedIndex(idx);
-    setTimeout(() => setCopiedIndex(null), 2000);
+  if (!total) {
+    return (
+      <div className="empty">
+        <div className="empty__plate" aria-hidden="true" />
+        <h2 className="t-h2">No rewrites came back</h2>
+        <p>The rewriting step didn’t return any bullets for this resume. Try running the analysis again, or ask the coach to rewrite a specific bullet.</p>
+      </div>
+    );
+  }
+
+  const copy = async (text, what) => {
+    const ok = await copyText(text);
+    toast(ok ? `${what} copied` : 'Couldn’t copy — select the text and copy it manually');
   };
 
   return (
-    <div className="surface-card p-5 sm:p-7 space-y-6 w-full">
-      {/* Section Header */}
-      <div className="flex items-center space-x-3 pb-4 border-b border-white/[0.06]">
-        <div className="h-9 w-9 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 shrink-0">
-          <FileEdit className="h-5 w-5" />
-        </div>
-        <div>
-          <h3 className="text-base sm:text-lg font-extrabold text-slate-100 font-display">Tailored Resume & STAR Rewriter</h3>
-          <p className="text-xs text-slate-500 font-medium">Original vs optimized bullets with metrics & injected keywords</p>
+    <>
+      <div className="rw-toolbar" role="toolbar" aria-label="Rewrite actions">
+        <span className="rw-toolbar__count" aria-live="polite">{kept.size} of {total} kept</span>
+        <div className="rw-toolbar__actions">
+          <button type="button" className="btn btn--sm btn--green" disabled={!kept.size} onClick={() => copy(buildText(rewriteReport, (k) => kept.has(k)), `${kept.size} kept ${kept.size === 1 ? 'rewrite' : 'rewrites'}`)}>
+            Copy kept
+          </button>
+          <button type="button" className="btn btn--sm" onClick={() => copy(buildText(rewriteReport, () => true), 'All rewrites')}>Copy all</button>
         </div>
       </div>
 
-      {/* Tailored Professional Summary */}
       {rewriteReport.tailored_summary && (
-        <div className="p-4 rounded-xl surface-inner border-l-2 border-l-teal-500 space-y-2">
-          <div className="flex items-center space-x-2 text-teal-400 font-extrabold text-[11px] uppercase tracking-wider">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Tailored Professional Summary</span>
+        <section aria-labelledby="rw-summary-title" className={`card rw-summary rw-item ${kept.has(SUMMARY_KEY) ? 'is-kept' : ''}`}>
+          <h2 id="rw-summary-title" className="t-h3">Tailored summary</h2>
+          <p>{rewriteReport.tailored_summary}</p>
+          <div className="rw-actions">
+            <button type="button" className="btn btn--quiet btn--sm" onClick={() => copy(rewriteReport.tailored_summary, 'Summary')}>Copy</button>
+            <button type="button" className={`btn btn--sm ${kept.has(SUMMARY_KEY) ? 'btn--green' : ''}`} aria-pressed={kept.has(SUMMARY_KEY)} onClick={() => onToggleKeep(SUMMARY_KEY)}>
+              {kept.has(SUMMARY_KEY) ? 'Kept' : 'Keep'}
+            </button>
           </div>
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
-            {rewriteReport.tailored_summary}
-          </p>
-        </div>
+        </section>
       )}
 
-      {/* Experience Bullet Rewrites */}
-      <div className="space-y-6">
-        {rewriteReport.rewritten_experiences?.map((exp, expIdx) => (
-          <div key={expIdx} className="space-y-3">
-            {/* Job Header */}
-            <div className="flex flex-wrap items-center gap-2 text-sm font-extrabold">
-              <span className="text-teal-400">{exp.job_title}</span>
-              <span className="text-slate-600">·</span>
-              <span className="text-slate-400">{exp.company}</span>
-            </div>
-
-            {/* Bullets */}
-            <div className="space-y-3">
-              {exp.rewritten_bullets?.map((bullet, bulletIdx) => {
-                const uniqueId = `${expIdx}-${bulletIdx}`;
-                return (
-                  <div key={bulletIdx} className="p-4 rounded-xl surface-inner grid grid-cols-1 lg:grid-cols-2 gap-4 relative">
-                    {/* Original */}
-                    <div className="space-y-1.5">
-                      <span className="text-[10px] uppercase font-bold text-slate-600 tracking-wider">Original</span>
-                      <p className="text-xs text-slate-400 leading-relaxed bg-navy-950/50 p-3 rounded-lg border border-white/[0.04]">
-                        {bullet.original_bullet}
-                      </p>
-                    </div>
-
-                    {/* Arrow indicator (desktop only) */}
-                    <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-                      <div className="h-7 w-7 rounded-full bg-navy-800 border border-white/[0.08] flex items-center justify-center">
-                        <ArrowRight className="h-3.5 w-3.5 text-teal-400" />
-                      </div>
-                    </div>
-
-                    {/* Rewritten */}
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] uppercase font-bold text-teal-400 tracking-wider flex items-center gap-1">
-                          <Sparkles className="h-3 w-3" /> Optimized
-                        </span>
-                        <button
-                          onClick={() => handleCopy(bullet.rewritten_bullet, uniqueId)}
-                          className="p-1 text-slate-500 hover:text-teal-400 rounded-md bg-navy-800 border border-white/[0.06] hover:border-teal-500/30 transition"
-                          title="Copy bullet point"
-                        >
-                          {copiedIndex === uniqueId ? (
-                            <Check className="h-3.5 w-3.5 text-teal-400" />
-                          ) : (
-                            <Copy className="h-3.5 w-3.5" />
-                          )}
-                        </button>
-                      </div>
-                      <p className="text-xs text-slate-200 font-semibold leading-relaxed bg-teal-500/5 p-3 rounded-lg border border-teal-500/15">
-                        {bullet.rewritten_bullet}
-                      </p>
-                      {bullet.added_keywords?.length > 0 && (
-                        <div className="flex items-center space-x-1.5 text-[10px] text-slate-500 font-medium mt-1">
-                          <span>Keywords added:</span>
-                          <div className="flex flex-wrap gap-1">
-                            {bullet.added_keywords.map((kw, i) => (
-                              <span key={i} className="px-1.5 py-0.5 rounded bg-teal-500/15 text-teal-300 font-mono font-semibold text-[10px] border border-teal-500/20">
-                                {kw}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+      {experiences.map((exp, ei) => (
+        <section key={ei} className="rw-role" aria-labelledby={`rw-role-${ei}`}>
+          <h2 id={`rw-role-${ei}`} className="t-h2">
+            {exp.job_title || 'Role'} {exp.company && <span>at {exp.company}</span>}
+          </h2>
+          {exp.rewritten_bullets.map((b, bi) => {
+            const key = bulletKey(ei, bi);
+            const on = kept.has(key);
+            return (
+              <article key={key} className={`card rw-item ${on ? 'is-kept' : ''}`} aria-label={`Rewrite ${bi + 1} for ${exp.job_title || 'this role'}`}>
+                <Wipe before={b.original_bullet} after={b.rewritten_bullet} label={`bullet ${bi + 1}`} />
+                {b.star_action && b.star_result && (
+                  <p className="rw-star"><b>Action:</b> {b.star_action} <b>Result:</b> {b.star_result}</p>
+                )}
+                <div className="rw-meta">
+                  <div className="rw-tags">
+                    {(b.added_keywords || []).map((k, i) => <span key={i} className="sticker sticker--outline">+ {k}</span>)}
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+                  <div className="rw-actions">
+                    <button type="button" className="btn btn--quiet btn--sm" onClick={() => copy(b.rewritten_bullet, 'Rewrite')}>Copy</button>
+                    <button type="button" className={`btn btn--sm ${on ? 'btn--green' : ''}`} aria-pressed={on} onClick={() => onToggleKeep(key)}>
+                      {on ? 'Kept' : 'Keep'}
+                    </button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </section>
+      ))}
+    </>
   );
 }

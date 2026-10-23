@@ -1,85 +1,76 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, Bot, RotateCcw } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
-export default function Navbar({ onReset }) {
-  const [isVisible, setIsVisible] = useState(true);
-  const lastScrollY = useRef(0);
-  const scrollTimeout = useRef(null);
+/**
+ * Site header. Shows the results tabs once an analysis exists.
+ * `tabs` items: { id, label, count?, className }
+ */
+export default function Navbar({ onHome, onStart, onReset, hasResults, tabs = [], activeTab, onTab, showTabs }) {
+  const [confirming, setConfirming] = useState(false);
+  const confirmRef = useRef(null);
+  const tabRefs = useRef({});
 
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+    if (confirming) confirmRef.current?.focus();
+  }, [confirming]);
 
-      // Clear existing scroll timeout
-      if (scrollTimeout.current) {
-        clearTimeout(scrollTimeout.current);
-      }
-
-      // Hide navbar when scrolling down past 60px
-      if (currentScrollY > lastScrollY.current && currentScrollY > 60) {
-        setIsVisible(false);
-      } else {
-        // Show navbar when scrolling up
-        setIsVisible(true);
-      }
-
-      // Re-appear smoothly when scrolling stops (after 300ms pause)
-      scrollTimeout.current = setTimeout(() => {
-        setIsVisible(true);
-      }, 350);
-
-      lastScrollY.current = currentScrollY;
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (scrollTimeout.current) {
-        clearTimeout(scrollTimeout.current);
-      }
-    };
-  }, []);
+  // Arrow-key navigation between tabs (WAI-ARIA tabs pattern).
+  const onTabKey = (e, i) => {
+    const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (!dir && e.key !== 'Home' && e.key !== 'End') return;
+    e.preventDefault();
+    const next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (i + dir + tabs.length) % tabs.length;
+    onTab(tabs[next].id);
+    tabRefs.current[tabs[next].id]?.focus();
+  };
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 w-full bg-navy-950/90 backdrop-blur-xl border-b border-white/[0.06] transition-transform duration-300 ease-in-out ${
-        isVisible ? 'translate-y-0' : '-translate-y-full'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Logo & Brand */}
-        <div className="flex items-center space-x-3 cursor-pointer" onClick={onReset}>
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white shadow-glow-teal-sm">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <div className="flex items-center space-x-2.5">
-            <span className="text-xl font-extrabold text-slate-100 tracking-tight font-display">
-              Resumizer<span className="text-teal-400">.</span>
-            </span>
-            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-md bg-teal-500/10 text-teal-400 border border-teal-500/20 text-[10px] font-bold uppercase tracking-wider">
-              Multi-Agent AI
-            </span>
+    <header className={`site-header ${showTabs ? 'has-tabs' : ''}`}>
+      <div className="wrap">
+        <div className="site-header__bar">
+          <a href="#/" className="wordmark" onClick={(e) => { e.preventDefault(); onHome(); }} aria-label="Resumizer home">
+            Resumizer<span className="wordmark__dot" aria-hidden="true" />
+          </a>
+          <div className="site-header__actions">
+            {!hasResults && (
+              <>
+                <a className="site-header__nav-link" href="#how" onClick={(e) => { e.preventDefault(); onHome('how'); }}>How it works</a>
+                <button type="button" className="btn btn--ink btn--sm" onClick={onStart}>Analyze a resume</button>
+              </>
+            )}
+            {hasResults && !confirming && (
+              <button type="button" className="btn btn--sm" onClick={() => setConfirming(true)}>New analysis</button>
+            )}
+            {hasResults && confirming && (
+              <div className="confirm-reset" role="group" aria-label="Start a new analysis">
+                <span className="confirm-reset__q">Clear these results?</span>
+                <button ref={confirmRef} type="button" className="btn btn--pink btn--sm" onClick={() => { setConfirming(false); onReset(); }}>Clear</button>
+                <button type="button" className="btn btn--quiet btn--sm" onClick={() => setConfirming(false)}>Keep</button>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Right side */}
-        <div className="flex items-center space-x-3">
-          <div className="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-navy-800 border border-white/[0.06] text-xs font-semibold text-slate-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-teal-400 animate-pulse-soft"></span>
-            <Bot className="h-3.5 w-3.5 text-teal-400" />
-            <span>NVIDIA NIM Engine</span>
+        {showTabs && (
+          <div className="tabs" role="tablist" aria-label="Analysis results">
+            {tabs.map((t, i) => (
+              <button
+                key={t.id}
+                ref={(el) => { tabRefs.current[t.id] = el; }}
+                type="button"
+                role="tab"
+                id={`tab-${t.id}`}
+                aria-controls={`panel-${t.id}`}
+                aria-selected={activeTab === t.id}
+                tabIndex={activeTab === t.id ? 0 : -1}
+                className={`tab ${t.className}`}
+                onClick={() => onTab(t.id)}
+                onKeyDown={(e) => onTabKey(e, i)}
+              >
+                {t.label}
+                {t.count != null && <span className="tab__count">{t.count}</span>}
+              </button>
+            ))}
           </div>
-          
-          {onReset && (
-            <button
-              onClick={onReset}
-              className="btn-secondary-serio flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span>New Analysis</span>
-            </button>
-          )}
-        </div>
+        )}
       </div>
     </header>
   );

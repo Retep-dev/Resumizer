@@ -66,10 +66,9 @@ Resumizer uses a **3-stage parallel multi-agent pipeline** orchestrated with Lan
 | **Vite 5** | Dev server and production bundler |
 | **Tailwind CSS 3** | Utility-first styling |
 | **Axios** | HTTP client for API requests |
-| **Lucide React** | Icon library |
 | **react-markdown** | Markdown rendering in career coach chat |
 | **clsx** | Conditional className utility |
-| **Google Fonts** (Inter, Outfit) | Typography |
+| **Google Fonts** (Anybody, Atkinson Hyperlegible) | Typography |
 
 ### Deployment
 
@@ -126,14 +125,19 @@ resumizer/
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Navbar.jsx
-│   │   │   ├── FileUploader.jsx           # Resume upload + JD input
+│   │   │   ├── ui/                        # StretchType, Wipe (before/after), Toast
+│   │   │   ├── Navbar.jsx                 # Header + results tabs
+│   │   │   ├── Landing.jsx                # Marketing page
+│   │   │   ├── FileUploader.jsx           # Resume upload + JD input with validation
+│   │   │   ├── AnalysisProgress.jsx       # Loading state with cancel
+│   │   │   ├── ErrorNotice.jsx            # Server / network errors
 │   │   │   ├── ATSScoreCard.jsx           # ATS score dashboard
 │   │   │   ├── SkillGapView.jsx           # Skill gap visualization
 │   │   │   ├── RewriteDiffView.jsx        # Original vs rewritten bullets
 │   │   │   ├── InterviewPrep.jsx          # Interview questions display
 │   │   │   └── CareerCoachChat.jsx        # RAG chat interface
-│   │   ├── App.jsx                        # Main app with tab navigation
+│   │   ├── hooks/                         # useHashRoute, useReducedMotion
+│   │   ├── App.jsx                        # Main app: routing, analyze flow, result tabs
 │   │   ├── api.js                         # Axios instance configuration
 │   │   └── main.jsx                       # React entry point
 │   ├── vite.config.js

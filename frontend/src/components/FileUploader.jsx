@@ -1,175 +1,162 @@
-import React, { useState, useRef } from 'react';
-import { Upload, CheckCircle2, Sparkles, Loader2, AlertCircle, Cpu } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ACCEPTED_EXTENSIONS, MAX_FILE_MB } from '../api';
+import ErrorNotice from './ErrorNotice';
 
-export default function FileUploader({ onAnalyze, isLoading, error }) {
-  const [file, setFile] = useState(null);
-  const [jobDescription, setJobDescription] = useState('');
-  const fileInputRef = useRef(null);
+const MIN_JD_WORDS = 25;
 
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-    }
+function extOf(name = '') {
+  const i = name.lastIndexOf('.');
+  return i === -1 ? '' : name.slice(i + 1).toLowerCase();
+}
+
+export function validateFile(file) {
+  if (!file) return 'Choose your resume file.';
+  if (!ACCEPTED_EXTENSIONS.includes(extOf(file.name))) return `${file.name} isn’t a supported format. Use PDF, DOCX, TXT or MD.`;
+  if (file.size === 0) return `${file.name} is empty. Choose the file that contains your resume.`;
+  if (file.size > MAX_FILE_MB * 1024 * 1024) return `${file.name} is larger than ${MAX_FILE_MB} MB. Export a smaller copy and try again.`;
+  return '';
+}
+
+export function validateJd(text) {
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  if (!words) return 'Paste the job description you’re applying for.';
+  if (words < MIN_JD_WORDS) return `That’s ${words} words. Paste the full posting — at least ${MIN_JD_WORDS} words — so the match is meaningful.`;
+  return '';
+}
+
+function formatSize(bytes) {
+  return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+export default function FileUploader({ file, onFileChange, jobDescription, onJobDescriptionChange, onAnalyze, serverError }) {
+  const [drag, setDrag] = useState(false);
+  const [touched, setTouched] = useState(false);
+  const input = useRef(null);
+  const summaryRef = useRef(null);
+  const errorRef = useRef(null);
+
+  const fileError = validateFile(file);
+  const jdError = validateJd(jobDescription);
+  const showFileError = touched && fileError;
+  const showJdError = touched && jdError;
+  const words = jobDescription.trim() ? jobDescription.trim().split(/\s+/).length : 0;
+
+  useEffect(() => {
+    if (serverError) errorRef.current?.focus();
+  }, [serverError]);
+
+  const pick = (f) => {
+    if (!f) return;
+    onFileChange(f);
   };
 
-  const handleDrop = (e) => {
+  const submit = (e) => {
     e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFile(e.dataTransfer.files[0]);
+    setTouched(true);
+    if (fileError || jdError) {
+      requestAnimationFrame(() => summaryRef.current?.focus());
+      return;
     }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!file || !jobDescription.trim()) return;
-    onAnalyze(file, jobDescription);
+    onAnalyze();
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto py-6 sm:py-12 px-3 sm:px-4 overflow-x-hidden">
-      {/* Hero Section */}
-      <div className="text-center mb-8 sm:mb-12 w-full animate-fade-in">
-        <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[11px] font-bold uppercase tracking-wider mb-5">
-          <Cpu className="h-3.5 w-3.5" />
-          <span>5-Agent AI Pipeline · NVIDIA NIM</span>
+    <main id="main" className="page">
+      <div className="wrap">
+        <div className="page-head">
+          <div>
+            <h1 className="t-title">Load the press</h1>
+            <p className="t-lede">Your resume, and the job you want it scored against.</p>
+          </div>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-100 mb-4 leading-tight break-words max-w-full font-display">
-          AI-Powered Resume{' '}
-          <br className="hidden sm:inline" />
-          <span className="gradient-text-teal">Optimization & Analysis</span>
-        </h1>
-        <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto px-1 break-words font-medium">
-          Upload your resume and paste the target job description. Our multi-agent pipeline scores ATS match, identifies skill gaps, rewrites bullets using STAR, and generates interview prep.
-        </p>
-      </div>
+        {serverError && <ErrorNotice ref={errorRef} error={serverError} onRetry={onAnalyze} />}
 
-      {/* Error Banner */}
-      {error && (
-        <div className="mb-6 p-3.5 sm:p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center space-x-2.5 text-red-400 text-xs sm:text-sm font-medium animate-fade-in">
-          <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-red-400" />
-          <span className="break-words">{error}</span>
-        </div>
-      )}
+        {touched && (fileError || jdError) && (
+          <div ref={summaryRef} tabIndex={-1} className="notice" role="alert" aria-labelledby="form-errors-title">
+            <span className="notice__mark" aria-hidden="true">!</span>
+            <div>
+              <h2 id="form-errors-title">{fileError && jdError ? 'Two things to fix before we can start' : 'One thing to fix before we can start'}</h2>
+              <ul style={{ margin: 0, paddingLeft: 20, listStyle: 'disc' }}>
+                {fileError && <li><a className="link" href="#resume-file" onClick={(e) => { e.preventDefault(); input.current?.focus(); }}>{fileError}</a></li>}
+                {jdError && <li><a className="link" href="#job-description" onClick={(e) => { e.preventDefault(); document.getElementById('job-description')?.focus(); }}>{jdError}</a></li>}
+              </ul>
+            </div>
+          </div>
+        )}
 
-      {/* Upload Form Card */}
-      <div className="surface-card p-5 sm:p-8 space-y-6 animate-fade-in-delay" style={{ opacity: 0 }}>
-        <form onSubmit={handleSubmit} className="space-y-6 w-full">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 w-full">
-            {/* File Upload Zone */}
-            <div className="space-y-2.5 w-full">
-              <label className="block text-xs sm:text-sm font-bold text-slate-300 flex items-center gap-2">
-                <span className="h-5 w-5 rounded-md bg-teal-500/20 text-teal-400 text-[11px] font-extrabold flex items-center justify-center border border-teal-500/30">1</span>
-                <span>Upload Resume Document</span>
-              </label>
+        <form onSubmit={submit} noValidate>
+          <div className="upload-grid">
+            <div>
+              <label className="field-label" htmlFor="resume-file">Your resume</label>
+              <p className="field-hint" id="resume-file-hint">PDF, DOCX, TXT or MD, up to {MAX_FILE_MB} MB. Text-based files work best.</p>
               <div
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`min-h-[180px] sm:h-64 border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all w-full ${
-                  file
-                    ? 'border-teal-500/40 bg-teal-500/5'
-                    : 'border-white/[0.1] hover:border-teal-500/30 bg-navy-900/50 hover:bg-navy-800/50'
-                }`}
+                className={`dropzone ${drag ? 'is-drag' : ''} ${file && !fileError ? 'has-file' : ''} ${showFileError ? 'is-invalid' : ''}`}
+                onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+                onDragLeave={() => setDrag(false)}
+                onDrop={(e) => { e.preventDefault(); setDrag(false); pick(e.dataTransfer.files?.[0]); }}
               >
                 <input
-                  ref={fileInputRef}
+                  ref={input}
+                  id="resume-file"
                   type="file"
                   accept=".pdf,.docx,.doc,.txt,.md"
-                  onChange={handleFileChange}
-                  className="hidden"
+                  className="sr-only"
+                  aria-describedby={`resume-file-hint${showFileError ? ' resume-file-error' : ''}`}
+                  aria-invalid={!!showFileError}
+                  onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ''; }}
                 />
-
                 {file ? (
-                  <div className="flex flex-col items-center space-y-2.5">
-                    <div className="h-12 w-12 rounded-xl bg-teal-500/15 text-teal-400 flex items-center justify-center border border-teal-500/20">
-                      <CheckCircle2 className="h-6 w-6" />
+                  <>
+                    <div className="file-chip">
+                      <span className="file-chip__ext" aria-hidden="true">{extOf(file.name) || '?'}</span>
+                      <span>
+                        <span className="file-chip__name">{file.name}</span>
+                        <br />
+                        <span className="file-chip__meta">{formatSize(file.size)}</span>
+                      </span>
                     </div>
-                    <div className="max-w-full px-2">
-                      <p className="font-bold text-slate-200 text-xs sm:text-sm truncate max-w-[200px]">{file.name}</p>
-                      <p className="text-[11px] text-slate-500 font-medium mt-0.5">{(file.size / 1024).toFixed(1)} KB • Click to change</p>
-                    </div>
-                  </div>
+                    <button type="button" className="link" onClick={() => input.current?.click()}>Choose a different file</button>
+                  </>
                 ) : (
-                  <div className="flex flex-col items-center space-y-2.5">
-                    <div className="h-12 w-12 rounded-xl bg-navy-700 text-slate-400 flex items-center justify-center border border-white/[0.06]">
-                      <Upload className="h-6 w-6" />
-                    </div>
-                    <div className="px-2">
-                      <p className="text-slate-300 font-bold text-xs sm:text-sm">Click to upload or drag & drop</p>
-                      <p className="text-[11px] text-slate-500 mt-1 font-medium">PDF, DOCX, TXT, or MD</p>
-                    </div>
-                  </div>
+                  <>
+                    <p className="dropzone__big">Drop your resume here</p>
+                    <p>or</p>
+                    <button type="button" className="btn btn--ink" onClick={() => input.current?.click()}>Choose a file</button>
+                  </>
                 )}
               </div>
+              {showFileError && <p className="field-error" id="resume-file-error">{fileError}</p>}
             </div>
 
-            {/* Job Description Textarea */}
-            <div className="space-y-2.5 w-full">
-              <label className="block text-xs sm:text-sm font-bold text-slate-300 flex items-center gap-2">
-                <span className="h-5 w-5 rounded-md bg-teal-500/20 text-teal-400 text-[11px] font-extrabold flex items-center justify-center border border-teal-500/30">2</span>
-                <span>Target Job Description</span>
-              </label>
-              <textarea
-                rows={7}
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                placeholder="Paste the full job posting, key requirements, qualifications, and duties here..."
-                className="w-full min-h-[180px] sm:h-64 p-3.5 sm:p-4 rounded-xl bg-navy-900 border border-white/[0.08] focus:border-teal-500/40 focus:ring-2 focus:ring-teal-500/15 text-slate-200 placeholder-slate-600 text-xs sm:text-sm resize-none font-medium outline-none transition"
-              />
+            <div>
+              <label className="field-label" htmlFor="job-description">The job posting</label>
+              <p className="field-hint" id="jd-hint">Paste the whole posting — responsibilities, requirements and nice-to-haves.</p>
+              <div className={`ticket ${showJdError ? 'is-invalid' : ''}`}>
+                <textarea
+                  id="job-description"
+                  value={jobDescription}
+                  onChange={(e) => onJobDescriptionChange(e.target.value)}
+                  placeholder="Senior Product Analyst&#10;&#10;About the role…"
+                  aria-describedby={`jd-hint jd-count${showJdError ? ' jd-error' : ''}`}
+                  aria-invalid={!!showJdError}
+                  spellCheck="false"
+                />
+                <div className="ticket__foot">
+                  <span id="jd-count">{words ? `${words} words` : 'Nothing pasted yet'}</span>
+                  {jobDescription && <button type="button" className="link" style={{ minHeight: 0 }} onClick={() => onJobDescriptionChange('')}>Clear</button>}
+                </div>
+              </div>
+              {showJdError && <p className="field-error" id="jd-error">{jdError}</p>}
             </div>
           </div>
 
-          {/* Submit CTA */}
-          <div className="flex justify-center pt-2 sm:pt-4 w-full">
-            <button
-              type="submit"
-              disabled={!file || !jobDescription.trim() || isLoading}
-              className={`w-full sm:w-auto px-8 sm:px-10 py-3.5 sm:py-4 flex items-center justify-center space-x-2.5 rounded-xl font-bold text-xs sm:text-base transition-all duration-200 ${
-                !file || !jobDescription.trim() || isLoading
-                  ? 'bg-navy-700 text-slate-600 cursor-not-allowed border border-white/[0.06]'
-                  : 'btn-primary-serio'
-              }`}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                  <span>Running Multi-Agent Pipeline...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Analyze & Optimize Resume</span>
-                </>
-              )}
-            </button>
+          <div className="upload-actions">
+            <button type="submit" className="btn btn--pink btn--lg">Start the analysis</button>
+            <p>Usually under a minute. The first run of the day can take longer while the server wakes up.</p>
           </div>
         </form>
-
-        {/* Pipeline Indicator */}
-        <div className="flex items-center justify-center gap-3 pt-2">
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-600 font-medium">
-            <span className="h-1 w-1 rounded-full bg-teal-500/40"></span>
-            ATS Scoring
-          </div>
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-600 font-medium">
-            <span className="h-1 w-1 rounded-full bg-teal-500/40"></span>
-            Skill Gap Analysis
-          </div>
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-600 font-medium">
-            <span className="h-1 w-1 rounded-full bg-teal-500/40"></span>
-            STAR Rewriter
-          </div>
-          <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-slate-600 font-medium">
-            <span className="h-1 w-1 rounded-full bg-teal-500/40"></span>
-            Interview Prep
-          </div>
-          <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-slate-600 font-medium">
-            <span className="h-1 w-1 rounded-full bg-indigo-500/40"></span>
-            RAG Career Coach
-          </div>
-        </div>
       </div>
-    </div>
+    </main>
   );
 }

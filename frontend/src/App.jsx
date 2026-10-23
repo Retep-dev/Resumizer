@@ -1,142 +1,187 @@
-import React, { useState } from 'react';
-import api from './api';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { analyzeResume, describeAnalyzeError, isCancel } from './api';
+import { useHashRoute } from './hooks/useHashRoute';
+import { ToastProvider } from './components/ui/Toast';
 import Navbar from './components/Navbar';
+import Landing from './components/Landing';
 import FileUploader from './components/FileUploader';
+import AnalysisProgress from './components/AnalysisProgress';
 import ATSScoreCard from './components/ATSScoreCard';
 import SkillGapView from './components/SkillGapView';
 import RewriteDiffView from './components/RewriteDiffView';
 import InterviewPrep from './components/InterviewPrep';
 import CareerCoachChat from './components/CareerCoachChat';
-import { Award, FileEdit, HelpCircle, MessageSquare } from 'lucide-react';
 
-const tabs = [
-  { id: 'overview', label: 'ATS & Gaps', icon: Award },
-  { id: 'rewrite', label: 'STAR Rewriter', icon: FileEdit },
-  { id: 'interview', label: 'Interview Prep', icon: HelpCircle },
-  { id: 'chat', label: 'AI Career Coach', icon: MessageSquare },
-];
+const TAB_IDS = ['score', 'rewrite', 'interview', 'coach'];
+
+function countRewrites(report) {
+  return (report?.rewritten_experiences || []).reduce((n, e) => n + (e.rewritten_bullets?.length || 0), 0);
+}
 
 export default function App() {
+  const [route, navigate] = useHashRoute();
   const [analysisData, setAnalysisData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [file, setFile] = useState(null);
+  const [jobDescription, setJobDescription] = useState('');
+  const [analyzedFor, setAnalyzedFor] = useState(null); // { fileName, jd } of the current results
+  const [kept, setKept] = useState(() => new Set());
+  const abortRef = useRef(null);
 
-  const handleAnalyze = async (file, jobDescription) => {
+  const hasResults = !!analysisData;
+  const activeTab = route.startsWith('results/') && TAB_IDS.includes(route.slice(8)) ? route.slice(8) : 'score';
+
+  // Results only live in memory — keep the URL honest about what can be shown.
+  useEffect(() => {
+    if (route.startsWith('results') && !hasResults) navigate('analyze', { replace: true });
+  }, [route, hasResults, navigate]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [route.split('/')[0]]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Warn before closing the tab, because results aren't saved anywhere.
+  useEffect(() => {
+    if (!hasResults && !isLoading) return undefined;
+    const onBeforeUnload = (e) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [hasResults, isLoading]);
+
+  const handleAnalyze = useCallback(async () => {
+    if (!file || !jobDescription.trim() || isLoading) return;
+    const controller = new AbortController();
+    abortRef.current = controller;
     setIsLoading(true);
     setError(null);
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('job_description', jobDescription);
-
+    navigate('analyze', { replace: route === 'analyze' });
     try {
-      const response = await api.post('/api/v1/analyze', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      setAnalysisData(response.data);
-      setActiveTab('overview');
+      const data = await analyzeResume(file, jobDescription, { signal: controller.signal });
+      setAnalysisData(data);
+      setAnalyzedFor({ fileName: file.name, jd: jobDescription });
+      setKept(new Set());
+      navigate('results/score');
     } catch (err) {
-      const detail = err.response?.data?.detail;
-      let msg = 'An error occurred while analyzing the resume. Please check backend logs.';
-      if (typeof detail === 'string') {
-        msg = detail;
-      } else if (Array.isArray(detail)) {
-        msg = detail.map(d => d.msg || JSON.stringify(d)).join(', ');
-      } else if (detail) {
-        msg = JSON.stringify(detail);
-      } else if (err.message) {
-        msg = err.message;
-      }
-      setError(msg);
+      if (!isCancel(err)) setError(describeAnalyzeError(err));
     } finally {
+      abortRef.current = null;
       setIsLoading(false);
     }
-  };
+  }, [file, jobDescription, isLoading, navigate, route]);
+
+  const handleCancel = () => abortRef.current?.abort();
 
   const handleReset = () => {
     setAnalysisData(null);
+    setAnalyzedFor(null);
     setError(null);
-    setActiveTab('overview');
+    setKept(new Set());
+    navigate('analyze');
   };
 
-  return (
-    <div className="min-h-screen bg-navy-950 text-slate-200 flex flex-col font-sans antialiased overflow-x-hidden">
-      <Navbar onReset={analysisData ? handleReset : null} />
+  const toggleKeep = (key) =>
+    setKept((s) => {
+      const n = new Set(s);
+      n.has(key) ? n.delete(key) : n.add(key);
+      return n;
+    });
 
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8 space-y-6 sm:space-y-8">
-        {!analysisData ? (
-          <FileUploader
-            onAnalyze={handleAnalyze}
-            isLoading={isLoading}
-            error={error}
-          />
-        ) : (
-          <div className="space-y-6 sm:space-y-8 w-full animate-fade-in">
-            {/* Analysis Header Banner */}
-            <div className="surface-card p-4 sm:p-6 flex flex-col lg:flex-row items-center justify-between gap-4">
-              <div className="text-center lg:text-left w-full lg:w-auto">
-                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-100 font-display">
-                  Analysis Complete for{' '}
-                  <span className="gradient-text-teal">
-                    {analysisData.analysis.resume_data.full_name || 'Candidate'}
-                  </span>
-                </h2>
-                <p className="text-xs text-slate-500 font-semibold mt-1 truncate max-w-xs sm:max-w-md mx-auto lg:mx-0">
-                  Session ID:{' '}
-                  <code className="text-teal-400 font-mono text-[11px]">{analysisData.session_id}</code>
-                </p>
-              </div>
+  const goHome = (anchor) => {
+    navigate('');
+    if (anchor) requestAnimationFrame(() => {
+      const el = document.getElementById(anchor);
+      el?.scrollIntoView();
+      el?.focus({ preventScroll: true });
+    });
+  };
 
-              {/* Segmented Tab Navigation */}
-              <div className="w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
-                <div className="flex items-center gap-1 p-1 rounded-xl bg-navy-900 border border-white/[0.06] min-w-max">
-                  {tabs.map((tab) => {
-                    const Icon = tab.icon;
-                    const isActive = activeTab === tab.id;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${
-                          isActive
-                            ? 'bg-surface-raised text-teal-400 shadow-card border border-white/[0.08]'
-                            : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]'
-                        }`}
-                      >
-                        <Icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isActive ? 'text-teal-400' : ''}`} />
-                        <span>{tab.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+  const analysis = analysisData?.analysis;
+  const tabs = analysis
+    ? [
+        { id: 'score', label: 'Score & gaps', className: 'tab--score' },
+        { id: 'rewrite', label: 'Rewrites', count: countRewrites(analysis.rewrite_report), className: 'tab--rewrite' },
+        { id: 'interview', label: 'Interview prep', count: (analysis.interview_prep?.questions || analysis.interview_prep?.interview_questions || []).length, className: 'tab--interview' },
+        { id: 'coach', label: 'Coach', className: 'tab--coach' },
+      ]
+    : [];
+
+  const onResults = hasResults && route.startsWith('results');
+  let view;
+  if (isLoading) {
+    view = <AnalysisProgress fileName={file?.name} onCancel={handleCancel} />;
+  } else if (onResults) {
+    const name = analysis.resume_data?.full_name?.trim();
+    view = (
+      <main id="main">
+        <div className="wrap">
+          <div className="results-head">
+            <div>
+              <h1>{name && name.toLowerCase() !== 'candidate' ? `${name}’s analysis` : 'Your analysis'}</h1>
+              <p className="results-head__meta">From {analyzedFor?.fileName}. Results aren’t saved — copy anything you want to keep.</p>
             </div>
-
-            {/* Tab Views */}
-            <div className="animate-fade-in">
-              {activeTab === 'overview' && (
-                <div className="space-y-6 sm:space-y-8 w-full">
-                  <ATSScoreCard atsScore={analysisData.analysis.ats_score} />
-                  <SkillGapView skillGap={analysisData.analysis.skill_gap} />
-                </div>
-              )}
-
-              {activeTab === 'rewrite' && (
-                <RewriteDiffView rewriteReport={analysisData.analysis.rewrite_report} />
-              )}
-
-              {activeTab === 'interview' && (
-                <InterviewPrep interviewPrep={analysisData.analysis.interview_prep} />
-              )}
-
-              {activeTab === 'chat' && (
-                <CareerCoachChat sessionId={analysisData.session_id} />
-              )}
-            </div>
+            {analyzedFor?.jd && (
+              <details className="jd-peek">
+                <summary>Show the job description</summary>
+                <p>{analyzedFor.jd}</p>
+              </details>
+            )}
           </div>
-        )}
+          {TAB_IDS.map((id) => (
+            <div key={id} id={`panel-${id}`} role="tabpanel" aria-labelledby={`tab-${id}`} hidden={activeTab !== id} className={activeTab === id ? 'panel' : undefined}>
+              {id === 'score' && (
+                <>
+                  <ATSScoreCard atsScore={analysis.ats_score} />
+                  <SkillGapView skillGap={analysis.skill_gap} />
+                </>
+              )}
+              {id === 'rewrite' && <RewriteDiffView rewriteReport={analysis.rewrite_report} kept={kept} onToggleKeep={toggleKeep} />}
+              {id === 'interview' && <InterviewPrep interviewPrep={analysis.interview_prep} />}
+              {id === 'coach' && <CareerCoachChat sessionId={analysisData.session_id} analysis={analysis} />}
+            </div>
+          ))}
+        </div>
       </main>
-    </div>
+    );
+  } else if (route === 'analyze') {
+    view = (
+      <FileUploader
+        file={file}
+        onFileChange={(f) => { setFile(f); setError(null); }}
+        jobDescription={jobDescription}
+        onJobDescriptionChange={setJobDescription}
+        onAnalyze={handleAnalyze}
+        serverError={error}
+      />
+    );
+  } else {
+    view = <Landing onStart={() => navigate(hasResults ? 'results/score' : 'analyze')} />;
+  }
+
+  return (
+    <ToastProvider>
+      <a className="skip-link" href="#main" onClick={(e) => { e.preventDefault(); const m = document.getElementById('main'); m?.setAttribute('tabindex', '-1'); m?.focus(); }}>Skip to content</a>
+      <Navbar
+        onHome={goHome}
+        onStart={() => navigate('analyze')}
+        onReset={handleReset}
+        hasResults={hasResults}
+        showTabs={onResults && !isLoading}
+        tabs={tabs}
+        activeTab={activeTab}
+        onTab={(id) => navigate(`results/${id}`, { replace: true })}
+      />
+      {hasResults && !onResults && !isLoading && (
+        <div className="wrap" style={{ paddingTop: 12 }}>
+          <button type="button" className="link" onClick={() => navigate('results/score')}>Back to your results</button>
+        </div>
+      )}
+      {view}
+      {!onResults && !isLoading && (
+        <footer className="site-footer">
+          <div className="wrap">Resumizer — AI resume analysis. Scores and rewrites are AI-generated; review them before you apply.</div>
+        </footer>
+      )}
+    </ToastProvider>
   );
 }
