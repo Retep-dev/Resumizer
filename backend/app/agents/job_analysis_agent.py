@@ -14,7 +14,9 @@ JOB_SYSTEM_PROMPT = """You read a job description and list what it asks candidat
 
 Rules:
 - List each distinct skill, tool, technology, method, qualification or soft skill that the posting names.
-- Use the posting's own wording for "term". Add common alternative spellings to "aliases" (e.g. "A/B testing" → ["AB testing", "split testing"]).
+- "term" is the skill itself in 1-4 words, using the posting's wording but without qualifiers: "Expert Python and SQL" → two terms "Python" and "SQL"; "Strong stakeholder communication" → "Stakeholder communication".
+- Years of experience are NOT terms; put the minimum in min_years only.
+- Add common alternative spellings to "aliases" (e.g. "A/B testing" → ["AB testing", "split testing"]).
 - category: "hard" for technical skills, tools, methods and qualifications; "soft" for interpersonal or working-style skills.
 - importance: "preferred" if the posting marks it as a plus, nice-to-have, bonus or preferred; otherwise "required".
 - Do not add requirements the posting doesn't state. Do not list generic words like "experience" or "team".
@@ -25,11 +27,25 @@ Return one JSON object: {"title": str|null, "min_years": int|null,
  "requirements": [{"term": str, "category": "hard"|"soft", "importance": "required"|"preferred", "aliases": [str]}]}"""
 
 
+_QUALIFIER_RE = re.compile(r"^(?:strong|expert|excellent|proven|solid|advanced|deep|good|great|demonstrated|hands-on|working)\s+(?:knowledge\s+of\s+|experience\s+(?:with|in)\s+)?", re.IGNORECASE)
+_DURATION_RE = re.compile(r"\b\d+\s*\+?\s*(?:years?|yrs?)\b|\byears? of experience\b", re.IGNORECASE)
+
+
+def clean_term(term: str) -> str:
+    """'Strong stakeholder communication' → 'stakeholder communication'; drop durations."""
+    original = term.strip()
+    t = _QUALIFIER_RE.sub("", original).strip(" .,:;")
+    if _DURATION_RE.search(t) or len(t.split()) > 5:
+        return ""
+    # Only re-capitalise when a qualifier was removed, so "dbt" stays "dbt".
+    return t[:1].upper() + t[1:] if t != original else t
+
+
 def ground_requirements(reqs: JobRequirements, jd: str) -> Tuple[JobRequirements, List[str]]:
     """Keep only requirements whose term (or an alias) is actually in the posting."""
     kept, dropped, seen = [], 0, set()
     for r in reqs.requirements:
-        term = r.term.strip()
+        term = clean_term(r.term)
         if not term or term.lower() in seen:
             continue
         if term_in_text(term, jd) or any(term_in_text(a, jd) for a in r.aliases):

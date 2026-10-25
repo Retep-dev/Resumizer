@@ -96,3 +96,14 @@ def test_multiword_terms_need_their_words_together():
     assert term_in_text("A/B testing", "Ran A/B tests on the pricing page.")
     assert term_in_text("stakeholder communication", "Strong communication with stakeholders")
     assert not term_in_text("Go", "Worked at Google")
+
+
+def test_requirement_terms_are_cleaned_of_qualifiers_and_durations():
+    from app.agents.job_analysis_agent import clean_term
+    assert clean_term("Strong stakeholder communication") == "Stakeholder communication"
+    assert clean_term("Expert knowledge of Python") == "Python"
+    assert clean_term("5+ years of experience in data engineering") == ""
+    reqs = JobRequirements(requirements=[JobRequirement(term="5+ years of experience in data engineering"),
+                                         JobRequirement(term="Strong stakeholder communication", category="soft")])
+    grounded, _ = ground_requirements(reqs, DATA_JD)
+    assert [r.term for r in grounded.requirements] == ["Stakeholder communication"]

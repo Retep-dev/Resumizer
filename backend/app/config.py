@@ -17,10 +17,10 @@ class Settings:
     # provider moves on to NVIDIA_FALLBACK_MODELS in order and remembers the
     # retirement for the life of the process. Run `python scripts/check_models.py`
     # to verify which models your key can use.
-    NVIDIA_MODEL_NAME: str = os.getenv("NVIDIA_MODEL_NAME", "nvidia/nemotron-3-super-120b-a12b")
+    NVIDIA_MODEL_NAME: str = os.getenv("NVIDIA_MODEL_NAME", "nvidia/nemotron-3.5-lightning-30b-a3b")
     NVIDIA_FALLBACK_MODELS = _csv(os.getenv(
         "NVIDIA_FALLBACK_MODELS",
-        "nvidia/nemotron-3.5-lightning-30b-a3b,openai/gpt-oss-20b",
+        "openai/gpt-oss-20b",
     ))
     LLM_TIMEOUT_SECONDS: float = float(os.getenv("LLM_TIMEOUT_SECONDS", "60"))
     SESSION_TTL_SECONDS: int = int(os.getenv("SESSION_TTL_SECONDS", str(6 * 3600)))
