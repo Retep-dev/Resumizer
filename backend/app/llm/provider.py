@@ -87,6 +87,9 @@ class NvidiaChatClient(ChatClient):
         if "nemotron-3" in model or "nemotron-nano-3" in model:
             # Nemotron 3 models reason by default; we only want the final answer.
             body["chat_template_kwargs"] = {"enable_thinking": False}
+        if "gpt-oss" in model:
+            # Reasoning tokens count against max_tokens; keep reasoning short so an answer is produced.
+            body["reasoning_effort"] = "low"
         return body
 
     def _post(self, body) -> requests.Response:
@@ -102,10 +105,11 @@ class NvidiaChatClient(ChatClient):
         try:
             r = self._post(body)
             # Some models reject response_format or chat_template_kwargs; retry plainly once.
-            if r.status_code in (400, 422) and (json_mode or "chat_template_kwargs" in body):
+            if r.status_code in (400, 422) and (json_mode or "chat_template_kwargs" in body or "reasoning_effort" in body):
                 body = dict(body)
                 body.pop("response_format", None)
                 body.pop("chat_template_kwargs", None)
+                body.pop("reasoning_effort", None)
                 r = self._post(body)
         except requests.exceptions.InvalidHeader:
             raise ProviderError("auth", "The NVIDIA API key is malformed (it contains spaces or line breaks)", model)

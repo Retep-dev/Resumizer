@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from app.llm import ChatClient, complete_json
 from app.schemas.resume import BulletPointRewrite, ResumeRewriteReport, ResumeSchema, WorkExperienceRewrite
-from app.services.text_utils import normalize, term_in_text, unsupported_numbers
+from app.services.text_utils import normalize, numbers_in, term_in_text, unsupported_numbers
 
 REWRITE_SYSTEM_PROMPT = """You are a careful resume editor. You improve how existing achievements are worded. You never add facts.
 
@@ -16,7 +16,9 @@ Hard rules:
 1. Keep the meaning of every bullet. Do not add tools, skills, employers, responsibilities, team sizes or outcomes that the original bullet doesn't state.
 2. Never add a number, percentage, amount or duration that isn't in the original bullet. If a metric would make a bullet stronger, keep the bullet without it and ask for it in "needs_confirmation" (e.g. "How many tests did you run, and what changed as a result?").
 3. Improve the wording where you can without new facts: a stronger action verb, a clearer order (action, then what, then for whom, then result), tighter phrasing, and the posting's terminology where the original already describes that thing. Don't add tools or skills the bullet itself doesn't name, even if they appear elsewhere in the resume.
-   Allowed: "Wrote SQL models that the pricing team used for monthly reporting." → "Built the SQL models behind the pricing team's monthly reporting."
+   Keep the meaning of the original verb: "maintain" is not "build", "helped" is not "led", "worked with" is not "managed".
+   Allowed: "Wrote SQL models that the pricing team used for monthly reporting." → "Wrote the SQL models behind the pricing team's monthly reporting."
+   Not allowed: "Ran A/B tests on the pricing page." → "Ran A/B tests on the pricing page to compare layouts" (adds a purpose).
    Not allowed: "Maintain Airflow pipelines that load shipment data into Snowflake." → "...using Python and SQL" (adds tools the bullet doesn't mention).
 4. If a bullet can't be made meaningfully stronger without new facts, keep its wording and put 1-2 specific questions in "needs_confirmation" whose answers would make it stronger (e.g. for "Mentored two junior engineers.": "What did they learn or deliver with your help?").
 5. "added_keywords" lists only posting keywords that the original bullet genuinely supports. Never use a keyword from the "missing" list.
@@ -66,6 +68,15 @@ def _clean(rw: BulletPointRewrite, original: str, supported: List[str]) -> Bulle
     )
 
 
+def follow_up_questions(bullet: str) -> List[str]:
+    """Deterministic prompts for facts that would strengthen a bullet. They ask; they never assume."""
+    qs = []
+    if not numbers_in(bullet):
+        qs.append("Can you add a number that shows scale or result — how many, how often, how much, or how much faster?")
+    qs.append("What changed because of this work, and who relied on it?")
+    return qs
+
+
 def validate_rewrites(draft: _Draft, resume: ResumeSchema, resume_text: str, missing: List[str], supported: List[str]
                       ) -> Tuple[ResumeRewriteReport, Dict[str, List[str]], List[str]]:
     """Match each rewrite to a real bullet and withhold any that add facts."""
@@ -85,13 +96,13 @@ def validate_rewrites(draft: _Draft, resume: ResumeSchema, resume_text: str, mis
                 out.setdefault(ji, []).append(BulletPointRewrite(
                     original_bullet=original, rewritten_bullet=original, status="kept_original",
                     note="Rewrite withheld: it " + " and ".join(problems) + ".",
-                    needs_confirmation=[q for q in rw.needs_confirmation if q.strip()][:3],
+                    needs_confirmation=[q for q in rw.needs_confirmation if q.strip()][:3] or follow_up_questions(original),
                 ))
             elif _norm(rw.rewritten_bullet) == _norm(original):
                 out.setdefault(ji, []).append(BulletPointRewrite(
                     original_bullet=original, rewritten_bullet=original, status="kept_original",
                     note="No stronger wording was suggested for this bullet.",
-                    needs_confirmation=[q for q in rw.needs_confirmation if q.strip()][:3],
+                    needs_confirmation=[q for q in rw.needs_confirmation if q.strip()][:3] or follow_up_questions(original),
                 ))
             else:
                 out.setdefault(ji, []).append(_clean(rw, original, supported))

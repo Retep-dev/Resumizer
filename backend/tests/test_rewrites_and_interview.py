@@ -128,3 +128,13 @@ def test_rewrite_that_attributes_another_resume_skill_to_a_bullet_is_withheld():
     report, _, _ = run(FakeClient(rewrite=[bad, bad]))
     b = _bullets(report)[bullet]
     assert b.status == "kept_original" and "attributed" in b.note and "Python" in b.note
+
+
+def test_unchanged_bullets_always_get_follow_up_questions():
+    copy = json.dumps({"tailored_summary": None, "rewritten_experiences": [{"company": "Brightwell Insurance", "job_title": "Data Analyst",
+        "rewritten_bullets": [{"original_bullet": "Wrote SQL models that the pricing team used for monthly reporting.",
+                               "rewritten_bullet": "Wrote SQL models that the pricing team used for monthly reporting.",
+                               "star_action": "", "star_result": "", "added_keywords": [], "needs_confirmation": []}]}]})
+    report, _, _ = run(FakeClient(rewrite=copy))
+    b = _bullets(report)["Wrote SQL models that the pricing team used for monthly reporting."]
+    assert b.status == "kept_original" and len(b.needs_confirmation) == 2 and "number" in b.needs_confirmation[0]

@@ -17,7 +17,7 @@ For each question give:
 - question
 - context_or_reason: why an interviewer would ask it, referring to the posting or the resume
 - star_guide: how to structure the answer with Situation, Task, Action, Result, pointing to a specific role or bullet from the resume when one fits
-- sample_answer: a model answer built ONLY from facts in the resume. Where the answer needs a detail the resume doesn't give, write a bracketed placeholder such as "[the number of users affected]" instead of inventing it. Never invent numbers, employers, projects or tools. For gap questions, be honest that the candidate hasn't used the skill and focus on related experience from the resume.
+- sample_answer: a model answer built ONLY from facts in the resume. Where the answer needs a detail the resume doesn't give, write a bracketed placeholder such as "[the number of users affected]" instead of inventing it. Only use digits that are copied from the resume; otherwise write a bracketed placeholder. Never invent numbers, employers, projects or tools. For gap questions, be honest that the candidate hasn't used the skill and focus on related experience from the resume.
 
 Return one JSON object: {"questions": [ ... 6 objects ... ]}"""
 
