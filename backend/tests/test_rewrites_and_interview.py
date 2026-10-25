@@ -120,3 +120,11 @@ def test_identical_rewrites_are_labelled_and_skipped_bullets_are_requested_again
     assert len(client.calls) == 2 and "You didn't rewrite these bullets" in client.calls[1]["messages"][-1]["content"]
     assert [e.company for e in report.rewritten_experiences] == ["Halcyon Freight", "Brightwell Insurance"]
     assert any("no change" in w for w in warnings)
+
+
+def test_rewrite_that_attributes_another_resume_skill_to_a_bullet_is_withheld():
+    bullet = "Maintain Airflow pipelines that load shipment data into Snowflake."
+    bad = _invented(bullet, "Maintain Airflow pipelines that load shipment data into Snowflake using Python and SQL.")
+    report, _, _ = run(FakeClient(rewrite=[bad, bad]))
+    b = _bullets(report)[bullet]
+    assert b.status == "kept_original" and "attributed" in b.note and "Python" in b.note

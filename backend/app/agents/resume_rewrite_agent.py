@@ -15,10 +15,13 @@ REWRITE_SYSTEM_PROMPT = """You are a careful resume editor. You improve how exis
 Hard rules:
 1. Keep the meaning of every bullet. Do not add tools, skills, employers, responsibilities, team sizes or outcomes that the original bullet doesn't state.
 2. Never add a number, percentage, amount or duration that isn't in the original bullet. If a metric would make a bullet stronger, keep the bullet without it and ask for it in "needs_confirmation" (e.g. "How many tests did you run, and what changed as a result?").
-3. Every rewritten_bullet must be a real improvement in wording, never a copy of the original: start with a strong past- or present-tense action verb, make the scope and purpose clear, put any stated result at the end, and use the posting's terminology where the original already describes that thing. Example: "Built weekly claims dashboards in Tableau for the operations team." → "Designed and maintain weekly Tableau claims dashboards that the operations team uses to track claims." is NOT allowed (adds a purpose); "Built and maintained weekly Tableau dashboards of claims data for the operations team." is allowed.
-4. "added_keywords" lists only posting keywords that the original bullet genuinely supports. Never use a keyword from the "missing" list.
-5. "star_action" and "star_result" restate what the bullet says; leave star_result empty if the bullet has no result.
-6. The summary may only use facts present in the resume. Don't state years of experience unless the resume does.
+3. Improve the wording where you can without new facts: a stronger action verb, a clearer order (action, then what, then for whom, then result), tighter phrasing, and the posting's terminology where the original already describes that thing. Don't add tools or skills the bullet itself doesn't name, even if they appear elsewhere in the resume.
+   Allowed: "Wrote SQL models that the pricing team used for monthly reporting." → "Built the SQL models behind the pricing team's monthly reporting."
+   Not allowed: "Maintain Airflow pipelines that load shipment data into Snowflake." → "...using Python and SQL" (adds tools the bullet doesn't mention).
+4. If a bullet can't be made meaningfully stronger without new facts, keep its wording and put 1-2 specific questions in "needs_confirmation" whose answers would make it stronger (e.g. for "Mentored two junior engineers.": "What did they learn or deliver with your help?").
+5. "added_keywords" lists only posting keywords that the original bullet genuinely supports. Never use a keyword from the "missing" list.
+6. "star_action" and "star_result" restate what the bullet says; leave star_result empty if the bullet has no result.
+7. The summary may only use facts present in the resume. Don't state years of experience unless the resume does.
 
 Return one JSON object:
 {"tailored_summary": str|null,
@@ -37,7 +40,8 @@ def _norm(s: str) -> str:
     return " ".join(normalize(s).lower().split()).strip(" .")
 
 
-def check_bullet(rw: BulletPointRewrite, original: str, missing: List[str], supported: List[str]) -> List[str]:
+def check_bullet(rw: BulletPointRewrite, original: str, missing: List[str], supported: List[str],
+                 known_skills: Optional[List[str]] = None) -> List[str]:
     """Reasons a rewrite isn't trustworthy (empty list = fine)."""
     problems = []
     bad_nums = unsupported_numbers(rw.rewritten_bullet, original)
@@ -46,6 +50,9 @@ def check_bullet(rw: BulletPointRewrite, original: str, missing: List[str], supp
     claimed = [k for k in missing if term_in_text(k, rw.rewritten_bullet) and not term_in_text(k, original)]
     if claimed:
         problems.append(f"claimed {', '.join(claimed)}, which your resume doesn't show")
+    attributed = [k for k in (known_skills or []) if k not in claimed and term_in_text(k, rw.rewritten_bullet) and not term_in_text(k, original)]
+    if attributed:
+        problems.append(f"attributed {', '.join(attributed)} to this bullet, which the original doesn't mention")
     return problems
 
 
@@ -63,6 +70,7 @@ def validate_rewrites(draft: _Draft, resume: ResumeSchema, resume_text: str, mis
                       ) -> Tuple[ResumeRewriteReport, Dict[str, List[str]], List[str]]:
     """Match each rewrite to a real bullet and withhold any that add facts."""
     originals = {_norm(b): (ji, b) for ji, j in enumerate(resume.work_experience) for b in j.bullet_points}
+    known = list(dict.fromkeys(resume.technical_skills + resume.tools_and_frameworks + supported))
     out: Dict[int, List[BulletPointRewrite]] = {}
     violations: Dict[str, List[str]] = {}
     for exp in draft.rewritten_experiences:
@@ -71,7 +79,7 @@ def validate_rewrites(draft: _Draft, resume: ResumeSchema, resume_text: str, mis
             if not hit:
                 continue  # model referenced a bullet that doesn't exist
             ji, original = hit
-            problems = check_bullet(rw, original, missing, supported)
+            problems = check_bullet(rw, original, missing, supported, known)
             if problems:
                 violations[original] = problems
                 out.setdefault(ji, []).append(BulletPointRewrite(

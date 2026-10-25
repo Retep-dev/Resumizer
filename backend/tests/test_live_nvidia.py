@@ -56,7 +56,11 @@ def test_live_pipeline_is_accurate_and_grounded():
     all_bullets = sum(len(j.bullet_points) for j in result.resume_data.work_experience)
     improved = [b for b in rewrites if b.status == "rewritten" and b.rewritten_bullet.strip() != b.original_bullet.strip()]
     check(len(rewrites) == all_bullets, f"only {len(rewrites)} of {all_bullets} bullets covered")
-    check(len(improved) * 2 >= all_bullets, f"only {len(improved)} of {all_bullets} bullets genuinely rewritten")
+    check(len(improved) >= 1, "no bullet was improved")
+    for b in rewrites:
+        # Every bullet is either improved or comes with questions for the candidate (or was withheld with a reason).
+        check(b in improved or b.needs_confirmation or (b.note or "").startswith("Rewrite withheld"),
+              f"unchanged bullet with no questions: {b.original_bullet}")
     for b in rewrites:
         check(set(re.findall(r"\d+", b.rewritten_bullet)) <= resume_numbers, f"invented number in: {b.rewritten_bullet}")
         check("Kafka" not in b.rewritten_bullet and "Terraform" not in b.rewritten_bullet, f"missing skill claimed in: {b.rewritten_bullet}")
@@ -79,3 +83,26 @@ def test_live_coach_multi_turn():
         assert reply.strip()
         history += [{"role": "user", "content": q}, {"role": "assistant", "content": reply}]
     assert re.match(r"\W*no\b", history[3]["content"].strip(), re.IGNORECASE), "coach must not claim Kafka"
+
+
+def test_live_rewrite_quality_by_model():
+    """Runs only the rewrite stage with each working model and reports the results."""
+    from app.agents.resume_parser_agent import rule_based_parse
+    from app.agents.resume_rewrite_agent import rewrite_with_ai
+    from app.llm.provider import NvidiaChatClient
+    from tests.conftest import DATA_JD, PRIYA_RESUME
+
+    resume, _ = rule_based_parse(PRIYA_RESUME)
+    supported = ["Python", "SQL", "Airflow", "dbt", "Snowflake"]
+    missing = ["Kafka", "Terraform", "AWS", "BigQuery"]
+    for model in ("nvidia/nemotron-3.5-lightning-30b-a3b", "openai/gpt-oss-20b"):
+        client = NvidiaChatClient(api_key=settings.NVIDIA_API_KEY, models=[model], timeout=120)
+        try:
+            report, warnings, _ = asyncio.run(rewrite_with_ai(client, resume, PRIYA_RESUME, DATA_JD, supported, missing))
+        except Exception as e:  # report, don't fail: this is a comparison
+            notice(f"live compare {model}", f"ERROR {type(e).__name__}: {getattr(e, 'message', e)}")
+            continue
+        bullets = [b for e in report.rewritten_experiences for b in e.rewritten_bullets]
+        improved = [b for b in bullets if b.status == "rewritten"]
+        notice(f"live compare {model}", f"improved {len(improved)}/{len(bullets)}; warnings {warnings} || " + " || ".join(
+            f"[{b.status}] {b.original_bullet} => {b.rewritten_bullet} (ask: {b.needs_confirmation}) {b.note or ''}" for b in bullets))
