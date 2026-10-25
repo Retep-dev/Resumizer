@@ -56,7 +56,25 @@ async def interview_with_ai(client: ChatClient, resume: ResumeSchema, resume_tex
         temperature=0.3, max_tokens=4000,
     )
     report, removed = validate_questions(report, resume_text)
+    if len(report.questions) < 4:
+        # One more attempt for a full set.
+        retry, _ = await complete_json(
+            client, INTERVIEW_SYSTEM_PROMPT,
+            f"Context (JSON):\n{json.dumps(payload, ensure_ascii=False)}\n\nYour last reply had only {len(report.questions)} usable question(s). Return all 6.",
+            InterviewPrepReport, temperature=0.3, max_tokens=4000,
+        )
+        retry, removed2 = validate_questions(retry, resume_text)
+        if len(retry.questions) > len(report.questions):
+            report, removed = retry, removed2
     warnings = [f"{removed} sample answer(s) were removed because they included numbers that aren't in your resume."] if removed else []
+    if 0 < len(report.questions) < 4:
+        # Top up with template questions for the types the AI didn't cover, labelled as such.
+        have = {q.question_type for q in report.questions}
+        extra, _ = rule_based_questions(resume, reqs, matched, missing)
+        added = [q for q in extra.questions if q.question_type not in have][: 6 - len(report.questions)]
+        report = InterviewPrepReport(questions=report.questions + added)
+        if added:
+            warnings.append(f"The AI returned only a few questions, so {len(added)} template question(s) from the posting were added (no sample answers).")
     if not report.questions:
         warnings.append("The AI didn't return usable interview questions.")
     return report, warnings, model

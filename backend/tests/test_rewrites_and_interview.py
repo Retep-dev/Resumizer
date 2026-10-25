@@ -138,3 +138,16 @@ def test_unchanged_bullets_always_get_follow_up_questions():
     report, _, _ = run(FakeClient(rewrite=copy))
     b = _bullets(report)["Wrote SQL models that the pricing team used for monthly reporting."]
     assert b.status == "kept_original" and len(b.needs_confirmation) == 2 and "number" in b.needs_confirmation[0]
+
+
+def test_short_interview_reply_is_retried_then_topped_up_with_labelled_templates():
+    one = json.dumps({"questions": [{"question_type": "behavioral", "question": "Tell us about Halcyon Freight.",
+                                     "context_or_reason": "", "star_guide": "", "sample_answer": None}]})
+    reqs = JobRequirements(title="Senior Data Engineer", min_years=5)
+    client = FakeClient(interview=[one, one])
+    report, warnings, _ = asyncio.run(interview_with_ai(client, RESUME, PRIYA_RESUME, reqs, SUPPORTED, MISSING))
+    assert len(client.calls) == 2
+    assert len(report.questions) >= 4
+    assert {"technical", "gap_focused"} <= {q.question_type for q in report.questions}
+    assert all(q.sample_answer is None for q in report.questions[1:])
+    assert any("template question" in w for w in warnings)
