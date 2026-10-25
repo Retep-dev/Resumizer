@@ -101,3 +101,22 @@ def test_rule_based_questions_have_no_sample_answers_and_use_real_roles():
     assert "Senior Data Engineer at Halcyon Freight" in report.questions[0].question
     assert any("Kafka" in q.question for q in report.questions if q.question_type == "gap_focused")
     assert warnings
+
+
+def test_identical_rewrites_are_labelled_and_skipped_bullets_are_requested_again():
+    copy = json.dumps({"tailored_summary": None, "rewritten_experiences": [{"company": "Halcyon Freight", "job_title": "Senior Data Engineer",
+        "rewritten_bullets": [{"original_bullet": "Mentored two junior engineers.", "rewritten_bullet": "Mentored two junior engineers.",
+                               "star_action": "", "star_result": "", "added_keywords": [], "needs_confirmation": []}]}]})
+    second = json.dumps({"tailored_summary": None, "rewritten_experiences": [{"company": "Brightwell Insurance", "job_title": "Data Analyst",
+        "rewritten_bullets": [{"original_bullet": "Built weekly claims dashboards in Tableau for the operations team.",
+                               "rewritten_bullet": "Built and maintained weekly Tableau claims dashboards for the operations team.",
+                               "star_action": "", "star_result": "", "added_keywords": [], "needs_confirmation": []}]}]})
+    client = FakeClient(rewrite=[copy, second])
+    report, warnings, _ = run(client)
+    b = _bullets(report)
+    assert b["Mentored two junior engineers."].status == "kept_original"
+    assert "No stronger wording" in b["Mentored two junior engineers."].note
+    assert b["Built weekly claims dashboards in Tableau for the operations team."].status == "rewritten"
+    assert len(client.calls) == 2 and "You didn't rewrite these bullets" in client.calls[1]["messages"][-1]["content"]
+    assert [e.company for e in report.rewritten_experiences] == ["Halcyon Freight", "Brightwell Insurance"]
+    assert any("no change" in w for w in warnings)

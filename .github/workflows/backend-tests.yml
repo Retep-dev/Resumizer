@@ -51,7 +51,10 @@ jobs:
         continue-on-error: true
       - name: Live accuracy tests
         if: env.NVIDIA_API_KEY != ''
-        run: RESUMIZER_LIVE=1 python -m pytest tests/test_live_nvidia.py -q -s -rs
+        run: RESUMIZER_LIVE=1 python -m pytest tests/test_live_nvidia.py -k pipeline -q -s -rs
+      - name: Live coach conversation
+        if: env.NVIDIA_API_KEY != ''
+        run: RESUMIZER_LIVE=1 python -m pytest tests/test_live_nvidia.py -k coach -q -s -rs
       - name: Skipped
         if: env.NVIDIA_API_KEY == ''
         run: echo "Add NVIDIA_API_KEY as a repository secret to run live checks."

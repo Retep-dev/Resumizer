@@ -15,7 +15,7 @@ REWRITE_SYSTEM_PROMPT = """You are a careful resume editor. You improve how exis
 Hard rules:
 1. Keep the meaning of every bullet. Do not add tools, skills, employers, responsibilities, team sizes or outcomes that the original bullet doesn't state.
 2. Never add a number, percentage, amount or duration that isn't in the original bullet. If a metric would make a bullet stronger, keep the bullet without it and ask for it in "needs_confirmation" (e.g. "How many tests did you run, and what changed as a result?").
-3. You may: start with a strong action verb, tighten wording, put the result first, and use the posting's terminology where the original bullet already describes that thing.
+3. Every rewritten_bullet must be a real improvement in wording, never a copy of the original: start with a strong past- or present-tense action verb, make the scope and purpose clear, put any stated result at the end, and use the posting's terminology where the original already describes that thing. Example: "Built weekly claims dashboards in Tableau for the operations team." → "Designed and maintain weekly Tableau claims dashboards that the operations team uses to track claims." is NOT allowed (adds a purpose); "Built and maintained weekly Tableau dashboards of claims data for the operations team." is allowed.
 4. "added_keywords" lists only posting keywords that the original bullet genuinely supports. Never use a keyword from the "missing" list.
 5. "star_action" and "star_result" restate what the bullet says; leave star_result empty if the bullet has no result.
 6. The summary may only use facts present in the resume. Don't state years of experience unless the resume does.
@@ -79,6 +79,12 @@ def validate_rewrites(draft: _Draft, resume: ResumeSchema, resume_text: str, mis
                     note="Rewrite withheld: it " + " and ".join(problems) + ".",
                     needs_confirmation=[q for q in rw.needs_confirmation if q.strip()][:3],
                 ))
+            elif _norm(rw.rewritten_bullet) == _norm(original):
+                out.setdefault(ji, []).append(BulletPointRewrite(
+                    original_bullet=original, rewritten_bullet=original, status="kept_original",
+                    note="No stronger wording was suggested for this bullet.",
+                    needs_confirmation=[q for q in rw.needs_confirmation if q.strip()][:3],
+                ))
             else:
                 out.setdefault(ji, []).append(_clean(rw, original, supported))
 
@@ -88,7 +94,12 @@ def validate_rewrites(draft: _Draft, resume: ResumeSchema, resume_text: str, mis
         bad = unsupported_numbers(summary, resume_text)
         claimed = [k for k in missing if term_in_text(k, summary) and not term_in_text(k, resume_text)]
         if bad or claimed:
-            warnings.append("The suggested summary was withheld because it stated facts that aren't in your resume.")
+            why = []
+            if bad:
+                why.append("numbers not in your resume (" + ", ".join(sorted(bad)) + ")")
+            if claimed:
+                why.append("skills your resume doesn't show (" + ", ".join(claimed) + ")")
+            warnings.append("The suggested summary was withheld because it included " + " and ".join(why) + ".")
             summary = None
 
     exps = []
@@ -129,7 +140,32 @@ async def rewrite_with_ai(client: ChatClient, resume: ResumeSchema, resume_text:
                 e.rewritten_bullets = [good.get(b.original_bullet, b) if b.status == "kept_original" else b for b in e.rewritten_bullets]
         except Exception:
             pass  # keep the withheld originals
-    withheld = sum(1 for e in report.rewritten_experiences for b in e.rewritten_bullets if b.status == "kept_original")
+    # Ask once more for bullets the model skipped.
+    covered = {b.original_bullet for e in report.rewritten_experiences for b in e.rewritten_bullets}
+    skipped = [b for j in resume.work_experience for b in j.bullet_points if b not in covered]
+    if skipped:
+        more_user = user + "\n\nYou didn't rewrite these bullets. Rewrite exactly these, following the rules:\n" + "\n".join(f"- {b}" for b in skipped)
+        try:
+            more, _ = await complete_json(client, REWRITE_SYSTEM_PROMPT, more_user, _Draft, temperature=0.2, max_tokens=2500)
+            extra, _, _ = validate_rewrites(more, resume, resume_text, missing, supported)
+            by_job = {(e.company, e.job_title): e for e in report.rewritten_experiences}
+            for e in extra.rewritten_experiences:
+                target = by_job.get((e.company, e.job_title))
+                new = [b for b in e.rewritten_bullets if b.original_bullet not in covered]
+                if target:
+                    target.rewritten_bullets.extend(new)
+                elif new:
+                    report.rewritten_experiences.append(WorkExperienceRewrite(company=e.company, job_title=e.job_title, rewritten_bullets=new))
+        except Exception:
+            pass
+        # Keep the resume's role order.
+        order = {(j.company, j.job_title): i for i, j in enumerate(resume.work_experience)}
+        report.rewritten_experiences.sort(key=lambda e: order.get((e.company, e.job_title), 99))
+
+    withheld = sum(1 for e in report.rewritten_experiences for b in e.rewritten_bullets if b.status == "kept_original" and b.note and b.note.startswith("Rewrite withheld"))
     if withheld:
         warnings.append(f"{withheld} rewrite(s) were withheld because they added facts that aren't in your resume; the original wording is shown instead.")
+    unchanged = sum(1 for e in report.rewritten_experiences for b in e.rewritten_bullets if b.note == "No stronger wording was suggested for this bullet.")
+    if unchanged:
+        warnings.append(f"The AI suggested no change for {unchanged} bullet(s).")
     return report, warnings, model

@@ -13,7 +13,7 @@ def notice(title, text):
     """Print, and in GitHub Actions also publish as an annotation."""
     print(f"{title}: {text}")
     if os.getenv("GITHUB_ACTIONS"):
-        print(f"::notice title={title}::{' '.join(str(text).split())[:900]}")
+        print(f"::notice title={title}::{' '.join(str(text).split())[:3500]}")
 
 import pytest
 
@@ -35,18 +35,12 @@ def test_live_pipeline_is_accurate_and_grounded():
     resume_numbers = set(re.findall(r"\d+", PRIYA_RESUME))
 
     # Publish the full output first so failures are diagnosable from the API.
-    notice("live status", f"{result.status} {({k: (v.status, v.model) for k, v in result.stages.items()})}")
-    notice("live warnings", result.warnings)
-    notice("live parsed", f"name={result.resume_data.full_name!r} roles={jobs} skills={result.resume_data.technical_skills + result.resume_data.tools_and_frameworks}")
-    notice("live requirements", [(r.term, r.category, r.importance) for r in result.job_requirements.requirements])
-    notice("live score", f"{result.ats_score.overall_score} {[(c.name, c.score) for c in result.ats_score.criteria]}")
-    notice("live matched", result.ats_score.matched_keywords)
-    notice("live missing", result.ats_score.missing_keywords)
-    notice("live summary", result.rewrite_report.tailored_summary)
-    for b in rewrites:
-        notice("live rewrite", f"[{b.status}] {b.original_bullet} => {b.rewritten_bullet} | ask: {b.needs_confirmation} | {b.note or ''}")
-    for q in result.interview_prep.questions:
-        notice("live question", f"{q.question_type}: {q.question} | answer: {(q.sample_answer or '')[:300]}")
+    notice("live status", f"{result.status} {({k: (v.status, v.model) for k, v in result.stages.items()})} WARNINGS {result.warnings}")
+    notice("live parsed", f"name={result.resume_data.full_name!r} roles={jobs} skills={result.resume_data.technical_skills + result.resume_data.tools_and_frameworks} REQUIREMENTS {[(r.term, r.importance) for r in result.job_requirements.requirements]}")
+    notice("live score", f"{result.ats_score.overall_score} {[(c.name, c.score) for c in result.ats_score.criteria]} MATCHED {result.ats_score.matched_keywords} MISSING {result.ats_score.missing_keywords}")
+    notice("live rewrites", f"SUMMARY: {result.rewrite_report.tailored_summary} || " + " || ".join(
+        f"[{b.status}] {b.original_bullet} => {b.rewritten_bullet} (ask: {b.needs_confirmation}) {b.note or ''}" for b in rewrites))
+    notice("live questions", " || ".join(f"{q.question_type}: {q.question} ANSWER: {(q.sample_answer or '-')[:260]}" for q in result.interview_prep.questions))
 
     failures = []
     def check(ok, msg):
@@ -59,6 +53,10 @@ def test_live_pipeline_is_accurate_and_grounded():
     check(any(k.lower() == "python" for k in result.ats_score.matched_keywords), "Python not matched")
     check(not any(re.search(r"\byears?\b", k, re.I) for k in result.ats_score.matched_keywords + result.ats_score.missing_keywords), "duration listed as keyword")
     check(bool(rewrites), "no AI rewrites")
+    all_bullets = sum(len(j.bullet_points) for j in result.resume_data.work_experience)
+    improved = [b for b in rewrites if b.status == "rewritten" and b.rewritten_bullet.strip() != b.original_bullet.strip()]
+    check(len(rewrites) == all_bullets, f"only {len(rewrites)} of {all_bullets} bullets covered")
+    check(len(improved) * 2 >= all_bullets, f"only {len(improved)} of {all_bullets} bullets genuinely rewritten")
     for b in rewrites:
         check(set(re.findall(r"\d+", b.rewritten_bullet)) <= resume_numbers, f"invented number in: {b.rewritten_bullet}")
         check("Kafka" not in b.rewritten_bullet and "Terraform" not in b.rewritten_bullet, f"missing skill claimed in: {b.rewritten_bullet}")
@@ -77,7 +75,7 @@ def test_live_coach_multi_turn():
     history = []
     for q in ("What should I fix first for this job?", "Do I have Kafka experience? Answer yes or no first.", "Rewrite my Airflow bullet."):
         reply = asyncio.run(chat_with_career_coach(q, history, PRIYA_RESUME, DATA_JD, analysis))
-        notice("live coach turn", f"USER: {q} || COACH: {reply[:850]}")
+        notice(f"live coach turn {len(history) // 2 + 1}", f"USER: {q} || COACH: {reply[:3000]}")
         assert reply.strip()
         history += [{"role": "user", "content": q}, {"role": "assistant", "content": reply}]
     assert re.match(r"\W*no\b", history[3]["content"].strip(), re.IGNORECASE), "coach must not claim Kafka"
