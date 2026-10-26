@@ -47,7 +47,7 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Which models can this key use?
         if: env.NVIDIA_API_KEY != ''
-        run: python scripts/check_models.py
+        run: python scripts/check_models.py nvidia/nemotron-3.5-lightning-30b-a3b openai/gpt-oss-20b
         continue-on-error: true
       - name: Live accuracy tests
         if: env.NVIDIA_API_KEY != ''
@@ -58,6 +58,10 @@ jobs:
       - name: Live rewrite comparison by model
         if: always() && env.NVIDIA_API_KEY != ''
         run: RESUMIZER_LIVE=1 python -m pytest tests/test_live_nvidia.py -k rewrite_quality -q -s -rs
+      - name: Rewrite prompt experiment
+        if: always() && env.NVIDIA_API_KEY != ''
+        continue-on-error: true
+        run: python scripts/rewrite_experiment.py
       - name: Skipped
         if: env.NVIDIA_API_KEY == ''
         run: echo "Add NVIDIA_API_KEY as a repository secret to run live checks."
