@@ -79,15 +79,15 @@ def merge_alternatives(reqs: List[JobRequirement], jd: str) -> List[JobRequireme
             i = parent[i]
         return i
 
-    for i, a in enumerate(reqs):
-        for j in range(i + 1, len(reqs)):
-            b = reqs[j]
-            if a.category != b.category:
-                continue
-            ea, eb = re.escape(a.term.lower()), re.escape(b.term.lower())
-            if re.search(rf"(?<![a-z0-9]){ea}\s*(?:,\s*)?(?:or|/)\s*{eb}(?![a-z0-9])", text) or \
-               re.search(rf"(?<![a-z0-9]){eb}\s*(?:,\s*)?(?:or|/)\s*{ea}(?![a-z0-9])", text):
-                parent[find(j)] = find(i)
+    # Replace each term in the posting with a marker, longest first, so "React"
+    # inside "React Testing Library" isn't read as a separate alternative.
+    marked = text
+    for i in sorted(range(len(reqs)), key=lambda k: -len(reqs[k].term)):
+        marked = re.sub(rf"(?<![a-z0-9\u27e6]){re.escape(reqs[i].term.lower())}(?![a-z0-9])", f"\u27e6{i}\u27e7", marked)
+    for m in re.finditer(r"\u27e6(\d+)\u27e7(?=\s*(?:,\s*)?(?:or|/)\s*\u27e6(\d+)\u27e7)", marked):
+        i, j = int(m.group(1)), int(m.group(2))
+        if i != j and reqs[i].category == reqs[j].category:
+            parent[find(j)] = find(i)
     groups = {}
     for i in range(len(reqs)):
         groups.setdefault(find(i), []).append(reqs[i])

@@ -127,3 +127,12 @@ def test_either_or_requirements_are_satisfied_by_one_alternative_and_missed_skil
     resume, _ = rule_based_parse(PRIYA_RESUME)
     ats, _ = score_resume(resume, PRIYA_RESUME, reqs, "ai")
     assert "Snowflake or BigQuery" in ats.matched_keywords and "BigQuery" not in ats.missing_keywords
+
+
+def test_alternatives_do_not_swallow_a_term_that_prefixes_a_longer_one():
+    from app.agents.job_analysis_agent import merge_alternatives
+    from app.schemas.resume import JobRequirement
+    jd = "- React, TypeScript, HTML and CSS\n- Experience with Jest or React Testing Library\n- Snowflake/BigQuery"
+    reqs = [JobRequirement(term=t, category="hard") for t in ["React", "TypeScript", "Jest", "React Testing Library", "Snowflake", "BigQuery"]]
+    terms = [r.term for r in merge_alternatives(reqs, jd)]
+    assert terms == ["React", "TypeScript", "Jest or React Testing Library", "Snowflake or BigQuery"]
