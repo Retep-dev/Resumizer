@@ -1,4 +1,6 @@
-"""Compare rewrite prompt variants against the live model (diagnostic, CI only).
+"""Compare rewrite prompt variants against the live model (manual diagnostic).
+
+Run: NVIDIA_API_KEY=... python scripts/rewrite_experiment.py
 
 Every variant still goes through the same validator, so a variant can only
 'win' by producing more rewrites that pass the no-new-facts checks.

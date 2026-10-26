@@ -127,7 +127,7 @@ def good_rewrite_json() -> str:
             "company": "Halcyon Freight", "job_title": "Senior Data Engineer",
             "rewritten_bullets": [
                 {"original_bullet": "Maintain Airflow pipelines that load shipment data into Snowflake.",
-                 "rewritten_bullet": "Own and maintain the Airflow pipelines that load shipment data into Snowflake.",
+                 "rewritten_bullet": "Maintain the Airflow orchestration pipelines that load shipment data into Snowflake.",
                  "star_action": "Maintain Airflow pipelines", "star_result": "",
                  "added_keywords": ["Airflow", "Snowflake"],
                  "needs_confirmation": ["How many pipelines or how much data do they move each day?"]},

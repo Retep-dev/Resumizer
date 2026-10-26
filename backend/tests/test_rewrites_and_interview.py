@@ -25,7 +25,7 @@ def _bullets(report):
 def test_valid_rewrites_are_kept_with_confirmation_questions():
     report, warnings, _ = run(FakeClient(rewrite=good_rewrite_json()))
     b = _bullets(report)["Maintain Airflow pipelines that load shipment data into Snowflake."]
-    assert b.status == "rewritten" and b.rewritten_bullet.startswith("Own and maintain")
+    assert b.status == "rewritten" and b.rewritten_bullet.startswith("Maintain the Airflow orchestration")
     assert b.needs_confirmation and set(b.added_keywords) == {"Airflow", "Snowflake"}
     kept_numbers = _bullets(report)["Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks."]
     assert kept_numbers.status == "rewritten" and "9" in kept_numbers.rewritten_bullet
@@ -183,3 +183,24 @@ def test_placeholder_rewrites_are_accepted_and_labelled():
     report, _, _ = run(FakeClient(rewrite=ok))
     b = _bullets(report)[bullet]
     assert b.status == "rewritten" and "[bracketed]" in b.note
+
+
+def test_rewrites_that_change_the_verb_kind_or_garble_a_metric_are_withheld():
+    from app.agents.resume_rewrite_agent import check_bullet
+    from app.schemas.resume import BulletPointRewrite
+
+    def probs(orig, new):
+        return check_bullet(BulletPointRewrite(original_bullet=orig, rewritten_bullet=new), orig, [], [], [])
+    assert any("changed what you did" in p for p in probs("Built React components for the checkout flow.", "Maintain React components for the checkout flow."))
+    assert any("changed what you did" in p for p in probs("Helped migrate the billing service.", "Led the billing service migration."))
+    q = "Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks."
+    assert any("measures" in p for p in probs(q, "Reduced nightly load failures from 9 per effects to 2 per month by adding data quality checks."))
+    assert not probs(q, "Cut nightly load failures from 9 per month to 2 per month by adding data quality checks.")
+    assert not probs("Worked with designers in Figma to ship a new onboarding screen.", "Collaborated with designers in Figma to ship a new onboarding screen.")
+    assert not probs("Built React components for the checkout flow.", "Developed the React components behind the checkout flow.")
+
+
+def test_model_nulls_in_rewrite_fields_are_tolerated():
+    from app.schemas.resume import BulletPointRewrite
+    b = BulletPointRewrite(original_bullet="x", rewritten_bullet="y", star_result=None, star_action=None, needs_confirmation=None)
+    assert b.star_result == "" and b.needs_confirmation == []

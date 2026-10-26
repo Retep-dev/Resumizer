@@ -1,5 +1,5 @@
 from typing import Dict, List, Literal, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 # ───────────────────────── Resume (source of truth) ─────────────────────────
@@ -108,6 +108,16 @@ class BulletPointRewrite(BaseModel):
     needs_confirmation: List[str] = Field(default_factory=list, description="Questions for the candidate, e.g. a metric to add")
     status: Literal["rewritten", "kept_original"] = "rewritten"
     note: Optional[str] = None
+
+    @field_validator("star_action", "star_result", mode="before")
+    @classmethod
+    def _none_to_empty(cls, v):
+        return "" if v is None else v
+
+    @field_validator("added_keywords", "needs_confirmation", mode="before")
+    @classmethod
+    def _none_to_list(cls, v):
+        return [] if v is None else v
 
 
 class WorkExperienceRewrite(BaseModel):

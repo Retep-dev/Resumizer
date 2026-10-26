@@ -46,6 +46,36 @@ def _norm(s: str) -> str:
     return " ".join(normalize(s).lower().split()).strip(" .")
 
 
+# What the candidate did, by kind. A rewrite may swap verbs within a kind
+# ("Built" → "Developed") but not across kinds ("Built" → "Maintain").
+_VERB_KINDS = {
+    "create": "build built create created develop developed design designed ship shipped launch launched implement implemented "
+              "write wrote author authored introduce introduced add added set establish established engineer engineered code coded",
+    "maintain": "maintain maintained support supported run ran operate operated manage-system monitor monitored update updated "
+                "fix fixed troubleshoot troubleshot debug debugged keep kept",
+    "lead": "lead led manage managed own owned head headed direct directed oversee oversaw spearhead spearheaded drive drove",
+    "help": "help helped assist assisted contribute contributed participate participated",
+    "collaborate": "work worked collaborate collaborated partner partnered liaise liaised coordinate coordinated",
+    "teach": "mentor mentored coach coached train trained teach taught onboard onboarded",
+    "improve": "reduce reduced cut increase increased improve improved grow grew raise raised boost boosted speed sped optimize optimized "
+               "optimise optimised streamline streamlined lower lowered",
+    "analyze": "analyze analyzed analyse analysed research researched investigate investigated measure measured evaluate evaluated "
+               "test tested audit audited model modeled modelled",
+}
+_VERB_KIND = {w: k for k, words in _VERB_KINDS.items() for w in words.split()}
+
+
+def _lead_verb_kind(text: str) -> Optional[str]:
+    words = re.findall(r"[a-z]+", normalize(text).lower())
+    return _VERB_KIND.get(words[0]) if words else None
+
+
+def _number_contexts(text: str) -> List[tuple]:
+    """Each number with the two words after it: ('9', 'per month')."""
+    toks = re.findall(r"\d+(?:[.,]\d+)?%?|[a-z]+", normalize(text).lower())
+    return [(t, " ".join(toks[i + 1:i + 3])) for i, t in enumerate(toks) if t[0].isdigit()]
+
+
 def check_bullet(rw: BulletPointRewrite, original: str, missing: List[str], supported: List[str],
                  known_skills: Optional[List[str]] = None) -> List[str]:
     """Reasons a rewrite isn't trustworthy (empty list = fine)."""
@@ -56,6 +86,15 @@ def check_bullet(rw: BulletPointRewrite, original: str, missing: List[str], supp
     claimed = [k for k in missing if term_in_text(k, rw.rewritten_bullet) and not term_in_text(k, original)]
     if claimed:
         problems.append(f"claimed {', '.join(claimed)}, which your resume doesn't show")
+    a, b = _lead_verb_kind(original), _lead_verb_kind(rw.rewritten_bullet)
+    if a and b and a != b:
+        problems.append(f"changed what you did (\"{original.split()[0]}\" became \"{rw.rewritten_bullet.split()[0]}\")")
+    # Words right after a number say what it measures; they must come from the original.
+    orig_words = set(re.findall(r"[a-z]+", normalize(original).lower()))
+    changed = [f"{n} {after}" for n, after in _number_contexts(rw.rewritten_bullet)
+               if any(w not in orig_words for w in re.findall(r"[a-z]+", after))]
+    if changed:
+        problems.append(f"changed what a number measures ({', '.join(changed)})")
     attributed = [k for k in (known_skills or []) if k not in claimed and term_in_text(k, rw.rewritten_bullet) and not term_in_text(k, original)]
     if attributed:
         problems.append(f"attributed {', '.join(attributed)} to this bullet, which the original doesn't mention")
