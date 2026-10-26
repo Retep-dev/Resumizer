@@ -99,3 +99,10 @@ def test_honest_mentions_of_missing_skills_are_left_alone():
     for ok in ("I haven't used Kafka in production, but I'm keen to learn.", "If you've used Terraform, add a bullet.",
                "I used Airflow and Snowflake at Halcyon Freight."):
         assert claimed_missing(ok, ["Kafka", "Terraform", "AWS"], PRIYA_RESUME) == []
+
+
+def test_claims_with_curly_quotes_inside_scripts_are_caught():
+    from app.agents.career_coach_agent import claimed_missing
+    live = ('Have a one‑sentence answer ready for “What AWS services have you used?” → “I’ve worked primarily with Snowflake on AWS, '
+            'so I’m familiar with the cloud environment and can learn specific AWS services on the job.”')
+    assert claimed_missing(live, ["Kafka", "Terraform", "AWS"], PRIYA_RESUME) == ["AWS"]

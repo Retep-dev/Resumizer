@@ -125,7 +125,7 @@ def claimed_missing(reply: str, missing: List[str], resume_text: str) -> List[st
     from app.services.text_utils import term_in_text
 
     out = []
-    for sentence in re.split(r"(?<=[.!?])\s+|\n+", reply or ""):
+    for sentence in re.split(r"(?<=[.!?])[\"')\]]*\s+|[\"]\s*|\n+|\s+→\s+", normalize(reply or "")):
         if not _CLAIM_RE.search(sentence) or _NEGATION_RE.search(sentence):
             continue
         for k in missing:

@@ -54,7 +54,7 @@ export default function RewriteDiffView({ rewriteReport, kept, onToggleKeep, sta
   return (
     <>
       <div className="rw-toolbar" role="toolbar" aria-label="Rewrite actions">
-        <span className="rw-toolbar__count" aria-live="polite">{kept.size} of {total} kept</span>
+        {total > 0 && <span className="rw-toolbar__count" aria-live="polite">{kept.size} of {total} kept</span>}
         <span className="rw-toolbar__note">
           {total ? 'Rewrites never add numbers or skills your resume doesn’t show. [Brackets] mark details only you can fill in.' : 'No rewrite was suggested for these bullets. Answer the questions under each one to make them stronger.'}
         </span>
