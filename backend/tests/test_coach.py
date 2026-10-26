@@ -67,8 +67,8 @@ def test_rewrite_request_that_merges_another_bullet_is_retried():
     client = FakeClient(coach=[merged, clean])
     reply = chat(client, "Rewrite my Airflow bullet so it's stronger.", [])
     assert reply == clean and len(client.calls) == 2
-    note = client.calls[1]["messages"][1]
-    assert note["role"] == "system" and AIRFLOW in note["content"] and QUALITY in note["content"]
+    note = client.calls[1]["messages"][-1]
+    assert note["role"] == "user" and AIRFLOW in note["content"] and QUALITY in note["content"]
 
 
 def test_merge_that_survives_the_retry_is_flagged_to_the_user():
@@ -128,4 +128,15 @@ def test_rewrite_that_borrows_the_postings_domain_is_corrected():
     a = {"resume_data": {"work_experience": [{"bullet_points": [bullet, "Wrote Jest unit tests for the payments module."]}]}}
     client = FakeClient(coach=[live, ok])
     reply = asyncio.run(chat_with_career_coach("Rewrite my checkout bullet.", [], TOMAS, HEALTH_JD, a, client=client))
-    assert reply == ok and len(client.calls) == 2 and "patient" in client.calls[1]["messages"][1]["content"]
+    assert reply == ok and len(client.calls) == 2 and "patient" in client.calls[1]["messages"][-1]["content"]
+
+
+def test_correction_follows_the_faulty_draft_and_note_quotes_whole_phrases():
+    bullet = "Built React components for the checkout flow, cutting checkout drop-off from 31% to 24%."
+    bad = f"{bullet}\n→ Built React components for patient-facing workflows, reducing drop-off from 31% to 24%."
+    a = {"resume_data": {"work_experience": [{"bullet_points": [bullet]}]}}
+    client = FakeClient(coach=[bad, bad])
+    reply = asyncio.run(chat_with_career_coach("Rewrite my checkout bullet.", [], TOMAS, HEALTH_JD, a, client=client))
+    msgs = client.calls[1]["messages"]
+    assert [m["role"] for m in msgs[-3:]] == ["user", "assistant", "user"] and msgs[-2]["content"] == bad
+    assert "“patient-facing”" in reply

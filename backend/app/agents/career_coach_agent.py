@@ -152,6 +152,23 @@ def borrowed_from_posting(reply: str, targets: List[str], resume_text: str, job_
     return borrowed
 
 
+async def _correct(client: ChatClient, messages: List[Dict[str, str]], draft: str, note: str):
+    """Ask again with the faulty draft and the correction at the end, where the model attends most."""
+    return await client.complete(messages + [{"role": "assistant", "content": draft}, {"role": "user", "content": note}],
+                                 temperature=0.2, max_tokens=1200)
+
+
+def _phrases(text: str, words: List[str]) -> List[str]:
+    """Whole phrases ('patient-facing') around the flagged words, for a readable note."""
+    out = []
+    for w in words:
+        m = re.search(rf"[A-Za-z0-9-]*{re.escape(w)}[A-Za-z0-9-]*", normalize(text), re.IGNORECASE)
+        p = m.group(0) if m else w
+        if p.lower() not in (o.lower() for o in out):
+            out.append(p)
+    return out
+
+
 async def chat_with_career_coach(
     user_message: str,
     chat_history: Optional[List[Dict[str, str]]],
@@ -177,9 +194,9 @@ async def chat_with_career_coach(
     grounding_text = resume_text or _resume_from_analysis(analysis)
     claimed = claimed_missing(reply, missing, grounding_text)
     if claimed:
-        note = ("Correction: your draft suggested the candidate say they have experience with " + ", ".join(claimed)
-                + ", which their resume doesn't show. Never script a claim of experience they don't have; suggest honest wording instead. Answer again.")
-        retry = await client.complete(messages[:1] + [{"role": "system", "content": note}] + messages[1:], temperature=0.2, max_tokens=1200)
+        note = ("Please correct that: your draft suggested the candidate say they have experience with " + ", ".join(claimed)
+                + ", which their resume doesn't show. Never script a claim of experience they don't have; suggest honest wording instead. Give me just the corrected answer.")
+        retry = await _correct(client, messages, reply, note)
         reply = retry.text
         still = claimed_missing(reply, missing, grounding_text)
         if still:
@@ -191,21 +208,21 @@ async def chat_with_career_coach(
     targets = target_bullets(user_message, bullets)
     borrowed = borrowed_from_posting(reply, targets, grounding_text, job_description) if targets else []
     if borrowed:
-        note = ("Correction: your rewrite took words from the job posting that describe work the candidate didn't do ("
+        note = ("Please correct that: your rewrite took words from the job posting that describe work the candidate didn't do ("
                 + ", ".join(borrowed) + "). Rewrite only " + " / ".join(f'"{t}"' for t in targets)
-                + " using what that bullet says; mention the posting's terms only as a bracketed suggestion like \"[if true: ...]\". Answer again.")
-        retry = await client.complete(messages[:1] + [{"role": "system", "content": note}] + messages[1:], temperature=0.2, max_tokens=1200)
+                + " using what that bullet says; mention the posting's terms only as a bracketed suggestion like \"[if true: ...]\". Give me just the corrected rewrite.")
+        retry = await _correct(client, messages, reply, note)
         reply = retry.text
         still = borrowed_from_posting(reply, targets, grounding_text, job_description)
         if still:
-            reply += ("\n\nNote: this suggestion uses words from the job posting (" + ", ".join(still)
+            reply += ("\n\nNote: this suggestion uses wording from the job posting (" + ", ".join(f"“{p}”" for p in _phrases(reply, still))
                       + ") that your resume doesn't support. Only keep them if they describe what you actually did.")
     merged = merged_bullets(reply, targets, bullets, user_message) if targets else []
     if merged:
-        note = ("Correction: rewrite only this bullet: " + " / ".join(f'"{t}"' for t in targets)
+        note = ("Please correct that: rewrite only this bullet: " + " / ".join(f'"{t}"' for t in targets)
                 + ". Do not include content from other bullets, such as: " + " / ".join(f'"{m}"' for m in merged)
-                + ". Answer the user's request again.")
-        retry = await client.complete(messages[:1] + [{"role": "system", "content": note}] + messages[1:], temperature=0.2, max_tokens=1200)
+                + ". Give me just the corrected answer.")
+        retry = await _correct(client, messages, reply, note)
         if not merged_bullets(retry.text, targets, bullets, user_message):
             return retry.text
         reply = retry.text + ("\n\nNote: this suggestion includes details from another bullet (" + "; ".join(f"“{m}”" for m in merged)
