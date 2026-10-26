@@ -158,3 +158,9 @@ def test_merge_across_lines_of_a_rewrite_is_caught():
     live = ("Here’s a version that mirrors the job description:\n\nBuilt React components for the checkout flow, reducing drop-off from 31% to 24%.\n"
             "Collaborated with designers in Figma and ensured accessibility compliance.\n\nWhy this works:\n\nStarts with “Built React components”.")
     assert merged_bullets(live, [bullet], [bullet, figma, "Wrote Jest unit tests for the payments module."], "Rewrite my checkout bullet.") == [figma]
+
+
+def test_corrected_answer_preamble_is_removed():
+    bad = 'Say: "I have worked within Snowflake on AWS."'
+    client = FakeClient(coach=[bad, "**Corrected answer:** Be honest that AWS isn't on your resume yet."])
+    assert chat(client, "How do I handle the AWS gap?", []) == "Be honest that AWS isn't on your resume yet."

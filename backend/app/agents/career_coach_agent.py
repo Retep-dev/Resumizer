@@ -179,8 +179,11 @@ def borrowed_from_posting(reply: str, targets: List[str], resume_text: str, job_
 
 async def _correct(client: ChatClient, messages: List[Dict[str, str]], draft: str, note: str):
     """Ask again with the faulty draft and the correction at the end, where the model attends most."""
-    return await client.complete(messages + [{"role": "assistant", "content": draft}, {"role": "user", "content": note}],
-                                 temperature=0.2, max_tokens=1200)
+    out = await client.complete(messages + [{"role": "assistant", "content": draft}, {"role": "user", "content": note}],
+                                temperature=0.2, max_tokens=1200)
+    # The user never saw the draft, so drop any "Corrected answer:" preamble.
+    out.text = re.sub(r"^\s*[*_#\s]*(?:here(?:'s| is) (?:the|my) )?corrected (?:answer|rewrite|version|bullet)[*_\s]*:?[*_\s]*", "", out.text, flags=re.IGNORECASE)
+    return out
 
 
 def _phrases(text: str, words: List[str]) -> List[str]:
