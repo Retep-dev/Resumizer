@@ -52,7 +52,10 @@ def _keyword_criterion(reqs: JobRequirements, resume_text: str) -> Tuple[ScoreCr
     found_req = sum(1 for e in evidence if e.found and e.importance == "required")
     n_req = sum(1 for e in evidence if e.importance == "required")
     score = round(100 * got / total)
-    detail = f"{found_req} of {n_req} required and {sum(1 for e in evidence if e.found and e.importance == 'preferred')} of {len(evidence) - n_req} preferred keywords appear in your resume."
+    n_pref = len(evidence) - n_req
+    detail = f"{found_req} of {n_req} required keywords appear in your resume."
+    if n_pref:
+        detail = f"{found_req} of {n_req} required and {sum(1 for e in evidence if e.found and e.importance == 'preferred')} of {n_pref} preferred keywords appear in your resume."
     return ScoreCriterion(name="Keywords", score=score, weight=WEIGHTS["keywords"], detail=detail), evidence
 
 

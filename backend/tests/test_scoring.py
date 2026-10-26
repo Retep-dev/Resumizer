@@ -22,8 +22,9 @@ def test_job_requirements_are_grounded_in_the_posting():
     assert "Kafka" in terms and "Terraform" in terms
     hallucinated = JobRequirements(requirements=[JobRequirement(term="Rust"), JobRequirement(term="Kafka")])
     grounded, warnings = ground_requirements(hallucinated, DATA_JD)
-    assert [r.term for r in grounded.requirements] == ["Kafka"]
-    assert warnings
+    terms = [r.term for r in grounded.requirements]
+    assert "Kafka" in terms and "Rust" not in terms  # the rest are backfilled from the posting's own text
+    assert any("aren't in the job description" in w for w in warnings)
 
 
 def test_gaps_are_missing_from_resume_and_matches_are_present():
@@ -106,4 +107,23 @@ def test_requirement_terms_are_cleaned_of_qualifiers_and_durations():
     reqs = JobRequirements(requirements=[JobRequirement(term="5+ years of experience in data engineering"),
                                          JobRequirement(term="Strong stakeholder communication", category="soft")])
     grounded, _ = ground_requirements(reqs, DATA_JD)
-    assert [r.term for r in grounded.requirements] == ["Stakeholder communication"]
+    terms = [r.term for r in grounded.requirements]
+    assert terms[0] == "Stakeholder communication" and not any("year" in t.lower() for t in terms)
+
+
+def test_either_or_requirements_are_satisfied_by_one_alternative_and_missed_skills_backfilled():
+    from app.agents.job_analysis_agent import ground_requirements
+    from app.agents.resume_parser_agent import rule_based_parse
+    from app.agents.scoring import score_resume
+    from app.schemas.resume import JobRequirement, JobRequirements
+    from tests.conftest import DATA_JD, PRIYA_RESUME
+    terms = ["Python", "SQL", "Airflow", "dbt", "Snowflake", "BigQuery", "Kafka", "Terraform", "AWS"]
+    ai = JobRequirements(title="Senior Data Engineer", min_years=5, requirements=[JobRequirement(term=t, category="hard", importance="required") for t in terms])
+    reqs, warnings = ground_requirements(ai, DATA_JD)
+    names = [r.term for r in reqs.requirements]
+    assert "Snowflake or BigQuery" in names and "BigQuery" not in names
+    assert ("Databricks", "preferred") in [(r.term, r.importance) for r in reqs.requirements]
+    assert any("Databricks" in w for w in warnings)
+    resume, _ = rule_based_parse(PRIYA_RESUME)
+    ats, _ = score_resume(resume, PRIYA_RESUME, reqs, "ai")
+    assert "Snowflake or BigQuery" in ats.matched_keywords and "BigQuery" not in ats.missing_keywords

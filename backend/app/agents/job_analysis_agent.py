@@ -54,9 +54,83 @@ def ground_requirements(reqs: JobRequirements, jd: str) -> Tuple[JobRequirements
         else:
             dropped += 1
     warnings = [f"Ignored {dropped} requirement(s) the AI listed that aren't in the job description."] if dropped else []
+    kept, added = backfill_known_skills(kept, jd)
+    kept = merge_alternatives(kept, jd)
+    if added:
+        warnings.append(f"Added {len(added)} skill(s) the AI missed but the posting names: {', '.join(added)}.")
     years = reqs.min_years if reqs.min_years and str(reqs.min_years) in jd else required_years(jd)
     title = reqs.title if reqs.title and term_in_text(reqs.title, jd) else _title_guess(jd)
     return JobRequirements(title=title, min_years=years, requirements=kept[:40]), warnings
+
+
+def merge_alternatives(reqs: List[JobRequirement], jd: str) -> List[JobRequirement]:
+    """'Snowflake or BigQuery' is one requirement: having either satisfies it.
+
+    Requirements whose terms appear in the posting joined by "or" or "/" are
+    merged; the merged term's aliases are the alternatives, so scoring finds a
+    match when the resume shows any of them.
+    """
+    text = normalize(jd).lower()
+    parent = list(range(len(reqs)))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for i, a in enumerate(reqs):
+        for j in range(i + 1, len(reqs)):
+            b = reqs[j]
+            if a.category != b.category:
+                continue
+            ea, eb = re.escape(a.term.lower()), re.escape(b.term.lower())
+            if re.search(rf"(?<![a-z0-9]){ea}\s*(?:,\s*)?(?:or|/)\s*{eb}(?![a-z0-9])", text) or \
+               re.search(rf"(?<![a-z0-9]){eb}\s*(?:,\s*)?(?:or|/)\s*{ea}(?![a-z0-9])", text):
+                parent[find(j)] = find(i)
+    groups = {}
+    for i in range(len(reqs)):
+        groups.setdefault(find(i), []).append(reqs[i])
+    out = []
+    for i in range(len(reqs)):
+        if find(i) == i and len(groups[i]) == 1 and re.search(r"\s+or\s+", groups[i][0].term):
+            # The AI already combined them: make each alternative an alias.
+            r = groups[i][0]
+            parts = [p.strip() for p in re.split(r"\s+or\s+|,", r.term) if p.strip()]
+            out.append(JobRequirement(term=r.term, category=r.category, importance=r.importance,
+                                      aliases=list(dict.fromkeys(parts + list(r.aliases)))[:8]))
+            continue
+        if find(i) != i:
+            continue
+        g = groups[i]
+        if len(g) == 1:
+            out.append(g[0])
+            continue
+        aliases = list(dict.fromkeys([r.term for r in g] + [a for r in g for a in r.aliases]))
+        out.append(JobRequirement(
+            term=" or ".join(r.term for r in g), category=g[0].category,
+            importance="required" if any(r.importance == "required" for r in g) else "preferred",
+            aliases=aliases[:8],
+        ))
+    return out
+
+
+def backfill_known_skills(reqs: List[JobRequirement], jd: str) -> Tuple[List[JobRequirement], List[str]]:
+    """Add well-known technical skills the posting names but the AI left out."""
+    text = normalize(jd)
+    lines = text.splitlines()
+    covered = [t for r in reqs for t in [r.term] + list(r.aliases)]
+    added = []
+    for term in HARD_SKILLS:
+        if term in ("R", "Go") or not term_in_text(term, text):
+            continue
+        if any(term_in_text(term, c) or term_in_text(c, term) for c in covered):
+            continue
+        line = next((l for l in lines if term_in_text(term, l)), "")
+        reqs.append(JobRequirement(term=term, category="hard", importance="preferred" if _PREFERRED_RE.search(line) else "required"))
+        covered.append(term)
+        added.append(term)
+    return reqs, added
 
 
 async def analyze_job_with_ai(client: ChatClient, jd: str) -> Tuple[JobRequirements, List[str], str]:
@@ -117,5 +191,6 @@ def rule_based_requirements(jd: str) -> Tuple[JobRequirements, List[str]]:
             importance = "preferred" if _PREFERRED_RE.search(line) else "required"
             seen.add(term.lower())
             reqs.append(JobRequirement(term=term, category=category, importance=importance))
+    reqs = merge_alternatives(reqs, text)
     warnings = ["The AI was unavailable, so requirements were matched against a fixed skills list; unusual skills in the posting may be missed."]
     return JobRequirements(title=_title_guess(jd), min_years=required_years(jd), requirements=reqs), warnings

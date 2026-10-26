@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Dict, List, Optional
 
 from app.llm import ChatClient, ProviderError, get_client
+from app.services.text_utils import normalize
 
 MAX_TURNS = 12
 MAX_MESSAGE_CHARS = 4000
@@ -18,7 +20,7 @@ Rules:
 - Never say or imply the candidate has a skill, tool, metric or experience that isn't in the resume. If the resume doesn't show something, say so and suggest how they could honestly address it.
 - Never advise adding a skill or tool to the resume that the candidate hasn't used — not even as "familiar with" or "eager to learn". For missing skills, suggest how to talk about them honestly in a cover letter or interview, or how to gain them.
 - Never invent numbers. If a stronger bullet needs a metric, ask the candidate for it or use a bracketed placeholder like [number].
-- When you rewrite a bullet, rewrite only that bullet: keep its facts, don't merge in other bullets, and don't add responsibilities, collaborators, outcomes or tools it doesn't mention. If adding something would help, show it as a bracketed suggestion the candidate must confirm, e.g. "[if true: with the analytics team]".
+- When you rewrite a bullet, rewrite only that bullet: keep its facts, don't merge in other bullets, and don't add responsibilities, collaborators, outcomes or tools it doesn't mention. If adding something would help, show it as a bracketed suggestion the candidate must confirm, e.g. "[if true: <a detail they must confirm>]".
 - If a question needs information you don't have, say what's missing.
 - Be concise and use short bullet lists where they help.
 
@@ -71,6 +73,48 @@ def clean_history(chat_history: Optional[List[Dict[str, str]]]) -> List[Dict[str
     return out[-MAX_TURNS:]
 
 
+_REWRITE_RE = re.compile(r"\b(rewrite|re-write|reword|rephrase|improve|strengthen|tighten|polish|redo|edit)\b", re.IGNORECASE)
+_BULLET_LINE = re.compile(r"^\s*[•●▪◦‣∙·*\-–—]\s*(.+)$")
+_GENERIC = {"bullet", "bullets", "point", "line", "rewrite", "stronger", "better", "this", "that", "make", "more", "with",
+            "from", "into", "them", "their", "your", "mine", "about", "please", "role", "resume", "job", "posting", "for",
+            "the", "and", "can", "you", "could", "would", "should", "impactful", "improve", "strengthen"}
+
+
+def _words(text: str) -> set:
+    return {w for w in re.findall(r"[a-z][a-z0-9+#.]*|\d+", normalize(text).lower()) if (len(w) >= 4 or w.isdigit()) and w not in _GENERIC}
+
+
+def resume_bullets(resume_text: Optional[str], analysis: dict) -> List[str]:
+    bullets = [b for j in ((analysis or {}).get("resume_data") or {}).get("work_experience", []) or [] for b in j.get("bullet_points", []) or []]
+    if not bullets and resume_text:
+        bullets = [m.group(1).strip() for line in resume_text.splitlines() if (m := _BULLET_LINE.match(line))]
+    return [b for b in bullets if b.strip()]
+
+
+def target_bullets(message: str, bullets: List[str]) -> List[str]:
+    """The bullet(s) a rewrite request refers to, or [] if it isn't one."""
+    if not _REWRITE_RE.search(message or "") or not bullets:
+        return []
+    want = _words(message)
+    scored = [(len(want & _words(b)), b) for b in bullets]
+    best = max((s for s, _ in scored), default=0)
+    return [b for s, b in scored if s == best] if best else []
+
+
+def merged_bullets(reply: str, targets: List[str], bullets: List[str], message: str) -> List[str]:
+    """Other bullets whose distinctive content shows up in the reply."""
+    keep = set().union(*(_words(t) for t in targets)) | _words(message)
+    got = _words(reply)
+    out = []
+    for b in bullets:
+        if b in targets:
+            continue
+        distinctive = _words(b) - keep
+        if len(distinctive) >= 2 and len(distinctive & got) / len(distinctive) >= 0.6:
+            out.append(b)
+    return out
+
+
 async def chat_with_career_coach(
     user_message: str,
     chat_history: Optional[List[Dict[str, str]]],
@@ -89,7 +133,22 @@ async def chat_with_career_coach(
         {"role": "user", "content": user_message.strip()[:MAX_MESSAGE_CHARS]}
     ]
     completion = await client.complete(messages, temperature=0.4, max_tokens=1200)
-    return completion.text
+    reply = completion.text
+
+    # Rewrite requests: make sure the coach didn't fold other bullets into the one asked about.
+    bullets = resume_bullets(resume_text, analysis)
+    targets = target_bullets(user_message, bullets)
+    merged = merged_bullets(reply, targets, bullets, user_message) if targets else []
+    if merged:
+        note = ("Correction: rewrite only this bullet: " + " / ".join(f'"{t}"' for t in targets)
+                + ". Do not include content from other bullets, such as: " + " / ".join(f'"{m}"' for m in merged)
+                + ". Answer the user's request again.")
+        retry = await client.complete(messages[:1] + [{"role": "system", "content": note}] + messages[1:], temperature=0.2, max_tokens=1200)
+        if not merged_bullets(retry.text, targets, bullets, user_message):
+            return retry.text
+        reply = retry.text + ("\n\nNote: this suggestion includes details from another bullet (" + "; ".join(f"“{m}”" for m in merged)
+                              + "). Only combine them if they really describe the same piece of work.")
+    return reply
 
 
 __all__ = ["chat_with_career_coach", "clean_history", "ProviderError"]

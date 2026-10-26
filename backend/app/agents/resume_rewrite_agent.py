@@ -17,10 +17,12 @@ Hard rules:
 2. Never add a number, percentage, amount or duration that isn't in the original bullet. If a metric would make a bullet stronger, keep the bullet without it and ask for it in "needs_confirmation" (e.g. "How many tests did you run, and what changed as a result?").
 3. Improve the wording where you can without new facts: a stronger action verb, a clearer order (action, then what, then for whom, then result), tighter phrasing, and the posting's terminology where the original already describes that thing. Don't add tools or skills the bullet itself doesn't name, even if they appear elsewhere in the resume.
    Keep the meaning of the original verb: "maintain" is not "build", "helped" is not "led", "worked with" is not "managed".
-   Allowed: "Wrote SQL models that the pricing team used for monthly reporting." → "Wrote the SQL models behind the pricing team's monthly reporting."
+   Allowed: "Wrote the guide that new support agents used during their first week." → "Wrote the onboarding guide new support agents relied on in their first week."
+   Allowed: "Was responsible for updating the inventory spreadsheet in Excel every Friday." → "Updated the weekly inventory tracker in Excel every Friday."
    Not allowed: "Ran A/B tests on the pricing page." → "Ran A/B tests on the pricing page to compare layouts" (adds a purpose).
-   Not allowed: "Maintain Airflow pipelines that load shipment data into Snowflake." → "...using Python and SQL" (adds tools the bullet doesn't mention).
-4. If a bullet can't be made meaningfully stronger without new facts, keep its wording and put 1-2 specific questions in "needs_confirmation" whose answers would make it stronger (e.g. for "Mentored two junior engineers.": "What did they learn or deliver with your help?").
+   Not allowed: "Maintain the payment service for the checkout team." → "...using Java and Kubernetes" (adds tools the bullet doesn't mention).
+   Not allowed: merging two bullets into one, or moving a result from one bullet into another.
+4. If a bullet can't be made meaningfully stronger without new facts, keep its wording and put 1-2 specific questions in "needs_confirmation" whose answers would make it stronger (e.g. for "Organised the quarterly team offsite.": "How many people attended, and what came out of it?").
 5. "added_keywords" lists only posting keywords that the original bullet genuinely supports. Never use a keyword from the "missing" list.
 6. "star_action" and "star_result" restate what the bullet says; leave star_result empty if the bullet has no result.
 7. The summary may only use facts present in the resume. Don't state years of experience unless the resume does.
@@ -109,6 +111,9 @@ def validate_rewrites(draft: _Draft, resume: ResumeSchema, resume_text: str, mis
 
     warnings = []
     summary = draft.tailored_summary.strip() if draft.tailored_summary else None
+    if summary and resume.summary and _norm(summary) == _norm(resume.summary):
+        warnings.append("The AI didn't suggest a different summary, so your original is unchanged.")
+        summary = None
     if summary:
         bad = unsupported_numbers(summary, resume_text)
         claimed = [k for k in missing if term_in_text(k, summary) and not term_in_text(k, resume_text)]

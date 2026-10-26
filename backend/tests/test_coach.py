@@ -55,3 +55,31 @@ def test_provider_failure_raises_instead_of_inventing_a_reply():
     from app.llm import ProviderError
     with pytest.raises(ProviderError):
         chat(FakeClient(coach=retired()), "Hello?", [])
+
+
+AIRFLOW = "Maintain Airflow pipelines that load shipment data into Snowflake."
+QUALITY = "Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks."
+
+
+def test_rewrite_request_that_merges_another_bullet_is_retried():
+    merged = f"Try: {AIRFLOW[:-1]}; reduced nightly load failures from 9 per month to 2 per month by adding data quality checks."
+    clean = "Try: Maintain the Airflow pipelines that load shipment data into Snowflake [if true: for the analytics team]."
+    client = FakeClient(coach=[merged, clean])
+    reply = chat(client, "Rewrite my Airflow bullet so it's stronger.", [])
+    assert reply == clean and len(client.calls) == 2
+    note = client.calls[1]["messages"][1]
+    assert note["role"] == "system" and AIRFLOW in note["content"] and QUALITY in note["content"]
+
+
+def test_merge_that_survives_the_retry_is_flagged_to_the_user():
+    merged = f"{AIRFLOW[:-1]}, reducing nightly load failures from 9 to 2 per month with data quality checks."
+    reply = chat(FakeClient(coach=[merged, merged]), "Rewrite my Airflow bullet.", [])
+    assert "includes details from another bullet" in reply and QUALITY in reply
+
+
+def test_non_rewrite_questions_and_clean_rewrites_make_one_call():
+    client = FakeClient(coach="Your resume mentions Airflow and the 9 to 2 failure reduction; lead with those.")
+    chat(client, "What should I fix first?", [])
+    clean = FakeClient(coach="Maintain Airflow pipelines that load shipment data into Snowflake for the analytics platform [if true].")
+    chat(clean, "Rewrite my Airflow bullet.", [])
+    assert len(client.calls) == 1 and len(clean.calls) == 1

@@ -23,9 +23,9 @@ function StageList({ stages }) {
         if (!s) return null;
         const detail = key === 'scoring' ? 'Calculated in code from published criteria' : s.message || (s.model ? `Model: ${s.model}` : '');
         return (
-          <li key={key} className={`stage stage--${s.status}`}>
+          <li key={key} className={`stage stage--${key === 'scoring' && s.status === 'rule_based' ? 'code' : s.status}`}>
             <span className="stage__name">{label}</span>
-            <span className="stage__status">{STATUS_LABEL[s.status] || s.status}</span>
+            <span className="stage__status">{key === 'scoring' && s.status === 'rule_based' ? 'In code' : STATUS_LABEL[s.status] || s.status}</span>
             {detail && <span className="stage__detail">{detail}</span>}
           </li>
         );
