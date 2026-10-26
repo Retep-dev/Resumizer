@@ -140,3 +140,12 @@ def test_correction_follows_the_faulty_draft_and_note_quotes_whole_phrases():
     msgs = client.calls[1]["messages"]
     assert [m["role"] for m in msgs[-3:]] == ["user", "assistant", "user"] and msgs[-2]["content"] == bad
     assert "“patient-facing”" in reply
+
+
+def test_invented_learning_activity_is_caught_even_after_a_but():
+    from app.agents.career_coach_agent import claimed_missing
+    live = ("Cover letter: “While my resume focuses on JavaScript, I’ve been following the team’s TypeScript adoption and have started "
+            "a personal project to convert a small React component.” Interview: “I haven’t used TypeScript on the job yet, but I’ve been "
+            "reading the handbook, following TypeScript tutorials, and I’m comfortable with the type-safety mindset.”")
+    assert claimed_missing(live, ["TypeScript", "GraphQL"], TOMAS) == ["TypeScript"]
+    assert claimed_missing("Say: “I haven’t used TypeScript yet, and I’d like to learn it.”", ["TypeScript"], TOMAS) == []

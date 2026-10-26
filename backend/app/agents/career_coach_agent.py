@@ -115,8 +115,11 @@ def merged_bullets(reply: str, targets: List[str], bullets: List[str], message: 
     return out
 
 
-_CLAIM_RE = re.compile(r"\b(I have (?:worked|used|built|run|deployed|managed|maintained|experience)|I've (?:worked|used|built|run|deployed|managed|maintained)|"
-                       r"I worked|I used|I built|I deployed|I'm familiar|I am familiar|my experience (?:with|in|on))\b", re.IGNORECASE)
+_CLAIM_RE = re.compile(
+    r"\b(I have (?:worked|used|built|run|deployed|managed|maintained|experience|started|completed|taken|been)|"
+    r"I've (?:worked|used|built|run|deployed|managed|maintained|started|completed|taken|been)|"
+    r"I worked|I used|I built|I deployed|I started|I completed|I'm (?:familiar|currently|learning|studying|taking|completing|working)|"
+    r"I am (?:familiar|currently|learning|studying|taking|completing|working)|my experience (?:with|in|on))\b", re.IGNORECASE)
 _NEGATION_RE = re.compile(r"\b(haven't|have not|hasn't|not|never|no|don't|didn't|without|if you(?:'ve| have)?|if true)\b", re.IGNORECASE)
 
 
@@ -126,11 +129,13 @@ def claimed_missing(reply: str, missing: List[str], resume_text: str) -> List[st
 
     out = []
     for sentence in re.split(r"(?<=[.!?])[\"')\]]*\s+|[\"]\s*|\n+|\s+→\s+", normalize(reply or "")):
-        if not _CLAIM_RE.search(sentence) or _NEGATION_RE.search(sentence):
-            continue
-        for k in missing:
-            if k not in out and term_in_text(k, sentence) and not term_in_text(k, resume_text or ""):
-                out.append(k)
+        # "I haven't used X, but I've been reading X docs": judge each clause on its own.
+        for clause in re.split(r"\bbut\b|\bhowever\b|;", sentence, flags=re.IGNORECASE):
+            if not _CLAIM_RE.search(clause) or _NEGATION_RE.search(clause):
+                continue
+            for k in missing:
+                if k not in out and term_in_text(k, clause) and not term_in_text(k, resume_text or ""):
+                    out.append(k)
     return out
 
 
