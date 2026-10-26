@@ -41,14 +41,14 @@ def _analysis_digest(analysis: dict) -> str:
     ats = analysis.get("ats_score") or {}
     gap = analysis.get("skill_gap") or {}
     digest = {
-        "status": analysis.get("status"),
-        "overall_score": ats.get("overall_score"),
-        "score_criteria": [{k: c.get(k) for k in ("name", "score", "detail")} for c in ats.get("criteria", [])],
-        "keywords_found": ats.get("matched_keywords", []),
-        "keywords_missing": ats.get("missing_keywords", []),
-        "missing_hard_skills": gap.get("missing_hard_skills", []),
-        "missing_soft_skills": gap.get("missing_soft_skills", []),
-        "recommendations": gap.get("priority_skill_recommendations", []),
+        "Analysis status": analysis.get("status"),
+        "ATS score (out of 100)": ats.get("overall_score"),
+        "How the score breaks down": [{k: c.get(k) for k in ("name", "score", "detail")} for c in ats.get("criteria", [])],
+        "Posting keywords found in the resume": ats.get("matched_keywords", []),
+        "Posting keywords missing from the resume": ats.get("missing_keywords", []),
+        "Missing technical skills": gap.get("missing_hard_skills", []),
+        "Missing soft skills": gap.get("missing_soft_skills", []),
+        "Recommended next steps": gap.get("priority_skill_recommendations", []),
     }
     return json.dumps(digest, ensure_ascii=False)
 
@@ -134,6 +134,24 @@ def claimed_missing(reply: str, missing: List[str], resume_text: str) -> List[st
     return out
 
 
+def borrowed_from_posting(reply: str, targets: List[str], resume_text: str, job_description: str) -> List[str]:
+    """Words in a rewritten bullet that come from the posting but not from the candidate's resume."""
+    target_words = set().union(*(_words(t) for t in targets)) if targets else set()
+    if not target_words:
+        return []
+    resume_words, job_words = _words(resume_text or ""), _words(job_description or "")
+    borrowed = []
+    for line in re.split(r"\n+|\s+→\s+|->", normalize(reply or "")):
+        line = re.sub(r"\[[^\]]*\]", "", line)  # bracketed suggestions are allowed: the candidate must confirm them
+        words = _words(line)
+        if not words or len(words & target_words) / len(target_words) < 0.4 or any(normalize(t).strip(" .") in line for t in targets):
+            continue  # not a version of the bullet, or the original quoted as-is
+        for w in sorted(words - resume_words - target_words):
+            if w in job_words and w not in borrowed:
+                borrowed.append(w)
+    return borrowed
+
+
 async def chat_with_career_coach(
     user_message: str,
     chat_history: Optional[List[Dict[str, str]]],
@@ -171,6 +189,17 @@ async def chat_with_career_coach(
     # Rewrite requests: make sure the coach didn't fold other bullets into the one asked about.
     bullets = resume_bullets(resume_text, analysis)
     targets = target_bullets(user_message, bullets)
+    borrowed = borrowed_from_posting(reply, targets, grounding_text, job_description) if targets else []
+    if borrowed:
+        note = ("Correction: your rewrite took words from the job posting that describe work the candidate didn't do ("
+                + ", ".join(borrowed) + "). Rewrite only " + " / ".join(f'"{t}"' for t in targets)
+                + " using what that bullet says; mention the posting's terms only as a bracketed suggestion like \"[if true: ...]\". Answer again.")
+        retry = await client.complete(messages[:1] + [{"role": "system", "content": note}] + messages[1:], temperature=0.2, max_tokens=1200)
+        reply = retry.text
+        still = borrowed_from_posting(reply, targets, grounding_text, job_description)
+        if still:
+            reply += ("\n\nNote: this suggestion uses words from the job posting (" + ", ".join(still)
+                      + ") that your resume doesn't support. Only keep them if they describe what you actually did.")
     merged = merged_bullets(reply, targets, bullets, user_message) if targets else []
     if merged:
         note = ("Correction: rewrite only this bullet: " + " / ".join(f'"{t}"' for t in targets)

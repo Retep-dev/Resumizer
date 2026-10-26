@@ -106,3 +106,26 @@ def test_claims_with_curly_quotes_inside_scripts_are_caught():
     live = ('Have a one‑sentence answer ready for “What AWS services have you used?” → “I’ve worked primarily with Snowflake on AWS, '
             'so I’m familiar with the cloud environment and can learn specific AWS services on the job.”')
     assert claimed_missing(live, ["Kafka", "Terraform", "AWS"], PRIYA_RESUME) == ["AWS"]
+
+
+TOMAS = """Tomas Okafor
+Frontend developer focused on accessible, fast checkout and onboarding flows.
+Frontend Developer, Kitebird (Jan 2022 - Present)
+• Built React components for the checkout flow, cutting checkout drop-off from 31% to 24%.
+• Wrote Jest unit tests for the payments module.
+"""
+HEALTH_JD = "Frontend Engineer - Brightpath Health. Build patient-facing web apps with React and TypeScript. Keep our component library accessible."
+
+
+def test_rewrite_that_borrows_the_postings_domain_is_corrected():
+    from app.agents.career_coach_agent import borrowed_from_posting
+    bullet = "Built React components for the checkout flow, cutting checkout drop-off from 31% to 24%."
+    live = (f"Here is a rewritten version:\n\n{bullet}\n→ Built accessible React components for patient-facing workflows, reducing drop-off from 31% to 24%."
+            "\n\nWhy this works: swaps checkout for patient-facing workflows to match the job.")
+    assert borrowed_from_posting(live, [bullet], TOMAS, HEALTH_JD) == ["facing", "patient"]
+    ok = f"{bullet}\n→ Built the React components behind the checkout flow, cutting drop-off from 31% to 24% [if true: for patient-facing apps]."
+    assert borrowed_from_posting(ok.split("[")[0], [bullet], TOMAS, HEALTH_JD) == []
+    a = {"resume_data": {"work_experience": [{"bullet_points": [bullet, "Wrote Jest unit tests for the payments module."]}]}}
+    client = FakeClient(coach=[live, ok])
+    reply = asyncio.run(chat_with_career_coach("Rewrite my checkout bullet.", [], TOMAS, HEALTH_JD, a, client=client))
+    assert reply == ok and len(client.calls) == 2 and "patient" in client.calls[1]["messages"][1]["content"]
