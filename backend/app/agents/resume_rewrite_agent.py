@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Dict, List, Optional, Tuple
 
 from pydantic import BaseModel, Field
@@ -14,15 +15,16 @@ REWRITE_SYSTEM_PROMPT = """You are a careful resume editor. You improve how exis
 
 Hard rules:
 1. Keep the meaning of every bullet. Do not add tools, skills, employers, responsibilities, team sizes or outcomes that the original bullet doesn't state.
-2. Never add a number, percentage, amount or duration that isn't in the original bullet. If a metric would make a bullet stronger, keep the bullet without it and ask for it in "needs_confirmation" (e.g. "How many tests did you run, and what changed as a result?").
+2. Never add a real-looking number, percentage, amount or duration that isn't in the original bullet. If a metric or outcome would make a bullet stronger, you may add ONE bracketed placeholder the candidate fills in, written with letters not digits, e.g. "[for N users]", "[cutting X hours a week]", "[used by which team]", and ask for it in "needs_confirmation".
 3. Improve the wording where you can without new facts: a stronger action verb, a clearer order (action, then what, then for whom, then result), tighter phrasing, and the posting's terminology where the original already describes that thing. Don't add tools or skills the bullet itself doesn't name, even if they appear elsewhere in the resume.
    Keep the meaning of the original verb: "maintain" is not "build", "helped" is not "led", "worked with" is not "managed".
    Allowed: "Wrote the guide that new support agents used during their first week." → "Wrote the onboarding guide new support agents relied on in their first week."
    Allowed: "Was responsible for updating the inventory spreadsheet in Excel every Friday." → "Updated the weekly inventory tracker in Excel every Friday."
+   Allowed: "Answered customer emails for the billing team." → "Resolved billing customers' email queries [about N a week], [keeping response time under X hours]."
    Not allowed: "Ran A/B tests on the pricing page." → "Ran A/B tests on the pricing page to compare layouts" (adds a purpose).
    Not allowed: "Maintain the payment service for the checkout team." → "...using Java and Kubernetes" (adds tools the bullet doesn't mention).
    Not allowed: merging two bullets into one, or moving a result from one bullet into another.
-4. If a bullet can't be made meaningfully stronger without new facts, keep its wording and put 1-2 specific questions in "needs_confirmation" whose answers would make it stronger (e.g. for "Organised the quarterly team offsite.": "How many people attended, and what came out of it?").
+4. Rewrite every bullet you can make clearer, more specific to the posting, or stronger with a placeholder. Only if a bullet truly can't be improved, keep its wording and put 1-2 specific questions in "needs_confirmation" whose answers would make it stronger (e.g. for "Organised the quarterly team offsite.": "How many people attended, and what came out of it?").
 5. "added_keywords" lists only posting keywords that the original bullet genuinely supports. Never use a keyword from the "missing" list.
 6. "star_action" and "star_result" restate what the bullet says; leave star_result empty if the bullet has no result.
 7. The summary may only use facts present in the resume. Don't state years of experience unless the resume does.
@@ -60,6 +62,9 @@ def check_bullet(rw: BulletPointRewrite, original: str, missing: List[str], supp
     return problems
 
 
+PLACEHOLDER_NOTE = "Replace the [bracketed] parts with your real details, or delete them, before using this."
+
+
 def _clean(rw: BulletPointRewrite, original: str, supported: List[str]) -> BulletPointRewrite:
     keywords = [k for k in rw.added_keywords if any(_norm(k) == _norm(s) for s in supported) and term_in_text(k, rw.rewritten_bullet)]
     result = rw.star_result if not unsupported_numbers(rw.star_result, original) else ""
@@ -67,6 +72,7 @@ def _clean(rw: BulletPointRewrite, original: str, supported: List[str]) -> Bulle
     return BulletPointRewrite(
         original_bullet=original, rewritten_bullet=rw.rewritten_bullet.strip(), star_action=action, star_result=result,
         added_keywords=keywords, needs_confirmation=[q for q in rw.needs_confirmation if q.strip()][:3], status="rewritten",
+        note=PLACEHOLDER_NOTE if re.search(r"\[[^\]]+\]", rw.rewritten_bullet) else None,
     )
 
 

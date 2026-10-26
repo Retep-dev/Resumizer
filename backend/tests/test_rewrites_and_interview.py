@@ -175,3 +175,11 @@ def test_identical_summary_is_not_presented_as_tailored():
                        "rewritten_experiences": []})
     report, warnings, _ = run(FakeClient(rewrite=same))
     assert report.tailored_summary is None and any("didn't suggest a different summary" in w for w in warnings)
+
+
+def test_placeholder_rewrites_are_accepted_and_labelled():
+    bullet = "Mentored two junior engineers."
+    ok = _invented(bullet, "Mentored two junior engineers [through their first N production releases].")
+    report, _, _ = run(FakeClient(rewrite=ok))
+    b = _bullets(report)[bullet]
+    assert b.status == "rewritten" and "[bracketed]" in b.note

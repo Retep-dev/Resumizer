@@ -34,7 +34,7 @@ export default function RewriteDiffView({ rewriteReport, kept, onToggleKeep, sta
   const experiences = (rewriteReport.rewritten_experiences || []).filter((e) => e.rewritten_bullets?.length);
   const total = experiences.reduce((n, e) => n + e.rewritten_bullets.filter((b) => b.status !== 'kept_original').length, 0) + (rewriteReport.tailored_summary ? 1 : 0);
 
-  if (!total) {
+  if (!experiences.length && !rewriteReport.tailored_summary) {
     return (
       <div className="empty">
         <div className="empty__plate" aria-hidden="true" />
@@ -55,12 +55,14 @@ export default function RewriteDiffView({ rewriteReport, kept, onToggleKeep, sta
     <>
       <div className="rw-toolbar" role="toolbar" aria-label="Rewrite actions">
         <span className="rw-toolbar__count" aria-live="polite">{kept.size} of {total} kept</span>
-        <span className="rw-toolbar__note">Rewrites never add numbers or skills your resume doesn’t show.</span>
+        <span className="rw-toolbar__note">
+          {total ? 'Rewrites never add numbers or skills your resume doesn’t show. [Brackets] mark details only you can fill in.' : 'No rewrite was suggested for these bullets. Answer the questions under each one to make them stronger.'}
+        </span>
         <div className="rw-toolbar__actions">
           <button type="button" className="btn btn--sm btn--green" disabled={!kept.size} onClick={() => copy(buildText(rewriteReport, (k) => kept.has(k)), `${kept.size} kept ${kept.size === 1 ? 'rewrite' : 'rewrites'}`)}>
             Copy kept
           </button>
-          <button type="button" className="btn btn--sm" onClick={() => copy(buildText(rewriteReport, () => true), 'All rewrites')}>Copy all</button>
+          <button type="button" className="btn btn--sm" disabled={!total} onClick={() => copy(buildText(rewriteReport, () => true), 'All rewrites')}>Copy all</button>
         </div>
       </div>
 
@@ -97,6 +99,7 @@ export default function RewriteDiffView({ rewriteReport, kept, onToggleKeep, sta
             return (
               <article key={key} className={`card rw-item ${on ? 'is-kept' : ''}`} aria-label={`Rewrite ${bi + 1} for ${exp.job_title || 'this role'}`}>
                 <Wipe before={b.original_bullet} after={b.rewritten_bullet} label={`bullet ${bi + 1}`} />
+                {b.note && <p className="rw-note rw-note--fill">{b.note}</p>}
                 {b.star_action && b.star_result && (
                   <p className="rw-star"><b>Action:</b> {b.star_action} <b>Result:</b> {b.star_result}</p>
                 )}

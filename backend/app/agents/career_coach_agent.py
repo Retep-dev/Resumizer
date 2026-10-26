@@ -115,6 +115,25 @@ def merged_bullets(reply: str, targets: List[str], bullets: List[str], message: 
     return out
 
 
+_CLAIM_RE = re.compile(r"\b(I have (?:worked|used|built|run|deployed|managed|maintained|experience)|I've (?:worked|used|built|run|deployed|managed|maintained)|"
+                       r"I worked|I used|I built|I deployed|I'm familiar|I am familiar|my experience (?:with|in|on))\b", re.IGNORECASE)
+_NEGATION_RE = re.compile(r"\b(haven't|have not|hasn't|not|never|no|don't|didn't|without|if you(?:'ve| have)?|if true)\b", re.IGNORECASE)
+
+
+def claimed_missing(reply: str, missing: List[str], resume_text: str) -> List[str]:
+    """Missing skills the reply puts in the candidate's mouth as experience they have."""
+    from app.services.text_utils import term_in_text
+
+    out = []
+    for sentence in re.split(r"(?<=[.!?])\s+|\n+", reply or ""):
+        if not _CLAIM_RE.search(sentence) or _NEGATION_RE.search(sentence):
+            continue
+        for k in missing:
+            if k not in out and term_in_text(k, sentence) and not term_in_text(k, resume_text or ""):
+                out.append(k)
+    return out
+
+
 async def chat_with_career_coach(
     user_message: str,
     chat_history: Optional[List[Dict[str, str]]],
@@ -134,6 +153,20 @@ async def chat_with_career_coach(
     ]
     completion = await client.complete(messages, temperature=0.4, max_tokens=1200)
     reply = completion.text
+
+    # Suggested answers or bullets must not claim skills the resume doesn't show.
+    missing = list(((analysis or {}).get("ats_score") or {}).get("missing_keywords") or [])
+    grounding_text = resume_text or _resume_from_analysis(analysis)
+    claimed = claimed_missing(reply, missing, grounding_text)
+    if claimed:
+        note = ("Correction: your draft suggested the candidate say they have experience with " + ", ".join(claimed)
+                + ", which their resume doesn't show. Never script a claim of experience they don't have; suggest honest wording instead. Answer again.")
+        retry = await client.complete(messages[:1] + [{"role": "system", "content": note}] + messages[1:], temperature=0.2, max_tokens=1200)
+        reply = retry.text
+        still = claimed_missing(reply, missing, grounding_text)
+        if still:
+            reply += ("\n\nNote: your resume doesn't show " + ", ".join(still)
+                      + ". Only say you've used it if that's true.")
 
     # Rewrite requests: make sure the coach didn't fold other bullets into the one asked about.
     bullets = resume_bullets(resume_text, analysis)

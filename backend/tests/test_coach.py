@@ -83,3 +83,19 @@ def test_non_rewrite_questions_and_clean_rewrites_make_one_call():
     clean = FakeClient(coach="Maintain Airflow pipelines that load shipment data into Snowflake for the analytics platform [if true].")
     chat(clean, "Rewrite my Airflow bullet.", [])
     assert len(client.calls) == 1 and len(clean.calls) == 1
+
+
+def test_scripted_claims_of_missing_skills_are_corrected():
+    bad = 'In the interview, say: "I have worked within Snowflake on AWS infrastructure, so I am familiar with the cloud stack."'
+    good = "Be honest: AWS isn't on your resume. Say you haven't used it yet and point to your Snowflake work."
+    client = FakeClient(coach=[bad, good])
+    assert chat(client, "How do I handle the AWS gap?", []) == good and len(client.calls) == 2
+    reply = chat(FakeClient(coach=[bad, bad]), "How do I handle the AWS gap?", [])
+    assert "doesn't show AWS" in reply
+
+
+def test_honest_mentions_of_missing_skills_are_left_alone():
+    from app.agents.career_coach_agent import claimed_missing
+    for ok in ("I haven't used Kafka in production, but I'm keen to learn.", "If you've used Terraform, add a bullet.",
+               "I used Airflow and Snowflake at Halcyon Freight."):
+        assert claimed_missing(ok, ["Kafka", "Terraform", "AWS"], PRIYA_RESUME) == []
