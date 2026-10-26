@@ -101,16 +101,42 @@ def target_bullets(message: str, bullets: List[str]) -> List[str]:
     return [b for s, b in scored if s == best] if best else []
 
 
+def rewrite_blocks(reply: str, targets: List[str]) -> List[str]:
+    """The parts of a reply that are a new version of the target bullet(s).
+
+    Paragraphs that mostly restate a target are rewrites; the target's exact
+    text (a quoted original) and [bracketed suggestions] are removed, leaving
+    whatever the coach changed or added.
+    """
+    target_words = set().union(*(_words(t) for t in targets)) if targets else set()
+    if not target_words:
+        return []
+    out = []
+    for para in re.split(r"\n\s*\n", normalize(reply or "")):
+        if len(_words(para) & target_words) / len(target_words) < 0.4:
+            continue
+        rest = re.sub(r"\[[^\]]*\]", " ", para)
+        for t in targets:
+            rest = re.sub(re.escape(normalize(t).strip(" .")), " ", rest, flags=re.IGNORECASE)
+        if _words(rest):
+            out.append(rest)
+    return out
+
+
 def merged_bullets(reply: str, targets: List[str], bullets: List[str], message: str) -> List[str]:
-    """Other bullets whose distinctive content shows up in the reply."""
+    """Other bullets whose distinctive content shows up in a rewrite of the target."""
+    blocks = rewrite_blocks(reply, targets)
+    if not blocks:
+        return []
     keep = set().union(*(_words(t) for t in targets)) | _words(message)
-    got = _words(reply)
+    got = set().union(*(_words(x) for x in blocks))
     out = []
     for b in bullets:
         if b in targets:
             continue
         distinctive = _words(b) - keep
-        if len(distinctive) >= 2 and len(distinctive & got) / len(distinctive) >= 0.6:
+        hits = distinctive & got
+        if len(hits) >= 2 and len(hits) / max(len(distinctive), 1) >= 0.3:
             out.append(b)
     return out
 
@@ -141,17 +167,11 @@ def claimed_missing(reply: str, missing: List[str], resume_text: str) -> List[st
 
 def borrowed_from_posting(reply: str, targets: List[str], resume_text: str, job_description: str) -> List[str]:
     """Words in a rewritten bullet that come from the posting but not from the candidate's resume."""
-    target_words = set().union(*(_words(t) for t in targets)) if targets else set()
-    if not target_words:
-        return []
     resume_words, job_words = _words(resume_text or ""), _words(job_description or "")
+    target_words = set().union(*(_words(t) for t in targets)) if targets else set()
     borrowed = []
-    for line in re.split(r"\n+|\s+→\s+|->", normalize(reply or "")):
-        line = re.sub(r"\[[^\]]*\]", "", line)  # bracketed suggestions are allowed: the candidate must confirm them
-        words = _words(line)
-        if not words or len(words & target_words) / len(target_words) < 0.4 or any(normalize(t).strip(" .") in line for t in targets):
-            continue  # not a version of the bullet, or the original quoted as-is
-        for w in sorted(words - resume_words - target_words):
+    for block in rewrite_blocks(reply, targets):
+        for w in sorted(_words(block) - resume_words - target_words):
             if w in job_words and w not in borrowed:
                 borrowed.append(w)
     return borrowed

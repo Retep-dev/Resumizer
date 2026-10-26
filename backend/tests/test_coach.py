@@ -80,7 +80,7 @@ def test_merge_that_survives_the_retry_is_flagged_to_the_user():
 def test_non_rewrite_questions_and_clean_rewrites_make_one_call():
     client = FakeClient(coach="Your resume mentions Airflow and the 9 to 2 failure reduction; lead with those.")
     chat(client, "What should I fix first?", [])
-    clean = FakeClient(coach="Maintain Airflow pipelines that load shipment data into Snowflake for the analytics platform [if true].")
+    clean = FakeClient(coach="Maintain the Airflow pipelines that load shipment data into Snowflake [if true: for the analytics platform].")
     chat(clean, "Rewrite my Airflow bullet.", [])
     assert len(client.calls) == 1 and len(clean.calls) == 1
 
@@ -149,3 +149,12 @@ def test_invented_learning_activity_is_caught_even_after_a_but():
             "reading the handbook, following TypeScript tutorials, and I’m comfortable with the type-safety mindset.”")
     assert claimed_missing(live, ["TypeScript", "GraphQL"], TOMAS) == ["TypeScript"]
     assert claimed_missing("Say: “I haven’t used TypeScript yet, and I’d like to learn it.”", ["TypeScript"], TOMAS) == []
+
+
+def test_merge_across_lines_of_a_rewrite_is_caught():
+    from app.agents.career_coach_agent import merged_bullets
+    bullet = "Built React components for the checkout flow, cutting checkout drop-off from 31% to 24%."
+    figma = "Worked with designers in Figma to ship a new onboarding screen."
+    live = ("Here’s a version that mirrors the job description:\n\nBuilt React components for the checkout flow, reducing drop-off from 31% to 24%.\n"
+            "Collaborated with designers in Figma and ensured accessibility compliance.\n\nWhy this works:\n\nStarts with “Built React components”.")
+    assert merged_bullets(live, [bullet], [bullet, figma, "Wrote Jest unit tests for the payments module."], "Rewrite my checkout bullet.") == [figma]
