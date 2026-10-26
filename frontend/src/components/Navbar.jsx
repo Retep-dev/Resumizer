@@ -66,11 +66,12 @@ export default function Navbar({ onHome, onStart, onReset, hasResults, busy, tab
                 aria-controls={`panel-${t.id}`}
                 aria-selected={activeTab === t.id}
                 tabIndex={activeTab === t.id ? 0 : -1}
+                aria-label={t.short ? `${t.label}${t.count != null ? ` (${t.count})` : ''}` : undefined}
                 className={`tab ${t.className}`}
                 onClick={() => onTab(t.id)}
                 onKeyDown={(e) => onTabKey(e, i)}
               >
-                {t.label}
+                {t.short ? <><span className="tab__long">{t.label}</span><span className="tab__short" aria-hidden="true">{t.short}</span></> : t.label}
                 {t.count != null && <span className="tab__count">{t.count}</span>}
               </button>
             ))}

@@ -102,9 +102,9 @@ export default function App() {
   const analysis = analysisData?.analysis;
   const tabs = analysis
     ? [
-        { id: 'score', label: 'Score & gaps', className: 'tab--score' },
+        { id: 'score', label: 'Score & gaps', short: 'Score', className: 'tab--score' },
         { id: 'rewrite', label: 'Rewrites', count: countRewrites(analysis.rewrite_report), className: 'tab--rewrite' },
-        { id: 'interview', label: 'Interview prep', count: (analysis.interview_prep?.questions || analysis.interview_prep?.interview_questions || []).length, className: 'tab--interview' },
+        { id: 'interview', label: 'Interview prep', short: 'Interview', count: (analysis.interview_prep?.questions || analysis.interview_prep?.interview_questions || []).length, className: 'tab--interview' },
         { id: 'coach', label: 'Coach', className: 'tab--coach' },
       ]
     : [];
