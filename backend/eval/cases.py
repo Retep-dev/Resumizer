@@ -214,6 +214,46 @@ Requirements
 - Experience with SAP or another WMS
 - Lean or Six Sigma certification preferred"""
 
+AISHA_RESUME = """Aisha Bello
+Abuja, Nigeria | aisha.bello@example.com
+
+SUMMARY
+Customer support professional with experience across email, phone and chat for a subscription business.
+
+EXPERIENCE
+Senior Customer Support Agent - Brightline Telecom (May 2021 - Present)
+• Was in charge of handling customer complaints that came in through email and phone for the UK market.
+• Did weekly reporting on ticket volumes for management using Zendesk and Excel.
+• Responsible for making sure SLAs were met, which went from 82% to 95% over the year.
+• Helped new agents get up to speed by answering their questions and sitting with them on calls.
+• Worked closely with the product team giving them feedback from customers about bugs.
+
+Customer Support Agent - Savanna Subscriptions (Jan 2019 - Apr 2021)
+• Part of the team that moved the help centre to a new platform in 2020.
+• Handled around 60 chats a day with a customer satisfaction score of 4.7 out of 5.
+
+EDUCATION
+BA English, Ahmadu Bello University, 2018
+
+SKILLS
+Zendesk, Excel, Live chat, Complaint handling
+"""
+
+AISHA_JD = """Customer Support Team Lead - Orbit Payments
+
+Lead a team of 8 support agents across email, chat and phone.
+
+Responsibilities
+- Coach agents and run weekly quality assurance reviews
+- Own SLA management and workforce planning
+- Report support metrics to leadership in Zendesk Explore and Excel
+- Partner with product and engineering on customer-reported bugs
+
+Requirements
+- 3+ years in customer support, including mentoring or team lead experience
+- Zendesk and Salesforce Service Cloud
+- Strong stakeholder communication"""
+
 CASES = [
     {"id": "priya", "requirements": ['Python', 'SQL', 'Airflow', 'dbt', 'Snowflake', 'Kafka', 'Terraform', 'AWS', 'Stakeholder communication', 'Databricks'], "profession": "data engineering", "resume": PRIYA_RESUME, "jd": DATA_JD,
      "coach": ["Do I have Kafka experience? Answer yes or no first.",
@@ -251,4 +291,11 @@ CASES = [
                "Rewrite my scheduling bullet for this role.",
                "Rewrite my pick errors bullet to fit this job."],
      "gap": "Six Sigma", "topic": "scheduling"},
+    {"id": "aisha", "requirements": ['Zendesk', 'Salesforce', 'SLA management', 'Quality assurance', 'Workforce planning', 'Excel', 'Coaching', 'Stakeholder communication'],
+     "profession": "customer support (messy bullets)", "resume": AISHA_RESUME, "jd": AISHA_JD,
+     "coach": ["Have I used Salesforce? Yes or no first.",
+               "How do I show I'm ready to lead a team of 8?",
+               "Rewrite my SLA bullet so it's stronger.",
+               "Rewrite my bullet about helping new agents."],
+     "gap": "Salesforce", "topic": "SLA"},
 ]

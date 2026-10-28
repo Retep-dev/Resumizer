@@ -62,7 +62,7 @@ class Recorder(ChatClient):
             self.calls.append({"ok": False, "seconds": round(time.monotonic() - t0, 2), "error": f"{type(e).__name__}: {getattr(e, 'message', e)}"[:300]})
             raise
         self.calls.append({"ok": True, "model": out.model, "provider": out.provider, "seconds": round(time.monotonic() - t0, 2),
-                           "prompt_tokens": out.prompt_tokens, "completion_tokens": out.completion_tokens})
+                           "prompt_tokens": out.prompt_tokens, "completion_tokens": out.completion_tokens, "raw": out.text[:4000]})
         return out
 
     def take(self) -> List[Dict]:

@@ -42,7 +42,8 @@ FUNCTION_WORDS = {
 VERB_KINDS: Dict[str, Set[str]] = {
     "create": {"build", "rebuild", "create", "develop", "design", "redesign", "ship", "launch", "implement", "write", "author",
                "introduce", "add", "establish", "engineer", "code", "produce", "make", "deliver", "set"},
-    "maintain": {"maintain", "run", "operate", "monitor", "update", "fix", "troubleshoot", "debug", "keep", "administer", "service"},
+    "maintain": {"maintain", "operate", "monitor", "update", "fix", "troubleshoot", "debug", "keep", "administer", "service"},
+    "deliver": {"run", "conduct", "deliver", "execute", "host", "hold", "facilitate", "present", "teach-session"},
     "lead": {"lead", "manage", "own", "head", "direct", "oversee", "spearhead", "drive", "champion", "supervise", "chair"},
     "help": {"help", "assist", "contribute", "participate"},
     "collaborate": {"work", "collaborate", "partner", "liaise", "coordinate", "cooperate"},
@@ -57,6 +58,13 @@ _KIND_OF = {}
 for _k, _vs in VERB_KINDS.items():
     for _v in _vs:
         _KIND_OF[_v] = _k
+
+_KIND_PHRASE = {
+    "create": "built or created something", "maintain": "maintained something", "lead": "led", "help": "helped",
+    "collaborate": "worked with others", "teach": "mentored or trained people", "improve": "improved a result",
+    "analyze": "analysed or reviewed something", "organise": "organised something", "respond": "handled requests",
+    "deliver": "ran or delivered something",
+}
 
 # Kinds that claim more than others when introduced by a rewrite.
 _ESCALATIONS = {"lead": "leadership", "create": "building something new", "improve": "a result"}
@@ -76,15 +84,16 @@ OUTCOME_WORDS = {
 def lemma(word: str) -> str:
     w = word.lower().strip("'’")
     if w in _IRREGULAR:
-        return _IRREGULAR[w]
-    for suf in ("ing", "ed", "es", "s"):
-        if len(w) > len(suf) + 2 and w.endswith(suf):
-            w = w[: -len(suf)]
-            if suf in ("ing", "ed") and len(w) > 3 and w[-1] == w[-2] and w[-1] not in "lsz":
-                w = w[:-1]  # shipped → ship, running → run
-            break
-    if w.endswith("ie") and len(w) > 4:
-        w = w[:-2] + "y"
+        w = _IRREGULAR[w]
+    else:
+        for suf in ("ing", "ed", "es", "s"):
+            if len(w) > len(suf) + 2 and w.endswith(suf):
+                w = w[: -len(suf)]
+                if suf in ("ing", "ed") and len(w) > 3 and w[-1] == w[-2] and w[-1] not in "lsz":
+                    w = w[:-1]  # shipped → ship, running → run
+                break
+        if w.endswith("ie") and len(w) > 4:
+            w = w[:-2] + "y"
     return w.rstrip("e") if len(w) > 4 else w
 
 
@@ -109,12 +118,21 @@ def placeholders(text: str) -> List[str]:
 
 
 def verb_kinds(text: str) -> List[str]:
-    """Kinds of action in the order they appear."""
+    """Kinds of action in the order they appear. Only words in verb positions count (the opening word,
+    words after to/and/by/then/while or a comma, -ed/-ing forms, and the first action word found), so
+    'engineers' isn't read as 'engineer'."""
     out = []
-    for w in words(text, keep_brackets=False):
-        k = _VERB_LEMMAS.get(lemma(w))
+    toks = re.findall(r"[a-z][a-z'’-]*|,", normalize(re.sub(r"\[[^\]]*\]", " ", text or "")).lower())
+    prev = None
+    for i, w in enumerate(toks):
+        if w == ",":
+            prev = w
+            continue
+        verb_slot = not out or i == 0 or prev in {"to", "and", "by", "then", "while", ","} or w.endswith("ed") or w.endswith("ing")
+        k = _VERB_LEMMAS.get(lemma(w)) if verb_slot else None
         if k and k not in out:
             out.append(k)
+        prev = w
     return out
 
 
@@ -194,14 +212,24 @@ def verify_rewrite(original: str, rewrite: str, *, missing: Iterable[str] = (), 
         problems.append(f"dropped {', '.join(dropped_tools)} from the original")
 
     ok, nk = verb_kinds(original), verb_kinds(rewrite)
+    plain_rw = normalize(re.sub(r"\[[^\]]*\]", " ", rewrite)).lower()
     if ok and ok[0] not in nk:
-        problems.append(f"changed what you did (the original says you {ok[0].replace('analyze', 'analysed')}d it)"
-                        if ok[0] in ("maintain",) else f"changed the kind of work (the original is about '{ok[0]}')")
+        # "Worked with X to review" → "Reviewed … with X" keeps the collaboration while the partner is still named.
+        partner_kept = ok[0] == "collaborate" and len(ok) > 1 and ok[1] in nk and re.search(r"\b(with|alongside)\b", plain_rw)
+        if not partner_kept:
+            problems.append(f"changed the kind of work (the original says you {_KIND_PHRASE.get(ok[0], ok[0])})")
+    if "help" in ok and "help" not in nk:
+        problems.append("dropped 'helped', which overstates your part")
+    owned = re.search(r"\b(responsible for|in charge of|accountable for|owned|ownership of)\b", normalize(original).lower())
     for k, what in _ESCALATIONS.items():
-        if k in nk and k not in ok and not (k == "improve" and _has_result(original)) and not (k == "create" and ok and ok[0] == "create"):
+        if k in nk and k not in ok and not (k == "improve" and _has_result(original)) and not (k == "create" and ok and ok[0] == "create") \
+                and not (k == "lead" and owned):
             problems.append(f"turned it into {what} the original doesn't describe")
 
     orig_lemmas = _lemma_set(words(original))
+    leading = sorted({w for ph in placeholders(rewrite) for w in words(ph) if lemma(w) in _OUTCOME_LEMMAS and lemma(w) not in orig_lemmas})
+    if leading:
+        problems.append(f"has a placeholder that suggests a result you may not have ({', '.join(leading)}); placeholders should only ask for scale or scope")
     new_outcomes = sorted({w for w in words(rewrite, keep_brackets=False) if lemma(w) in _OUTCOME_LEMMAS and lemma(w) not in orig_lemmas})
     if new_outcomes:
         problems.append(f"added an outcome or claim the original doesn't state ({', '.join(new_outcomes)})")

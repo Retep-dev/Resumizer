@@ -59,7 +59,7 @@ Return one JSON object:
 {"bullets": [{"id": int, "safe": str, "strong": str, "questions": [str]}], "summary": str|null}
 Include every bullet id you were given."""
 
-FILLER_RE = re.compile(r"^\s*(?:responsible for|worked on|tasked with|duties included|in charge of|involved in)\b", re.IGNORECASE)
+FILLER_RE = re.compile(r"^\s*(?:(?:was|were|i was)\s+)?(?:responsible for|worked on|tasked with|duties included|in charge of|involved in|part of the team that|did)\b", re.IGNORECASE)
 NO_CHANGE_NOTE = "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it."
 PLACEHOLDER_NOTE = "Replace the [bracketed] parts with your real details, or delete them, before using this."
 

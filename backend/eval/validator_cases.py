@@ -31,6 +31,21 @@ GOOD = [
      "Scheduled shifts for the night team."),
     ("Helped organise the annual sales conference.",
      "Helped organise the annual sales conference [for about N attendees]."),
+    # Messy, real-world bullets: the improvements a rewriter should be able to make.
+    ("Was in charge of handling customer complaints that came in through email and phone for the UK market.",
+     "Handled UK customer complaints across email and phone."),
+    ("Did weekly reporting on ticket volumes for management using Zendesk and Excel.",
+     "Reported weekly ticket volumes to management using Zendesk and Excel."),
+    ("Responsible for making sure SLAs were met, which went from 82% to 95% over the year.",
+     "Owned SLAs, with attainment rising from 82% to 95% over the year."),
+    ("Helped new agents get up to speed by answering their questions and sitting with them on calls.",
+     "Helped new agents ramp up by answering their questions and joining them on calls."),
+    ("Worked closely with the product team giving them feedback from customers about bugs.",
+     "Partnered with the product team, passing on customer feedback about bugs."),
+    ("Part of the team that moved the help centre to a new platform in 2020.",
+     "Helped move the help centre to a new platform in 2020."),
+    ("Handled around 60 chats a day with a customer satisfaction score of 4.7 out of 5.",
+     "Handled around 60 chats a day while keeping a 4.7 out of 5 customer satisfaction score."),
 ]
 
 BAD = [

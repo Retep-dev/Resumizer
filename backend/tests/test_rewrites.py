@@ -152,3 +152,26 @@ def test_single_bullet_plain_text_mode_parses_and_verifies():
     q = by_original(report)[Q]
     assert q.status == "rewritten" and "[to N pipelines]" in q.rewritten_bullet and q.needs_confirmation == ["How many pipelines?"]
     assert by_original(report)[M].status == "kept_original"
+
+
+@pytest.mark.parametrize("original,rewrite", [
+    # Faithful rewrites the first verifier wrongly rejected (found by reviewing round-1 outputs).
+    ("Worked with pharmacists to review high-alert medication procedures.", "Reviewed high-alert medication procedures with pharmacists."),
+    ("Ran weekly diabetes education sessions for outpatients.", "Conducted weekly diabetes education sessions for outpatients."),
+    ("Ran weekly email campaigns in Mailchimp for a list of 18,000 subscribers.", "Executed weekly email campaigns in Mailchimp for 18,000 subscribers."),
+    ("Wrote blog posts and product descriptions.", "Authored blog posts and product descriptions."),
+])
+def test_round1_false_positives_are_accepted(original, rewrite):
+    assert verify_rewrite(original, rewrite, known_skills=["Mailchimp"]) == []
+
+
+@pytest.mark.parametrize("original,rewrite,why", [
+    ("Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks.",
+     "Reduced nightly load failures from nine per month to two per month by adding data quality checks.", "dropped numbers"),
+    ("Helped introduce a bedside handover checklist that cut handover time from 45 to 30 minutes.",
+     "Introduced a bedside handover checklist that cut handover time from 45 to 30 minutes.", "helped"),
+    ("Worked with pharmacists to review high-alert medication procedures.", "Reviewed high-alert medication procedures.", "kind of work"),
+    ("Maintain Airflow pipelines that load shipment data into Snowflake.", "Ran Airflow pipelines that load shipment data into Snowflake.", "kind of work"),
+])
+def test_round1_true_positives_stay_rejected(original, rewrite, why):
+    assert any(why in p for p in verify_rewrite(original, rewrite, known_skills=["Airflow", "Snowflake"]))
