@@ -74,7 +74,7 @@ def test_rewrite_request_that_merges_another_bullet_is_retried():
 def test_merge_that_survives_the_retry_is_flagged_to_the_user():
     merged = f"{AIRFLOW[:-1]}, reducing nightly load failures from 9 to 2 per month with data quality checks."
     reply = chat(FakeClient(coach=[merged, merged]), "Rewrite my Airflow bullet.", [])
-    assert "includes details from another bullet" in reply and QUALITY in reply
+    assert reply.startswith(AIRFLOW) and "couldn't verify a rewrite" in reply and "merged in another bullet" in reply and merged not in reply
 
 
 def test_non_rewrite_questions_and_clean_rewrites_make_one_call():
@@ -91,7 +91,7 @@ def test_scripted_claims_of_missing_skills_are_corrected():
     client = FakeClient(coach=[bad, good])
     assert chat(client, "How do I handle the AWS gap?", []) == good and len(client.calls) == 2
     reply = chat(FakeClient(coach=[bad, bad]), "How do I handle the AWS gap?", [])
-    assert "doesn't show AWS" in reply
+    assert "Removed a suggestion that implies experience with AWS" in reply and "Snowflake on AWS" not in reply
 
 
 def test_honest_mentions_of_missing_skills_are_left_alone():
@@ -164,3 +164,69 @@ def test_corrected_answer_preamble_is_removed():
     bad = 'Say: "I have worked within Snowflake on AWS."'
     client = FakeClient(coach=[bad, "**Corrected answer:** Be honest that AWS isn't on your resume yet."])
     assert chat(client, "How do I handle the AWS gap?", []) == "Be honest that AWS isn't on your resume yet."
+
+
+# ── Evidence ledger and the checks that use it ──
+
+def _ledger(messages=()):
+    from app.agents.coach_evidence import build_ledger
+    return build_ledger(PRIYA_RESUME, analysis(), list(messages))
+
+
+def test_ledger_separates_documented_related_said_and_missing():
+    led = _ledger(["I did a weekend course on Terraform last month.", "I haven't used Kafka.", "I used Databricks at a hackathon job last year."])
+    assert ("Python" in dict(led.documented)) and dict(led.documented)["SQL"]
+    related = {s: why for s, _, why in led.related}
+    assert "AWS" in related and "not hands-on" in related["AWS"]
+    assert "Kafka" in related and "not streaming" in related["Kafka"]
+    assert led.said_in_chat["Terraform"] == "course_or_project" and led.said_in_chat["Kafka"] == "not_used"
+    assert led.said_in_chat["Databricks"] == "used" and "Databricks" in led.may_claim()
+    text = led.as_prompt()
+    assert "NEVER as the missing skill" in text and "not work experience" in text
+
+
+@pytest.mark.parametrize("reply,flag", [
+    ("Add a “Professional Development” section listing:\nTerraform: Self-studied fundamentals.", True),
+    ("AWS: Familiar with core services (EC2, S3, IAM).", True),
+    ("Add AWS to your skills section so the ATS picks it up.", True),
+    ("If you have used AWS, add it to your skills section.", False),
+    ("Don't add Kafka to your skills section; talk about it in the interview instead.", False),
+    ("Start with Kafka: your resume doesn't show it.", False),
+])
+def test_listing_a_missing_skill_on_the_resume_is_caught(reply, flag):
+    from app.agents.coach_checks import listing_advice
+    assert bool(listing_advice(reply, _ledger())) is flag
+
+
+def test_a_course_the_candidate_mentioned_can_go_under_training():
+    from app.agents.coach_checks import listing_advice
+    led = _ledger(["I did a weekend course on Terraform last month."])
+    assert not listing_advice("Add the Terraform course under a Training section on your resume.", led)
+    assert listing_advice("Add Terraform to your skills section.", led)
+
+
+def test_a_skill_the_candidate_says_they_used_can_be_claimed():
+    a = analysis()
+    history = [{"role": "user", "content": "I used Databricks at my last job for six months."}, {"role": "assistant", "content": "Good to know."}]
+    client = FakeClient(coach="You can say: “I've worked with Databricks for six months at my last job.”")
+    reply = asyncio.run(chat_with_career_coach("How do I mention Databricks?", history, PRIYA_RESUME, DATA_JD, a, client=client))
+    assert len(client.calls) == 1 and "Removed" not in reply
+
+
+def test_coach_rewrite_that_adds_an_outcome_is_corrected_or_replaced():
+    from app.agents.career_coach_agent import coach_reply
+    live = "Maintain Airflow pipelines that load shipment data into Snowflake, ensuring end‑to‑end data reliability for downstream analytics."
+    ok = "Maintain the Airflow pipelines that load shipment data into Snowflake [how often, and how much data]."
+    r = asyncio.run(coach_reply("Rewrite my Airflow bullet so it's stronger for this job.", [], PRIYA_RESUME, DATA_JD, analysis(), client=FakeClient(coach=[live, ok])))
+    assert r.status == "corrected" and r.reply == ok and any("outcome" in n for n in r.notes)
+    r = asyncio.run(coach_reply("Rewrite my Airflow bullet.", [], PRIYA_RESUME, DATA_JD, analysis(), client=FakeClient(coach=[live, live])))
+    assert r.status == "uncertain" and "Snowflake, ensuring" not in r.reply and r.reply.startswith(AIRFLOW)
+
+
+def test_verified_reply_is_untouched_and_prompt_carries_the_evidence():
+    from app.agents.career_coach_agent import coach_reply
+    client = FakeClient(coach="No. Kafka isn't on your resume; your Airflow work is batch, not streaming.")
+    r = asyncio.run(coach_reply("Do I have Kafka experience?", [], PRIYA_RESUME, DATA_JD, analysis(), client=client))
+    assert r.status == "verified" and len(client.calls) == 1
+    system = client.calls[0]["messages"][0]["content"]
+    assert "=== EVIDENCE" in system and "batch data pipelines, not streaming" in system

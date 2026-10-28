@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.agents.bullet_facts import new_content_words, placeholders, verify_rewrite  # noqa: E402
 from app.agents.career_coach_agent import (  # noqa: E402
-    borrowed_from_posting, chat_with_career_coach, claimed_missing, merged_bullets, resume_bullets, target_bullets,
+    borrowed_from_posting, claimed_missing, coach_reply, merged_bullets, resume_bullets, target_bullets,
 )
 from app.agents.resume_parser_agent import rule_based_parse  # noqa: E402
 from app.agents.resume_rewrite_agent import change_ratio, improvement_score  # noqa: E402
@@ -35,11 +35,13 @@ from app.llm import ChatClient, Completion  # noqa: E402
 from app.llm.router import client_from_spec  # noqa: E402
 from app.schemas.resume import JobRequirement, JobRequirements  # noqa: E402
 from app.services.text_utils import term_in_text, unsupported_numbers  # noqa: E402
+from eval.baseline_coach import chat_with_career_coach as coach_baseline  # noqa: E402
 from eval.baseline_rewrite import rewrite_with_ai as rewrite_baseline  # noqa: E402
 from eval.cases import CASES  # noqa: E402
 
 PIPELINES = {"baseline": rewrite_baseline, "v2": rewrite_v2}
 TIMEOUT = {"s": 120.0}
+COACH = {"impl": "v2"}
 
 
 def make_client(spec: str) -> ChatClient:
@@ -128,11 +130,15 @@ async def eval_coach(spec: str, case: Dict, ctx: Dict) -> Dict:
     for q in case["coach"]:
         t0 = time.monotonic()
         try:
-            reply = await chat_with_career_coach(q, history, case["resume"], case["jd"], ctx["analysis"], client=rec)
+            if COACH["impl"] == "v2":
+                res = await coach_reply(q, history, case["resume"], case["jd"], ctx["analysis"], client=rec)
+                reply, check, notes = res.reply, res.status, res.notes
+            else:
+                reply, check, notes = await coach_baseline(q, history, case["resume"], case["jd"], ctx["analysis"], client=rec), None, []
         except Exception as e:
             turns.append({"question": q, "error": f"{type(e).__name__}: {getattr(e, 'message', e)}"[:300], "calls": rec.take()})
             continue
-        turns.append({"question": q, "reply": reply, "seconds": round(time.monotonic() - t0, 1), "calls": rec.take(),
+        turns.append({"question": q, "reply": reply, "check": check, "check_notes": notes, "seconds": round(time.monotonic() - t0, 1), "calls": rec.take(),
                       "audit": audit_coach_turn(q, reply, case, ctx)})
         history += [{"role": "user", "content": q}, {"role": "assistant", "content": reply}]
     return {"case": case["id"], "turns": turns}
@@ -172,6 +178,7 @@ def summarize_coach(runs: List[Dict]) -> Dict:
         "rewrites_borrowing_posting_terms": sum(1 for t in rw if t["audit"].get("borrowed")),
         "replies_with_unsupported_numbers": sum(1 for t in ok if t["audit"]["numbers_not_in_resume_or_posting"]),
         "guard_notes_shown": sum(1 for t in ok if t["audit"]["guard_note_shown"]),
+        "checks": {k: sum(1 for t in ok if t.get("check") == k) for k in ("verified", "corrected", "uncertain")},
         "seconds_per_turn": round(sum(t.get("seconds", 0) for t in ok) / max(len(ok), 1), 1),
         "calls": len(calls), "prompt_tokens": sum(c.get("prompt_tokens", 0) for c in calls),
         "completion_tokens": sum(c.get("completion_tokens", 0) for c in calls),
@@ -192,13 +199,14 @@ async def main(req: Dict, out_dir: Path):
                 runs.append(await eval_rewrite(spec, pipeline, c, ctxs[c["id"]]))
             entry[f"rewrite_{pipeline}"] = {"summary": summarize_rewrites(runs), "runs": runs}
             print(json.dumps(entry[f"rewrite_{pipeline}"]["summary"]), flush=True)
-        if "coach" in req.get("tasks", []):
+        for impl in req.get("coach", ["v2"]) if "coach" in req.get("tasks", []) else []:
+            COACH["impl"] = impl
             runs = []
             for c in cases:
-                print(f"[{spec}] coach/{c['id']}", flush=True)
+                print(f"[{spec}] coach-{impl}/{c['id']}", flush=True)
                 runs.append(await eval_coach(spec, c, ctxs[c["id"]]))
-            entry["coach"] = {"summary": summarize_coach(runs), "runs": runs}
-            print(json.dumps(entry["coach"]["summary"]), flush=True)
+            entry[f"coach_{impl}"] = {"summary": summarize_coach(runs), "runs": runs}
+            print(json.dumps(entry[f"coach_{impl}"]["summary"]), flush=True)
         (out_dir / "results.json").write_text(json.dumps(results, indent=1, ensure_ascii=False))
     results["finished"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     (out_dir / "results.json").write_text(json.dumps(results, indent=1, ensure_ascii=False))

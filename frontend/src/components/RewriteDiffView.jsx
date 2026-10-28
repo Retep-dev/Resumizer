@@ -100,6 +100,7 @@ export default function RewriteDiffView({ rewriteReport, kept, onToggleKeep, sta
               <article key={key} className={`card rw-item ${on ? 'is-kept' : ''}`} aria-label={`Rewrite ${bi + 1} for ${exp.job_title || 'this role'}`}>
                 <Wipe before={b.original_bullet} after={b.rewritten_bullet} label={`bullet ${bi + 1}`} />
                 {b.note && <p className="rw-note rw-note--fill">{b.note}</p>}
+                {b.checks?.length > 0 && <p className="rw-checks">Checked: {b.checks.join(' · ')}</p>}
                 {b.star_action && b.star_result && (
                   <p className="rw-star"><b>Action:</b> {b.star_action} <b>Result:</b> {b.star_result}</p>
                 )}

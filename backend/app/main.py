@@ -14,7 +14,8 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from app.agents import AnalysisUnavailable, chat_with_career_coach, run_resumizer_pipeline
+from app.agents import AnalysisUnavailable, run_resumizer_pipeline
+from app.agents.career_coach_agent import coach_reply
 from app.config import settings
 from app.llm import ProviderError, get_client
 from app.schemas.resume import AnalysisResult
@@ -72,6 +73,8 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     reply: str
     grounded_on: str = Field(description="'session' (server copy of resume text) or 'client_analysis'")
+    check: str = Field(default="verified", description="verified | corrected (fixed after a failed check) | uncertain (unverifiable parts removed)")
+    check_notes: List[str] = Field(default_factory=list)
 
 
 @app.api_route("/", methods=["GET", "HEAD"])
@@ -154,7 +157,7 @@ async def chat_coach(request: ChatRequest):
         raise fail(404, "session_expired", "This analysis session has expired. Run the analysis again to keep chatting.")
 
     try:
-        reply = await chat_with_career_coach(
+        result = await coach_reply(
             message, [t.model_dump() for t in (request.chat_history or [])], resume_text, jd, analysis
         )
     except ProviderError as e:
@@ -163,7 +166,7 @@ async def chat_coach(request: ChatRequest):
     except Exception:
         log.error("Chat error\n%s", traceback.format_exc())
         raise fail(500, "internal_error", "The coach failed unexpectedly.")
-    return ChatResponse(reply=reply, grounded_on=grounded_on)
+    return ChatResponse(reply=result.reply, grounded_on=grounded_on, check=result.status, check_notes=result.notes)
 
 
 if __name__ == "__main__":

@@ -44,7 +44,8 @@ export async function askCoach(sessionId, message, chatHistory, { analysis, jobD
     analysis,
     job_description: jobDescription,
   });
-  return response.data.reply;
+  // check: verified | corrected | uncertain (older servers send no check).
+  return { reply: response.data.reply, check: response.data.check || null, notes: response.data.check_notes || [] };
 }
 
 /** Backend errors are { detail: { code, message } } (older servers send a string). */

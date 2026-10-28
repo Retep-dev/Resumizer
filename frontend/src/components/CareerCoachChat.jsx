@@ -45,8 +45,8 @@ export default function CareerCoachChat({ sessionId, analysis, jobDescription })
     setLoading(true);
     try {
       // Same contract as before: history excludes the greeting and the new message.
-      const reply = await askCoach(sessionId, userMsg, next.slice(1, -1), { analysis, jobDescription });
-      setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
+      const { reply, check } = await askCoach(sessionId, userMsg, next.slice(1, -1), { analysis, jobDescription });
+      setMessages((prev) => [...prev, { role: 'assistant', content: reply, check }]);
     } catch (err) {
       setFailed({ message: userMsg, base, error: coachError(err) });
     } finally {
@@ -73,6 +73,8 @@ export default function CareerCoachChat({ sessionId, analysis, jobDescription })
           <div key={n} className={`slip slip--${m.role}`}>
             <span className="slip__who">{m.role === 'user' ? 'You' : 'Coach'}</span>
             {m.role === 'user' ? <p>{m.content}</p> : <ReactMarkdown>{m.content}</ReactMarkdown>}
+            {m.check === 'corrected' && <p className="slip__check">Checked against your resume: a suggestion that went beyond it was corrected.</p>}
+            {m.check === 'uncertain' && <p className="slip__check slip__check--warn">Parts of this answer couldn’t be verified against your resume, so they were removed or marked.</p>}
           </div>
         ))}
         {loading && (
