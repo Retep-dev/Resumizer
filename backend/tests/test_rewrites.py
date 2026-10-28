@@ -87,7 +87,7 @@ def test_rewrites_that_change_facts_are_withheld_with_the_reason(bad, reason):
 
 def test_retry_targets_only_failed_and_skipped_bullets_and_can_recover():
     first = proposal_json({3: ("Managed two junior engineers.", "Managed two junior engineers.")})
-    second = proposal_json({3: ("Mentored two junior engineers.", "Mentored two junior engineers [through which milestones]."),
+    second = proposal_json({3: ("Mentored two junior engineers.", "Mentored two junior engineers [over N months]."),
                             5: ("Wrote the SQL models behind the pricing team's monthly reporting.",
                                 "Wrote the SQL models behind the pricing team's monthly reporting.")})
     client = FakeClient(rewrite=[first, second])
@@ -175,3 +175,17 @@ def test_round1_false_positives_are_accepted(original, rewrite):
 ])
 def test_round1_true_positives_stay_rejected(original, rewrite, why):
     assert any(why in p for p in verify_rewrite(original, rewrite, known_skills=["Airflow", "Snowflake"]))
+
+
+def test_clean_wording_beats_a_placeholder_version_and_vague_placeholders_are_rejected():
+    client = FakeClient(rewrite=proposal_json({
+        5: ("Wrote the SQL models behind the pricing team's monthly reporting.",
+            "Wrote the SQL models behind the pricing team's monthly reporting [covering N products]."),
+        4: ("Built weekly claims dashboards in Tableau for the operations team.",
+            "Built weekly claims dashboards in Tableau for the operations team [for which team]."),
+    }))
+    report, _, _ = run(client)
+    s = by_original(report)[S]
+    assert s.rewritten_bullet == "Wrote the SQL models behind the pricing team's monthly reporting." and s.needs_confirmation
+    t = by_original(report)[T]
+    assert t.status == "kept_original"  # safe was identical, strong's placeholder asks for no number

@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
-from app.agents.bullet_facts import verify_rewrite
+from app.agents.bullet_facts import lemma, verify_rewrite
 from app.agents.coach_evidence import Ledger
 from app.services.text_utils import normalize, term_in_text
 
@@ -17,7 +17,9 @@ _GENERIC = {"bullet", "bullets", "point", "line", "rewrite", "stronger", "better
 
 
 def _words(text: str) -> set:
-    return {w for w in re.findall(r"[a-z][a-z0-9+#.]*|\d+", normalize(text).lower()) if (len(w) >= 4 or w.isdigit()) and w not in _GENERIC}
+    """Content words as lemmas, so 'scheduled' and 'scheduling' count as the same word."""
+    return {w if w.isdigit() else lemma(w) for w in re.findall(r"[a-z][a-z0-9+#.]*|\d+", normalize(text).lower())
+            if (len(w) >= 4 or w.isdigit()) and w not in _GENERIC}
 
 
 def resume_bullets(resume_text: Optional[str], analysis: dict) -> List[str]:

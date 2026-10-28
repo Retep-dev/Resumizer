@@ -98,7 +98,10 @@ def said_in_chat(messages: List[str], skills: List[str]) -> Dict[str, str]:
     out: Dict[str, str] = {}
     for msg in messages:
         for sentence in re.split(r"(?<=[.!?])\s+|\n+", normalize(msg)):
-            low = sentence.lower()
+            low = sentence.lower().strip()
+            # A question ("Do I have Kafka experience?") is not a statement about the candidate.
+            if low.endswith("?") or re.match(r"^(?:so\s+|and\s+|but\s+)?(do|does|did|have|has|am|is|are|was|were|can|could|should|would|will|may|how|what|which|where|when|why|who)\b", low):
+                continue
             for skill in skills:
                 if not term_in_text(skill, sentence):
                     continue

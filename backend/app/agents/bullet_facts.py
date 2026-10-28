@@ -78,7 +78,10 @@ OUTCOME_WORDS = {
     "award", "recognition", "promote", "hour", "manual", "impact", "impactful", "significant", "significantly", "robust",
     "seamless", "enterprise", "production-grade", "high-quality", "integrity", "growth", "decision-making", "insight",
     "visibility", "uptime", "availability", "secure", "security", "quality", "downstream", "data-driven", "kpi",
+    "highlight", "trend", "actionable", "valuable", "critical", "key", "result", "outcome", "success", "successful",
+    "effectively", "efficiently", "best-in-class", "world-class",
 }
+_HEDGE_RE = r"(?:around|about|approximately|approx\.?|roughly|nearly|almost|up to|over|more than|some|circa|~)\s*"
 
 
 def lemma(word: str) -> str:
@@ -197,6 +200,10 @@ def verify_rewrite(original: str, rewrite: str, *, missing: Iterable[str] = (), 
     lost = [n for n in numbers_in(original) if n not in numbers_in(rewrite)]
     if lost:
         problems.append(f"dropped numbers from the original ({', '.join(lost)})")
+    hedged = [m.group(1) for m in re.finditer(rf"{_HEDGE_RE}(\$?\d[\d,.]*%?)", normalize(original), re.IGNORECASE)]
+    made_exact = [n for n in hedged if n in rewrite and not re.search(rf"{_HEDGE_RE}{re.escape(n)}", normalize(rewrite), re.IGNORECASE)]
+    if made_exact:
+        problems.append(f"made an approximate number exact ({', '.join(made_exact)})")
     garbled = _number_context_problems(original, rewrite)
     if garbled:
         problems.append(f"changed what a number measures ({', '.join(garbled)})")

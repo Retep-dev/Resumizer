@@ -30,7 +30,7 @@ REWRITE_SYSTEM_PROMPT = """You are an expert resume editor. You make each bullet
 
 For every bullet you are given its text and its facts (numbers, tools, kind of action, whether it states a result). Write two candidates:
 - "safe": clearly better wording with exactly the same facts.
-- "strong": the most compelling honest version. It may add ONE bracketed placeholder for a missing metric, scope or result, written with letters not digits, e.g. "[N users]", "[by X%]", "[for which team]".
+- "strong": the most compelling honest version. It may add ONE bracketed placeholder for a missing NUMBER (scale or frequency), written with letters not digits, e.g. "[N users]", "[N a week]", "[X% of tickets]". Never a placeholder that suggests a result or benefit.
 
 How to improve a bullet (use whatever fits):
 1. Open with a precise, strong verb of the SAME kind as the original: maintained → maintained/ran/kept; built → built/developed/designed; helped → helped/supported/contributed to; worked with → partnered/collaborated with; mentored → mentored/coached.
@@ -61,6 +61,7 @@ Include every bullet id you were given."""
 
 FILLER_RE = re.compile(r"^\s*(?:(?:was|were|i was)\s+)?(?:responsible for|worked on|tasked with|duties included|in charge of|involved in|part of the team that|did)\b", re.IGNORECASE)
 NO_CHANGE_NOTE = "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it."
+NUMERIC_PLACEHOLDER = re.compile(r"\b[NXY]\b|how (?:many|much|often|long)|%|\bnumber\b", re.IGNORECASE)
 PLACEHOLDER_NOTE = "Replace the [bracketed] parts with your real details, or delete them, before using this."
 
 
@@ -158,28 +159,38 @@ def judge(item: Dict, cand: Optional[_Candidate], *, missing: List[str], known: 
     """Pick the best verified candidate. Returns (rewrite or None, problems with the rejected candidates)."""
     original = item["text"]
     others = [b for b in all_bullets if b != original]
-    best, best_score, problems = None, 0, []
-    for kind in ("strong", "safe"):
+    passed: Dict[str, Tuple[str, int, List[str]]] = {}
+    problems = []
+    for kind in ("safe", "strong"):
         text = (getattr(cand, kind) or "").strip() if cand else ""
         if not text or _norm(text) == _norm(original):
             continue
         p = verify_rewrite(original, text, missing=missing, known_skills=known, other_bullets=others)
-        if len(placeholders(text)) > 2:
-            p.append("left too many blanks to fill in")
+        if len(placeholders(text)) > 1:
+            p.append("left more than one blank to fill in")
+        vague = [ph for ph in placeholders(text) if not NUMERIC_PLACEHOLDER.search(ph)]
+        if vague:
+            p.append(f"has a placeholder that doesn't ask for a number ([{vague[0]}])")
         if p:
             problems.append(f"{kind}: " + "; ".join(p))
             continue
         score, why = improvement_score(original, text, posting_terms)
-        if score > best_score:
-            best_score = score
-            best = BulletPointRewrite(
-                original_bullet=original, rewritten_bullet=text, status="rewritten",
-                star_action="", star_result="",
-                added_keywords=[t for t in posting_terms if term_in_text(t, text) and term_in_text(t, original)],
-                needs_confirmation=[q.strip() for q in (cand.questions if cand else []) if q.strip()][:2] or (follow_up_questions(original) if placeholders(text) else []),
-                note=PLACEHOLDER_NOTE if placeholders(text) else None,
-                checks=verification_note(item["facts"]) + [", ".join(why)] if why else verification_note(item["facts"]),
-            )
+        if score > 0:
+            passed[kind] = (text, score, why)
+    # A clean wording improvement wins; the missing metric is then asked for as a question instead of a [blank].
+    pick = passed.get("safe") if "safe" in passed and not placeholders(passed["safe"][0]) else None
+    if not pick and passed:
+        pick = max(passed.values(), key=lambda v: v[1])
+    best = None
+    if pick:
+        text, score, why = pick
+        qs = [q.strip() for q in (cand.questions if cand else []) if q.strip()][:2] or follow_up_questions(original)
+        best = BulletPointRewrite(
+            original_bullet=original, rewritten_bullet=text, status="rewritten", star_action="", star_result="",
+            added_keywords=[t for t in posting_terms if term_in_text(t, text) and term_in_text(t, original)],
+            needs_confirmation=qs, note=PLACEHOLDER_NOTE if placeholders(text) else None,
+            checks=verification_note(item["facts"]) + ([", ".join(why)] if why else []),
+        )
     return best, problems
 
 

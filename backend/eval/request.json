@@ -1,16 +1,15 @@
 {
-  "label": "round2-7cases-pipelines-coach",
+  "label": "round3-fixed-ledger-tighter-rewrites",
   "discover": false,
   "models": [
     "nvidia:nvidia/nemotron-3-ultra-550b-a55b",
-    "nvidia:nvidia/nemotron-3.5-lightning-30b-a3b",
     "nvidia:nvidia/nemotron-3.5-bolt-e4b",
     "nvidia:openai/gpt-oss-20b",
-    "nvidia:minimaxai/minimax-m3.1-flash"
+    "nvidia:nvidia/nemotron-3.5-lightning-30b-a3b"
   ],
-  "pipelines": ["baseline", "v2", "v2single"],
+  "pipelines": ["v2", "v2single"],
   "tasks": ["rewrite", "coach"],
-  "coach": ["baseline", "v2"],
+  "coach": ["v2"],
   "cases": "all",
   "timeout": 120
 }
