@@ -42,7 +42,7 @@ def _why(e: Exception) -> str:
             "model_unavailable": "The AI model isn't available from the provider.",
             "auth": "The AI provider rejected the server's API key.",
             "not_configured": "The server has no AI provider key configured.",
-            "rate_limited": "The AI provider's rate limit was reached.",
+            "rate_limited": "Resumizer's free AI capacity was used up, so this part used the rule-based fallback.",
             "timeout": "The AI provider took too long to respond.",
             "network": "The server couldn't reach the AI provider.",
         }.get(e.kind, "The AI provider returned an error.")

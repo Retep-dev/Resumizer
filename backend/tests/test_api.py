@@ -13,6 +13,16 @@ from tests.conftest import DATA_JD, PRIYA_RESUME, FakeClient, healthy_client, re
 api = TestClient(app)
 
 
+@pytest.fixture(autouse=True)
+def fresh_limits():
+    from app.services import usage
+    usage.WINDOWS.reset()
+    usage.DUPLICATES.clear()
+    yield
+    usage.WINDOWS.reset()
+    usage.DUPLICATES.clear()
+
+
 @pytest.fixture
 def ai(request):
     client = getattr(request, "param", None) or healthy_client()
@@ -92,3 +102,43 @@ def test_chat_provider_failure_is_503_not_a_fake_reply(ai):
 def test_status_endpoint_never_exposes_the_key(ai):
     r = api.get("/api/v1/status")
     assert r.status_code == 200 and "nvapi" not in r.text
+
+
+
+def test_repeated_identical_analysis_uses_no_ai_calls(ai):
+    first = analyze()
+    calls = len(ai.calls)
+    second = analyze(body=PRIYA_RESUME.replace("\n", "\n\n").encode())
+    assert second.status_code == 200 and second.json()["session_id"] == first.json()["session_id"]
+    assert len(ai.calls) == calls
+
+
+def test_per_client_analysis_limit_returns_429_with_retry_after(ai, monkeypatch):
+    from app.services.usage import Limits
+    monkeypatch.setattr(Limits, "ANALYZE_PER_HOUR", 1)
+    assert analyze().status_code == 200
+    r = analyze(body=(PRIYA_RESUME + "\nExtra line so it isn't a duplicate.").encode())
+    assert r.status_code == 429 and r.json()["detail"]["code"] == "rate_limited" and int(r.headers["retry-after"]) > 0
+
+
+def test_oversized_job_description_is_rejected(ai):
+    r = analyze(jd="word " * 5000)
+    assert r.status_code == 400 and r.json()["detail"]["code"] == "validation_failed"
+
+
+@pytest.mark.parametrize("ai", [FakeClient(coach=__import__("app.llm", fromlist=["ProviderError"]).ProviderError(
+    "rate_limited", "Today's free AI capacity is used up for coach"))], indirect=True)
+def test_exhausted_free_quota_is_a_clear_coach_error(ai):
+    from tests.conftest import healthy_client
+    set_client(healthy_client())
+    sid = analyze().json()["session_id"]
+    set_client(ai)
+    r = api.post("/api/v1/chat", json={"session_id": sid, "message": "What should I fix first?", "chat_history": []})
+    assert r.status_code == 429 and r.json()["detail"]["code"] == "ai_quota_exhausted"
+    assert "free AI capacity" in r.json()["detail"]["message"]
+
+
+def test_status_reports_free_only_routing_and_usage(ai):
+    body = api.get("/api/v1/status").json()
+    assert body["paid_providers"].startswith("none") and "usage" in body
+    assert all(row["provider"] in ("nvidia", "groq", "cerebras") for rows in body["tasks"].values() for row in rows)

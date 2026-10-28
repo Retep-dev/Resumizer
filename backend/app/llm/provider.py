@@ -200,65 +200,6 @@ class NvidiaChatClient(OpenAICompatibleClient):
         return body
 
 
-@dataclass
-class AnthropicChatClient(ChatClient):
-    """Anthropic Messages API. Only used when ANTHROPIC_API_KEY is set and paid providers are allowed."""
-    api_key: str
-    models: Sequence[str]
-    base_url: str = "https://api.anthropic.com/v1"
-    timeout: float = 60.0
-    retired: set = field(default_factory=set)
-    session: requests.Session = field(default_factory=requests.Session)
-    provider: str = "anthropic"
-
-    def _complete_sync(self, messages, temperature, max_tokens, json_mode) -> Completion:
-        if not (self.api_key or "").strip():
-            raise ProviderError("not_configured", "No API key is configured on the server for anthropic")
-        system = "\n\n".join(m["content"] for m in messages if m["role"] == "system")
-        convo = [m for m in messages if m["role"] in ("user", "assistant")]
-        last: Optional[ProviderError] = None
-        for model in self.models:
-            if model in self.retired:
-                continue
-            body = {"model": split_options(model)[0], "max_tokens": max_tokens, "temperature": temperature, "messages": convo}
-            if system:
-                body["system"] = system + ("\n\nReply with a single JSON object only." if json_mode else "")
-            try:
-                r = self.session.post(f"{self.base_url}/messages", json=body, timeout=self.timeout, headers={
-                    "x-api-key": self.api_key.strip(), "anthropic-version": "2023-06-01", "content-type": "application/json"})
-            except requests.Timeout:
-                last = ProviderError("timeout", f"{model} did not respond within {int(self.timeout)}s", model)
-                continue
-            except requests.RequestException as e:
-                last = ProviderError("network", f"Could not reach anthropic ({type(e).__name__})", model)
-                continue
-            if r.status_code == 200:
-                data = r.json()
-                text = "".join(b.get("text", "") for b in data.get("content", []) if b.get("type") == "text").strip()
-                if not text:
-                    last = ProviderError("bad_response", "The model returned an empty answer", model, 200)
-                    continue
-                u = data.get("usage") or {}
-                return Completion(text=text, model=model, provider="anthropic",
-                                  prompt_tokens=int(u.get("input_tokens") or 0), completion_tokens=int(u.get("output_tokens") or 0))
-            detail = _clean_message(r.text)
-            if r.status_code in (401, 403):
-                raise ProviderError("auth", "The anthropic API key was rejected", model, r.status_code)
-            if r.status_code == 404:
-                self.retired.add(model)
-                last = ProviderError("model_unavailable", f"{model} is not available: {detail}", model, 404)
-                continue
-            kind = "rate_limited" if r.status_code == 429 else "server" if r.status_code >= 500 else "bad_request"
-            last = ProviderError(kind, f"anthropic error {r.status_code}: {detail}", model, r.status_code)
-        raise last or ProviderError("model_unavailable", "No models configured")
-
-    async def complete(self, messages, *, temperature=0.1, max_tokens=2048, json_mode=False) -> Completion:
-        t0 = time.monotonic()
-        out = await asyncio.to_thread(self._complete_sync, messages, temperature, max_tokens, json_mode)
-        out.seconds = round(time.monotonic() - t0, 2)
-        return out
-
-
 def get_client(task: str = "analysis") -> ChatClient:
     from app.llm.router import get_client as _get
     return _get(task)

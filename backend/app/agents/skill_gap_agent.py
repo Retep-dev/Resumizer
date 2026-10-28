@@ -2,6 +2,7 @@ import asyncio
 import re
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.prompts import ChatPromptTemplate
+from app.agents.safety import UNTRUSTED_DATA_NOTE
 from app.config import settings
 from app.schemas.resume import SkillGapReport, ResumeSchema
 
@@ -16,6 +17,7 @@ Responsibilities:
 4. Identify missing_soft_skills: Soft skills required by JD but missing from resume.
 5. Formulate priority_skill_recommendations: Actionable advice on which skills to acquire or highlight immediately to boost hiring odds.
 """
+SKILL_GAP_SYSTEM_PROMPT += UNTRUSTED_DATA_NOTE
 
 
 def get_skill_gap_agent():

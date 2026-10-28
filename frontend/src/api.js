@@ -86,6 +86,20 @@ export function describeAnalyzeError(err) {
   if (code === 'parsing_failed') {
     return { title: 'We couldn’t read your resume', body: message, detail: '' };
   }
+  if (code === 'rate_limited' || code === 'daily_capacity_reached' || code === 'busy' || code === 'ai_quota_exhausted') {
+    const titles = {
+      rate_limited: 'You’ve reached the free usage limit for now',
+      daily_capacity_reached: 'Resumizer has reached today’s free limit',
+      busy: 'Resumizer is busy right now',
+      ai_quota_exhausted: 'Resumizer’s free AI capacity is used up for now',
+    };
+    const wait = Number(err?.response?.headers?.['retry-after'] || err?.response?.data?.detail?.retry_after || 0);
+    const when = wait ? ` You can try again in about ${wait < 90 ? `${wait} seconds` : `${Math.ceil(wait / 60)} minutes`}.` : '';
+    return { title: titles[code], body: `${message}${when}`, detail: '' };
+  }
+  if (code === 'timeout') {
+    return { title: 'The analysis took too long', body: message, detail: '' };
+  }
   if (code === 'validation_failed') {
     return { title: 'Something needs fixing before we can analyse this', body: message, detail: '' };
   }

@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 from typing import List, Tuple
 
+from app.agents.safety import UNTRUSTED_DATA_NOTE
 from app.llm import ChatClient, complete_json
 from app.schemas.resume import JobRequirement, JobRequirements
 from app.services.text_utils import normalize, required_years, term_in_text
@@ -25,6 +26,7 @@ Rules:
 
 Return one JSON object: {"title": str|null, "min_years": int|null,
  "requirements": [{"term": str, "category": "hard"|"soft", "importance": "required"|"preferred", "aliases": [str]}]}"""
+JOB_SYSTEM_PROMPT += UNTRUSTED_DATA_NOTE
 
 
 _QUALIFIER_RE = re.compile(r"^(?:strong|expert|excellent|proven|solid|advanced|deep|good|great|demonstrated|hands-on|working)\s+(?:knowledge\s+of\s+|experience\s+(?:with|in)\s+)?", re.IGNORECASE)

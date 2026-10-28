@@ -22,15 +22,16 @@ class Settings:
         "NVIDIA_FALLBACK_MODELS",
         "openai/gpt-oss-20b",
     ))
-    # ── Optional additional providers (all off unless a key is set AND paid use is allowed) ──
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "").strip().strip('"').strip("'").strip()
-    OPENAI_BASE_URL: str = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
-    OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "").strip().strip('"').strip("'").strip()
-    ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "").strip().strip('"').strip("'").strip()
-    # Safety switch: providers other than NVIDIA are never called unless this is "true".
-    ALLOW_PAID_PROVIDERS: bool = os.getenv("ALLOW_PAID_PROVIDERS", "false").strip().lower() == "true"
+    # ── Free providers only. Resumizer never calls a paid inference API. ──
+    # Groq and Cerebras free tiers are used only when their key is set; neither can bill
+    # an account that has no payment method attached.
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "").strip().strip('"').strip("'").strip()
+    CEREBRAS_API_KEY: str = os.getenv("CEREBRAS_API_KEY", "").strip().strip('"').strip("'").strip()
+    # Kept only so a stray "true" is visible and ignored: there are no paid providers to enable.
+    ALLOW_PAID_PROVIDERS_REQUESTED: bool = os.getenv("ALLOW_PAID_PROVIDERS", "false").strip().lower() == "true"
+    ALLOW_PAID_PROVIDERS: bool = False
     # Per-task model chains: comma-separated "provider:model" (provider defaults to nvidia).
-    # Unset = the NVIDIA chain above. Example: MODELS_REWRITE="anthropic:claude-haiku-4-5,nvidia:nvidia/nemotron-3.5-lightning-30b-a3b"
+    # Unset = the default chain for that task (DEFAULT_CHAINS). Example: MODELS_REWRITE="groq:llama-3.3-70b-versatile,nvidia:nvidia/nemotron-3-ultra-550b-a55b"
     TASKS = ("analysis", "rewrite", "interview", "coach")
     LLM_TIMEOUT_SECONDS: float = float(os.getenv("LLM_TIMEOUT_SECONDS", "60"))
     SESSION_TTL_SECONDS: int = int(os.getenv("SESSION_TTL_SECONDS", str(6 * 3600)))

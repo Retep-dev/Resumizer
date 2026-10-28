@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 from typing import List, Optional, Tuple
 
+from app.agents.safety import UNTRUSTED_DATA_NOTE
 from app.llm import ChatClient, complete_json
 from app.schemas.resume import Education, Project, ResumeSchema, WorkExperience
 from app.services.text_utils import normalize, term_in_text, word_tokens_overlap
@@ -26,6 +27,7 @@ Return one JSON object with exactly these keys:
  "work_experience": [{"company": str, "job_title": str, "location": str|null, "start_date": str|null, "end_date": str|null, "bullet_points": [str]}],
  "education": [{"institution": str, "degree": str, "field_of_study": str|null, "graduation_year": str|null}],
  "certifications": [str], "projects": [{"name": str, "description": str, "technologies": [str], "link": str|null}]}"""
+PARSER_SYSTEM_PROMPT += UNTRUSTED_DATA_NOTE
 
 
 # ───────────────────────── Grounding ─────────────────────────

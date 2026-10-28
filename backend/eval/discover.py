@@ -17,7 +17,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import requests  # noqa: E402
 
 from app.config import settings  # noqa: E402
-from app.llm.provider import NvidiaChatClient, ProviderError  # noqa: E402
+from app.llm.provider import ProviderError  # noqa: E402
+from app.llm.router import FREE_PROVIDERS, provider_client, provider_status  # noqa: E402
+import dataclasses  # noqa: E402
 
 # Families worth testing for writing quality (instruction-tuned, mid-to-large).
 INTERESTING = re.compile(
@@ -29,37 +31,45 @@ PROMPT = [{"role": "user", "content": "Rewrite this resume bullet more strongly 
                                       "Responsible for training new cashiers."}]
 
 
-async def probe(model: str, timeout: float):
-    c = NvidiaChatClient(api_key=settings.NVIDIA_API_KEY, models=[model], base_url=settings.NVIDIA_BASE_URL, timeout=timeout)
+async def probe(model: str, timeout: float, provider: str = "nvidia"):
+    c = dataclasses.replace(provider_client(provider), models=[model], timeout=timeout)
     t0 = time.monotonic()
     try:
         out = await c.complete(PROMPT, temperature=0.2, max_tokens=400)
-        return {"model": model, "ok": True, "seconds": round(time.monotonic() - t0, 1), "reply": out.text[:160],
+        return {"provider": provider, "model": model, "ok": True, "seconds": round(time.monotonic() - t0, 1), "reply": out.text[:160],
                 "prompt_tokens": out.prompt_tokens, "completion_tokens": out.completion_tokens}
     except ProviderError as e:
-        return {"model": model, "ok": False, "seconds": round(time.monotonic() - t0, 1), "error": e.kind, "detail": e.message[:160]}
+        return {"provider": provider, "model": model, "ok": False, "seconds": round(time.monotonic() - t0, 1), "error": e.kind, "detail": e.message[:160]}
 
 
-async def main(out: Path, timeout: float, limit: int):
+async def main(out: Path, timeout: float, limit: int, providers=("nvidia",)):
     out.mkdir(parents=True, exist_ok=True)
-    try:
-        listed = sorted(m["id"] for m in requests.get(f"{settings.NVIDIA_BASE_URL}/models", timeout=30).json().get("data", []))
-    except Exception as e:
-        listed = []
-        print("could not list models:", e)
-    candidates = [m for m in listed if INTERESTING.search(m) and not SKIP.search(m)][:limit]
-    print(f"{len(listed)} models listed; probing {len(candidates)}", flush=True)
-    results = []
-    for i in range(0, len(candidates), 6):
-        batch = await asyncio.gather(*(probe(m, timeout) for m in candidates[i:i + 6]))
-        for r in batch:
-            print(json.dumps(r), flush=True)
-        results += batch
-    (out / "discover.json").write_text(json.dumps({"listed": listed, "probed": results}, indent=1))
+    listed_all, results = {}, []
+    for provider in providers:
+        if not provider_status(provider)[0]:
+            print(f"{provider}: skipped ({provider_status(provider)[1]})")
+            continue
+        base = settings.NVIDIA_BASE_URL if provider == "nvidia" else FREE_PROVIDERS[provider]["base"]
+        key = provider_client(provider).api_key
+        try:
+            data = requests.get(f"{base}/models", headers={"Authorization": f"Bearer {key}"}, timeout=30).json().get("data", [])
+            listed = sorted(m["id"] for m in data)
+        except Exception as e:
+            listed = []
+            print(f"{provider}: could not list models: {type(e).__name__}")
+        listed_all[provider] = listed
+        candidates = [m for m in listed if (provider != "nvidia" or INTERESTING.search(m)) and not SKIP.search(m)][:limit]
+        print(f"{provider}: {len(listed)} models listed; probing {len(candidates)}", flush=True)
+        for i in range(0, len(candidates), 4):
+            batch = await asyncio.gather(*(probe(m, timeout, provider) for m in candidates[i:i + 4]))
+            for r in batch:
+                print(json.dumps(r), flush=True)
+            results += batch
+    (out / "discover.json").write_text(json.dumps({"listed": listed_all, "probed": results}, indent=1))
     ok = [r for r in results if r["ok"]]
     print(f"\nUsable: {len(ok)}/{len(results)}")
     for r in sorted(ok, key=lambda r: r["seconds"]):
-        print(f"  {r['model']:55} {r['seconds']:>6}s  {r['reply'][:90]}")
+        print(f"  {r['provider']}:{r['model']:50} {r['seconds']:>6}s  {r['reply'][:80]}")
 
 
 if __name__ == "__main__":
@@ -68,4 +78,4 @@ if __name__ == "__main__":
     ap.add_argument("--timeout", type=float, default=60)
     ap.add_argument("--limit", type=int, default=60)
     a = ap.parse_args()
-    asyncio.run(main(Path(a.out), a.timeout, a.limit))
+    asyncio.run(main(Path(a.out), a.timeout, a.limit, tuple(FREE_PROVIDERS)))

@@ -19,6 +19,7 @@ from typing import Dict, List, Optional, Tuple
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.agents.safety import UNTRUSTED_DATA_NOTE
 from app.agents.bullet_facts import (
     extract_facts, lemma, placeholders, verb_kinds, verification_note, verify_rewrite, words,
 )
@@ -58,6 +59,7 @@ If a summary is given, return an improved "summary" (2 sentences max, only facts
 Return one JSON object:
 {"bullets": [{"id": int, "safe": str, "strong": str, "questions": [str]}], "summary": str|null}
 Include every bullet id you were given."""
+REWRITE_SYSTEM_PROMPT += UNTRUSTED_DATA_NOTE
 
 FILLER_RE = re.compile(r"^\s*(?:(?:was|were|i was)\s+)?(?:responsible for|worked on|tasked with|duties included|in charge of|involved in|part of the team that|did)\b", re.IGNORECASE)
 NO_CHANGE_NOTE = "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it."
@@ -229,7 +231,7 @@ def _check_summary(summary: Optional[str], resume: ResumeSchema, resume_text: st
 SINGLE_SYSTEM_PROMPT = REWRITE_SYSTEM_PROMPT.split("Also write \"questions\"")[0] + """Answer for ONE bullet, in exactly this plain-text format and nothing else:
 SAFE: <rewrite>
 STRONG: <rewrite>
-QUESTION: <one question>"""
+QUESTION: <one question>""" + UNTRUSTED_DATA_NOTE
 
 
 def _parse_single(text: str, bullet_id: int) -> _Candidate:

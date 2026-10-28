@@ -2,6 +2,7 @@ import asyncio
 import re
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.prompts import ChatPromptTemplate
+from app.agents.safety import UNTRUSTED_DATA_NOTE
 from app.config import settings
 from app.schemas.resume import ATSScore, ResumeSchema
 
@@ -18,6 +19,7 @@ Evaluation Criteria:
 6. matched_keywords: List of critical technical & domain keywords found in both resume and JD.
 7. missing_keywords: List of critical keywords from JD that are absent from the resume.
 """
+ATS_SYSTEM_PROMPT += UNTRUSTED_DATA_NOTE
 
 
 def get_ats_scoring_agent():

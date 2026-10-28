@@ -7,6 +7,7 @@ from typing import List, Optional, Set, Tuple
 
 from pydantic import BaseModel, Field
 
+from app.agents.safety import UNTRUSTED_DATA_NOTE
 from app.llm import ChatClient, complete_json
 from app.schemas.resume import InterviewPrepReport, InterviewQuestion, JobRequirements, ResumeSchema
 from app.services.text_utils import normalize, term_in_text, unsupported_numbers
@@ -23,6 +24,7 @@ For each question give:
 - sample_answer: a model answer built ONLY from facts in the resume. Describe actions only at the level of detail the resume gives: if the resume says what was done but not how, write a placeholder such as "[how you did it]". Never name commands, functions, column or table names, configuration settings, tools or techniques the resume doesn't mention. Where the answer needs a detail the resume doesn't give, write a bracketed placeholder such as "[the number of users affected]" instead of inventing it. Only use digits that are copied from the resume; otherwise write a bracketed placeholder. Never invent numbers, employers, projects or tools. For gap questions, be honest that the candidate hasn't used the skill and focus on related experience from the resume.
 
 Return one JSON object: {"questions": [ ... 6 objects ... ]}"""
+INTERVIEW_SYSTEM_PROMPT += UNTRUSTED_DATA_NOTE
 
 _TYPES = {"behavioral", "technical", "gap_focused"}
 _ALLCAPS_OK = {"STAR", "ATS", "CV", "UK", "US", "USA", "EU", "OK", "TBD"}

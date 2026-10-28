@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 
 from dataclasses import dataclass, field
 
+from app.agents.safety import UNTRUSTED_DATA_NOTE
 from app.agents.coach_checks import (  # noqa: F401  (re-exported for the evaluation and tests)
     Problem, borrowed_from_posting, claimed_missing, listing_advice, merged_bullets, resume_bullets, rewrite_blocks,
     rewrite_problems, scripted_claims, sentences, silent_rewrites, target_bullets, unsupported_claims,
@@ -44,6 +45,7 @@ Rules:
 
 === ANALYSIS ===
 {analysis}"""
+COACH_SYSTEM_PROMPT += UNTRUSTED_DATA_NOTE
 
 
 def _analysis_digest(analysis: dict) -> str:

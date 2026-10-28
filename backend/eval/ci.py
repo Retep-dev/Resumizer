@@ -21,18 +21,16 @@ async def main():
     out = Path("eval_out")
     out.mkdir(exist_ok=True)
     run_eval.TIMEOUT["s"] = float(req.get("timeout", 120))
-    # Paid providers stay off unless the request explicitly allows them (and their key exists).
-    from app.config import settings
-    settings.ALLOW_PAID_PROVIDERS = bool(req.get("allow_paid", False))
-    notice("paid providers", "allowed by request" if settings.ALLOW_PAID_PROVIDERS else "off")
+    notice("providers", "free only: nvidia, groq, cerebras (no paid provider exists in the code)")
     if req.get("discover"):
-        await discover.main(out, timeout=float(req.get("discover_timeout", 60)), limit=int(req.get("discover_limit", 60)))
+        await discover.main(out, timeout=float(req.get("discover_timeout", 60)), limit=int(req.get("discover_limit", 60)),
+                            providers=tuple(req.get("discover_providers", ["nvidia"])))
         found = json.loads((out / "discover.json").read_text())["probed"]
         ok = sorted([r for r in found if r["ok"] and r["seconds"] <= float(req.get("auto_max_seconds", 30))], key=lambda r: r["seconds"])
         have = {m.split(":", 1)[-1].split("@")[0] for m in req["models"]}
-        extra = [f"nvidia:{r['model']}" for r in ok if r["model"] not in have][: int(req.get("auto_add", 0))]
+        extra = [f"{r.get('provider', 'nvidia')}:{r['model']}" for r in ok if r["model"] not in have][: int(req.get("auto_add", 0))]
         req["models"] += extra
-        notice("discovered", f"usable {len(ok)}/{len(found)}: " + ", ".join(f"{r['model']} ({r['seconds']}s)" for r in ok))
+        notice("discovered", f"usable {len(ok)}/{len(found)}: " + ", ".join(f"{r.get('provider', 'nvidia')}:{r['model']} ({r['seconds']}s)" for r in ok))
         notice("auto-added models", ", ".join(extra) or "none")
     results = await run_eval.main(req, out)
     lines = []

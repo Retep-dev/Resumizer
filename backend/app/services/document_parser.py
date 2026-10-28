@@ -18,15 +18,23 @@ class DocumentError(Exception):
         self.message = message
 
 
+MAX_PDF_PAGES = 10
+MAX_RESUME_CHARS = 40000
+
+
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     """Extract text from PDF bytes. Uses layout-aware extraction so columns don't interleave."""
     pages = []
     try:
         with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+            if len(pdf.pages) > MAX_PDF_PAGES:
+                raise DocumentError("validation_failed", f"This PDF has {len(pdf.pages)} pages. Upload a resume of {MAX_PDF_PAGES} pages or fewer.")
             for page in pdf.pages:
                 text = page.extract_text(x_tolerance=1.5, y_tolerance=3) or ""
                 if text.strip():
                     pages.append(text)
+    except DocumentError:
+        raise
     except Exception as e:  # corrupt or encrypted PDF
         raise DocumentError("parsing_failed", f"This PDF couldn't be opened ({type(e).__name__}). Try exporting it again or upload a DOCX.")
     return "\n\n".join(pages)
@@ -67,10 +75,20 @@ def extract_text_from_file(file_bytes: bytes, filename: str) -> str:
         raise DocumentError("validation_failed", "Upload a PDF, DOCX, TXT or MD file.")
     if not file_bytes:
         raise DocumentError("validation_failed", "The uploaded file is empty.")
+    # The extension must match the file's real format (stops renamed binaries and zip bombs posing as PDFs).
+    if name.endswith(".pdf") and not file_bytes[:1024].lstrip().startswith(b"%PDF"):
+        raise DocumentError("validation_failed", "This file isn't a valid PDF. Export your resume as PDF again, or upload a DOCX.")
+    if name.endswith(".docx") and not file_bytes.startswith(b"PK"):
+        raise DocumentError("validation_failed", "This file isn't a valid DOCX. Re-save it in Word, or upload a PDF.")
+    if name.endswith((".txt", ".md")) and b"\x00" in file_bytes[:4096]:
+        raise DocumentError("validation_failed", "This text file contains binary data. Upload a PDF, DOCX or plain-text resume.")
     if name.endswith(".pdf"):
         text = extract_text_from_pdf(file_bytes)
     elif name.endswith(".docx"):
         text = extract_text_from_docx(file_bytes)
     else:
         text = file_bytes.decode("utf-8", errors="ignore")
-    return _clean(text)
+    text = _clean(text)
+    if len(text) > MAX_RESUME_CHARS:
+        raise DocumentError("validation_failed", "This document is much longer than a resume. Upload a resume of about 10 pages or fewer.")
+    return text

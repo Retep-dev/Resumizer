@@ -9,16 +9,8 @@ import sys
 from pathlib import Path
 from typing import Dict, List
 
-# USD per 1M tokens (input, output). Retrieved 2026-10-28; see the report for sources and caveats.
-PRICES = {
-    "NVIDIA API Catalog (current key)": (0.0, 0.0),
-    "Claude Haiku 5.5 (prompts ≤100K)": (0.10, 0.50),
-    "OpenAI gpt-6-luna": (0.10, 0.50),
-    "Gemini 3.1 Flash-Lite": (0.25, 1.50),
-    "Gemini 3.6 Flash (2026 price)": (0.75, 3.75),
-    "OpenAI gpt-6.1-terra": (1.00, 5.00),
-    "Claude Sonnet 5.5": (2.00, 10.00),
-}
+# Resumizer uses free providers only, so there is no price list; the report shows requests and tokens instead.
+PRICES = {"Free providers only (NVIDIA trial, Groq free, Cerebras free)": (0.0, 0.0)}
 
 
 def wording_improved(b: Dict) -> bool:

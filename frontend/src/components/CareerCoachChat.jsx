@@ -18,6 +18,7 @@ function coachError(err) {
   const text = message || err?.message || '';
   if (!err?.response) return { msg: 'Couldn’t reach the coach. Check your connection and try again.', text };
   if (code === 'session_expired') return { msg: 'This session has expired, so the coach can’t see your resume any more. Run the analysis again to keep chatting.', text: '', final: true };
+  if (['rate_limited', 'daily_capacity_reached', 'busy', 'ai_quota_exhausted', 'timeout'].includes(code)) return { msg: message || 'The free coach is at its limit right now. Please try again later.', text: '' };
   if (code === 'ai_unavailable') return { msg: 'The coach is unavailable right now because the AI service isn’t responding. No answer was made up — try again later.', text };
   return { msg: 'The coach couldn’t answer just now.', text };
 }
