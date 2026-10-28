@@ -313,3 +313,27 @@ def test_honest_answers_are_not_flagged(case_id, reply):
     ctx = context(case)
     led = build_ledger(case["resume"], ctx["analysis"], ["How should I handle this?"])
     assert check_reply(reply, "How should I handle this?", led, ctx["analysis"], case["resume"], case["jd"]) == []
+
+
+@pytest.mark.parametrize("case_id,question,reply,flag", [
+    # Round-4 review: long fabricated rewrites, claims after a colon, 'learning' phrasing, 'up to speed'.
+    ("daniel", "Rewrite my paid social budget bullet to sound stronger.",
+     "• Managed a $40,000 quarterly paid social budget across Meta and Instagram; allocated spend by funnel stage and creative test, driving a [X]% increase in ROAS / [Y]% lower CAC in 12 months.", True),
+    ("marcus", "How do I show I can lead 120 staff?",
+     "- “I run a 22-person night shift end-to-end: scheduling, overtime, KPI tracking (error rate, on-time shipping), carrier coordination, and safety compliance.”", True),
+    ("leila", "How should I handle the financial modeling requirement?",
+     "- \"I'm currently learning Power BI and have started a financial model for a personal budget.\"", True),
+    ("aisha", "Rewrite my bullet about helping new agents.",
+     "**\"Helped new agents get up to speed by answering their questions and sitting with them on calls, reducing ramp-up time for new hires.\"**", True),
+    ("priya", "How should I handle the AWS gap?", "That way I can focus my learning on the areas that matter most.", False),
+    ("tomas", "How should I handle the TypeScript gap?", "Those are the patterns TypeScript is often used to protect, so I'm already working in the right space.", False),
+])
+def test_round4_review_cases(case_id, question, reply, flag):
+    from app.agents.career_coach_agent import check_reply
+    from app.agents.coach_evidence import build_ledger
+    from eval.cases import CASES
+    from eval.run_eval import context
+    case = next(c for c in CASES if c["id"] == case_id)
+    ctx = context(case)
+    led = build_ledger(case["resume"], ctx["analysis"], [question])
+    assert bool(check_reply(reply, question, led, ctx["analysis"], case["resume"], case["jd"], question)) is flag

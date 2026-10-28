@@ -57,7 +57,18 @@ class Settings:
     def task_chain(self, task: str):
         """[(provider, model)] for a task, in fallback order."""
         raw = os.getenv(f"MODELS_{task.upper()}", "").strip()
-        entries = _csv(raw) if raw else [f"nvidia:{m}" for m in self.model_chain]
+        if raw:
+            entries = _csv(raw)
+        else:
+            # Free-only defaults chosen by the writing evaluation (backend/eval). Writing tasks lead with the
+            # larger Nemotron model; extraction stays on the fast one. Thinking modes are excluded: they
+            # returned empty answers.
+            lead = {"rewrite": ["nvidia/nemotron-3-ultra-550b-a55b"], "coach": ["nvidia/nemotron-3-ultra-550b-a55b"]}.get(task, [])
+            chain = list(dict.fromkeys(lead + self.model_chain))
+            if task == "coach" and "openai/gpt-oss-20b" in chain:
+                chain.remove("openai/gpt-oss-20b")
+                chain.insert(1, "openai/gpt-oss-20b")
+            entries = [f"nvidia:{m}" for m in chain]
         out = []
         for e in entries:
             provider, _, model = e.partition(":") if ":" in e.split("/")[0] else ("nvidia", "", e)

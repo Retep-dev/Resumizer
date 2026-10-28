@@ -71,10 +71,24 @@ Every response carries a processing status (`complete`, `partial`, `unavailable`
 | **Render** | Backend hosting (Python web service) |
 | **Vercel** | Frontend hosting (static SPA) |
 
-### LLM
+### LLM (free providers only)
 
-| Model | Provider |
-|-------|----------|
+Resumizer never calls a paid inference API. Each task has its own chain of free models:
+
+| Task | Default chain |
+|------|---------------|
+| Analysis (resume parsing, posting requirements) | `nemotron-3.5-lightning-30b-a3b` → `gpt-oss-20b` |
+| Rewriting | `nemotron-3-ultra-550b-a55b` → `nemotron-3.5-lightning-30b-a3b` → `gpt-oss-20b` |
+| Interview prep | `nemotron-3.5-lightning-30b-a3b` → `gpt-oss-20b` |
+| Coach | `nemotron-3-ultra-550b-a55b` → `gpt-oss-20b` → `nemotron-3.5-lightning-30b-a3b` |
+
+Supported providers: `nvidia` (API Catalog trial key), `groq` and `cerebras` (free tiers, used only when their key is set).
+**NVIDIA's trial terms allow internal testing and evaluation only, not production use or personal data.** Before
+serving real users, move the chains to a provider whose terms allow it (see `/api/v1/status`, which shows each
+provider's terms note). Models that fail repeatedly are cooled down; when no free model is available the app
+returns its rule-based result or a clear error. Choices are backed by `backend/eval` (see its request file).
+
+-------|----------|
 | `nvidia/nemotron-3-super-120b-a12b` (default) | NVIDIA API Catalog |
 | `nvidia/nemotron-3.5-lightning-30b-a3b`, `openai/gpt-oss-20b` (fallbacks) | NVIDIA API Catalog |
 
@@ -200,6 +214,23 @@ The frontend runs on `http://localhost:5173` and proxies `/api` requests to the 
 
 | Variable | Description | Default |
 |----------|-------------|---------|
+| `NVIDIA_API_KEY` | NVIDIA API Catalog key (trial: evaluation only) | — |
+| `GROQ_API_KEY`, `CEREBRAS_API_KEY` | Optional free-tier keys (accounts with no payment method) | — |
+| `NVIDIA_MODEL_NAME`, `NVIDIA_FALLBACK_MODELS` | Fast model chain used by analysis and interview prep | `nemotron-3.5-lightning-30b-a3b`, `gpt-oss-20b` |
+| `MODELS_ANALYSIS`, `MODELS_REWRITE`, `MODELS_INTERVIEW`, `MODELS_COACH` | Per-task chain, `provider:model,…` (free providers only) | see above |
+| `DAILY_REQUEST_CAPS` | Requests per UTC day per `provider` or `provider:model`, to stay inside free quotas, e.g. `groq:900` | none |
+| `REWRITE_MODE` | `batch` (1–2 requests per resume) or `single` (one per bullet) | `batch` |
+| `ANALYZE_LIMIT_PER_HOUR` / `ANALYZE_LIMIT_PER_DAY` | Analyses per client | `5` / `15` |
+| `CHAT_LIMIT_PER_HOUR` / `CHAT_LIMIT_PER_SESSION` | Coach messages per client / per analysis | `40` / `30` |
+| `GLOBAL_ANALYZE_LIMIT_PER_DAY` / `GLOBAL_CHAT_LIMIT_PER_DAY` | Whole-app daily caps | `300` / `2000` |
+| `MAX_CONCURRENT_ANALYSES` / `MAX_CONCURRENT_CHATS` | Simultaneous requests before "busy" | `3` / `6` |
+| `PIPELINE_TIMEOUT_SECONDS` / `CHAT_TIMEOUT_SECONDS` | Overall request timeouts | `180` / `90` |
+| `LLM_TIMEOUT_SECONDS` | Per-request model timeout | `60` |
+| `HOST` / `PORT` | Backend bind address | `0.0.0.0` / `8000` |
+
+`ALLOW_PAID_PROVIDERS` has no effect: there is no paid provider in the code.
+
+----------|-------------|---------|
 | `NVIDIA_API_KEY` | NVIDIA NIM API key (required) | — |
 | `NVIDIA_MODEL_NAME` | Primary chat model | `nvidia/nemotron-3-super-120b-a12b` |
 | `NVIDIA_FALLBACK_MODELS` | Comma-separated models tried in order if the primary is retired | `nvidia/nemotron-3.5-lightning-30b-a3b,openai/gpt-oss-20b` |

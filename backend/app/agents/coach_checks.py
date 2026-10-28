@@ -213,7 +213,7 @@ def rewrite_problems(reply: str, targets: List[str], ledger: Ledger, known: List
         return out
     missing = [m for m in ledger.missing if m not in ledger.may_claim()]
     for raw in normalize(reply or "").splitlines():
-        for line in bullet_segments(raw, max(targets, key=len)):
+        for line in bullet_segments(raw):
             if _best_overlap(line, targets) < 0.4:
                 continue
             target = max(targets, key=lambda t: len(_words(t) & _words(line)))
@@ -246,7 +246,8 @@ _CLAIM_VERB_RE = re.compile(
     r"\b(?:i|i've|i have|i had|i'm|i am|we|we've|you've|you have)\b(?:\s+[a-z'’-]+){0,3}?\s+"
     r"(worked|work|used|use|built|build|written|wrote|write|begun|began|started|completed|deployed|deploy|explored|exploring|"
     r"learned|studied|done|created|managed|manage|led|lead|run|ran|set up|configured|implemented|developed|handled|owned|own|"
-    r"delivered|maintained|treat|comfortable|familiar|experienced|proficient)\b", re.IGNORECASE)
+    r"delivered|maintained|treat|comfortable|familiar|experienced|proficient|learning|studying|taking|building|completing|"
+    r"working|running|tracking|leading|managing|owning)\b", re.IGNORECASE)
 _HEDGE_CLAUSE_RE = re.compile(r"\b(if|whether|unless|only if|haven't|have not|hasn't|not|never|no|don't|didn't|without|"
                               r"aren't|isn't|wasn't|would|could|might|plan to|want to|ready to|eager to|keen to|happy to)\b", re.IGNORECASE)
 _GENERIC_CLAIM = {
@@ -257,6 +258,8 @@ _GENERIC_CLAIM = {
     "good", "great", "well", "things", "much", "many", "most", "also", "some", "your", "this", "that", "these", "there",
     "here", "them", "they", "what", "which", "while", "where", "when", "into", "onto", "from", "with", "have", "been",
     "enthusiasm", "expertise", "deeper", "developing", "interest", "eager", "excited", "passion", "growth", "opportunity",
+    "area", "areas", "matter", "matters", "most", "pattern", "patterns", "protect", "right", "space", "learning", "focus",
+    "idea", "ideas", "basics", "fundamentals", "quickly", "first", "next", "able", "sure", "time",
     "being", "were", "will", "just", "even", "only", "about", "across", "each", "other", "than", "then", "very",
 }
 
@@ -287,7 +290,7 @@ def unsupported_claims(reply: str, ledger: Ledger, resume_text: str, user_text: 
             continue
         sents += sentences(line)
     for s in sents:
-        for clause in re.split(r"\bbut\b|\bhowever\b|;|—|–|:|\(", s, flags=re.IGNORECASE):
+        for clause in re.split(r"\bbut\b|\bhowever\b|;", s, flags=re.IGNORECASE):
             low = normalize(clause).lower()
             if not _CLAIM_VERB_RE.search(low) or _HEDGE_CLAUSE_RE.search(low):
                 continue

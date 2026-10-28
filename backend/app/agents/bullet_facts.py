@@ -48,7 +48,7 @@ VERB_KINDS: Dict[str, Set[str]] = {
     "help": {"help", "assist", "contribute", "participate"},
     "collaborate": {"work", "collaborate", "partner", "liaise", "coordinate", "cooperate"},
     "teach": {"mentor", "coach", "train", "teach", "onboard", "tutor", "educate", "guide"},
-    "improve": {"reduce", "cut", "increase", "improve", "grow", "raise", "boost", "speed", "optimize", "optimise",
+    "improve": {"reduce", "cut", "increase", "improve", "grow", "raise", "boost", "optimize", "optimise",
                 "streamline", "lower", "double", "triple", "halve", "accelerate", "decrease", "expand", "shorten"},
     "analyze": {"analyze", "analyse", "research", "investigate", "measure", "evaluate", "test", "audit", "model", "assess", "review"},
     "organise": {"organise", "organize", "schedule", "plan", "arrange"},
