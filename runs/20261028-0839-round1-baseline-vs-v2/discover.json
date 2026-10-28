@@ -1,0 +1,272 @@
+{
+ "listed": [
+  "01-ai/yi-large",
+  "adept/fuyu-8b",
+  "ai21labs/jamba-1.5-large-instruct",
+  "aisingapore/sea-lion-7b-instruct",
+  "bigcode/starcoder2-15b",
+  "databricks/dbrx-instruct",
+  "deepseek-ai/deepseek-coder-6.7b-instruct",
+  "deepseek-ai/deepseek-v4.1-flash",
+  "google/codegemma-1.1-7b",
+  "google/codegemma-7b",
+  "google/deplot",
+  "google/diffusiongemma-26b-a4b-it",
+  "google/gemma-2b",
+  "google/gemma-3-12b-it",
+  "google/gemma-3-4b-it",
+  "google/gemma-4-31b-it",
+  "google/recurrentgemma-2b",
+  "ibm/granite-3.0-3b-a800m-instruct",
+  "ibm/granite-3.0-8b-instruct",
+  "ibm/granite-34b-code-instruct",
+  "ibm/granite-8b-code-instruct",
+  "meta/codellama-70b",
+  "meta/llama-3.2-11b-vision-instruct",
+  "meta/llama-3.2-90b-vision-instruct",
+  "meta/llama-guard-4-12b",
+  "meta/llama2-70b",
+  "meta/muse-glimmer-30b",
+  "microsoft/kosmos-2",
+  "microsoft/phi-3-vision-128k-instruct",
+  "microsoft/phi-3.5-moe-instruct",
+  "minimaxai/minimax-m3.1-flash",
+  "mistralai/codestral-22b-instruct-v0.1",
+  "mistralai/mistral-7b-instruct-v0.3",
+  "mistralai/mistral-large",
+  "mistralai/mistral-large-2-instruct",
+  "mistralai/mixtral-8x22b-v0.1",
+  "moonshotai/kimi-k2.6",
+  "nv-mistralai/mistral-nemo-12b-instruct",
+  "nvidia/ai-synthetic-video-detector",
+  "nvidia/cosmos-reason2-8b",
+  "nvidia/embed-qa-4",
+  "nvidia/ising-calibration-1.5-31b",
+  "nvidia/llama-3.1-nemoguard-8b-content-safety",
+  "nvidia/llama-3.1-nemoguard-8b-topic-control",
+  "nvidia/llama-3.1-nemotron-51b-instruct",
+  "nvidia/llama-3.1-nemotron-70b-instruct",
+  "nvidia/llama-3.1-nemotron-safety-guard-8b-v3",
+  "nvidia/llama-3.1-nemotron-ultra-253b-v1",
+  "nvidia/llama-3.2-nemoretriever-1b-vlm-embed-v1",
+  "nvidia/llama-3.2-nv-embedqa-1b-v1",
+  "nvidia/llama-nemotron-embed-vl-1b-v2",
+  "nvidia/llama3-chatqa-1.5-70b",
+  "nvidia/mistral-nemo-minitron-8b-8k-instruct",
+  "nvidia/nemotron-3-embed-1b",
+  "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+  "nvidia/nemotron-3-super-120b-a12b",
+  "nvidia/nemotron-3-ultra-550b-a55b",
+  "nvidia/nemotron-3.5-bolt-e4b",
+  "nvidia/nemotron-3.5-content-safety",
+  "nvidia/nemotron-3.5-embed-1b",
+  "nvidia/nemotron-3.5-embed-8b",
+  "nvidia/nemotron-3.5-lightning-30b-a3b",
+  "nvidia/nemotron-3.5-super-vl-120b-a12b",
+  "nvidia/nemotron-4-340b-instruct",
+  "nvidia/nemotron-4-340b-reward",
+  "nvidia/nemotron-nano-3-30b-a3b",
+  "nvidia/nemotron-parse",
+  "nvidia/nemotron-parse-2.0",
+  "nvidia/neva-22b",
+  "nvidia/nv-embedqa-mistral-7b-v2",
+  "nvidia/nvclip",
+  "nvidia/riva-translate-4b-instruct",
+  "nvidia/riva-translate-4b-instruct-v2",
+  "nvidia/vila",
+  "openai/gpt-oss-20b",
+  "poolside/laguna-xs-2.1",
+  "snowflake/arctic-embed-l",
+  "stepfun-ai/step-5-preview",
+  "writer/palmyra-creative-122b",
+  "writer/palmyra-fin-70b-32k",
+  "writer/palmyra-med-70b",
+  "writer/palmyra-med-70b-32k",
+  "z-ai/glm-5.3",
+  "z-ai/glm-5.3-flash",
+  "zyphra/zamba2-7b-instruct"
+ ],
+ "probed": [
+  {
+   "model": "deepseek-ai/deepseek-v4.1-flash",
+   "ok": false,
+   "seconds": 121.3,
+   "error": "timeout",
+   "detail": "deepseek-ai/deepseek-v4.1-flash did not respond within 60s"
+  },
+  {
+   "model": "google/gemma-3-12b-it",
+   "ok": false,
+   "seconds": 0.2,
+   "error": "model_unavailable",
+   "detail": "None of the configured models are available: google/gemma-3-12b-it"
+  },
+  {
+   "model": "google/gemma-3-4b-it",
+   "ok": false,
+   "seconds": 0.2,
+   "error": "model_unavailable",
+   "detail": "None of the configured models are available: google/gemma-3-4b-it"
+  },
+  {
+   "model": "google/gemma-4-31b-it",
+   "ok": false,
+   "seconds": 121.3,
+   "error": "timeout",
+   "detail": "google/gemma-4-31b-it did not respond within 60s"
+  },
+  {
+   "model": "ibm/granite-3.0-3b-a800m-instruct",
+   "ok": false,
+   "seconds": 0.2,
+   "error": "model_unavailable",
+   "detail": "None of the configured models are available: ibm/granite-3.0-3b-a800m-instruct"
+  },
+  {
+   "model": "ibm/granite-3.0-8b-instruct",
+   "ok": false,
+   "seconds": 0.2,
+   "error": "model_unavailable",
+   "detail": "None of the configured models are available: ibm/granite-3.0-8b-instruct"
+  },
+  {
+   "model": "ibm/granite-34b-code-instruct",
+   "ok": false,
+   "seconds": 0.1,
+   "error": "model_unavailable",
+   "detail": "None of the configured models are available: ibm/granite-34b-code-instruct"
+  },
+  {
+   "model": "minimaxai/minimax-m3.1-flash",
+   "ok": true,
+   "seconds": 7.0,
+   "reply": "- Led the training of new cashiers.",
+   "prompt_tokens": 201,
+   "completion_tokens": 261
+  },
+  {
+   "model": "mistralai/mistral-large",
+   "ok": false,
+   "seconds": 0.1,
+   "error": "model_unavailable",
+   "detail": "None of the configured models are available: mistralai/mistral-large"
+  },
+  {
+   "model": "mistralai/mistral-large-2-instruct",
+   "ok": false,
+   "seconds": 0.1,
+   "error": "model_unavailable",
+   "detail": "None of the configured models are available: mistralai/mistral-large-2-instruct"
+  },
+  {
+   "model": "mistralai/mixtral-8x22b-v0.1",
+   "ok": false,
+   "seconds": 0.1,
+   "error": "model_unavailable",
+   "detail": "None of the configured models are available: mistralai/mixtral-8x22b-v0.1"
+  },
+  {
+   "model": "moonshotai/kimi-k2.6",
+   "ok": false,
+   "seconds": 0.2,
+   "error": "model_unavailable",
+   "detail": "None of the configured models are available: moonshotai/kimi-k2.6"
+  },
+  {
+   "model": "nvidia/llama-3.1-nemotron-51b-instruct",
+   "ok": false,
+   "seconds": 0.2,
+   "error": "model_unavailable",
+   "detail": "None of the configured models are available: nvidia/llama-3.1-nemotron-51b-instruct"
+  },
+  {
+   "model": "nvidia/llama-3.1-nemotron-70b-instruct",
+   "ok": false,
+   "seconds": 0.1,
+   "error": "model_unavailable",
+   "detail": "None of the configured models are available: nvidia/llama-3.1-nemotron-70b-instruct"
+  },
+  {
+   "model": "nvidia/llama-3.1-nemotron-ultra-253b-v1",
+   "ok": false,
+   "seconds": 0.1,
+   "error": "model_unavailable",
+   "detail": "None of the configured models are available: nvidia/llama-3.1-nemotron-ultra-253b-v1"
+  },
+  {
+   "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+   "ok": true,
+   "seconds": 0.8,
+   "reply": "Trained and mentored new cashiers, ensuring accurate transaction handling and adherence to store policies.",
+   "prompt_tokens": 41,
+   "completion_tokens": 21
+  },
+  {
+   "model": "nvidia/nemotron-3-super-120b-a12b",
+   "ok": false,
+   "seconds": 0.1,
+   "error": "model_unavailable",
+   "detail": "None of the configured models are available: nvidia/nemotron-3-super-120b-a12b"
+  },
+  {
+   "model": "nvidia/nemotron-3-ultra-550b-a55b",
+   "ok": true,
+   "seconds": 1.7,
+   "reply": "Trained and onboarded new cashiers on POS systems, store policies, and customer service standards, reducing ramp-up time and register errors.",
+   "prompt_tokens": 41,
+   "completion_tokens": 29
+  },
+  {
+   "model": "nvidia/nemotron-3.5-bolt-e4b",
+   "ok": true,
+   "seconds": 0.5,
+   "reply": "Trained new cashiers.",
+   "prompt_tokens": 33,
+   "completion_tokens": 7
+  },
+  {
+   "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+   "ok": true,
+   "seconds": 1.6,
+   "reply": "Mentored and onboarded new cashiers, ensuring proficiency in POS systems and customer service protocols.",
+   "prompt_tokens": 41,
+   "completion_tokens": 21
+  },
+  {
+   "model": "nvidia/nemotron-4-340b-instruct",
+   "ok": false,
+   "seconds": 0.2,
+   "error": "model_unavailable",
+   "detail": "None of the configured models are available: nvidia/nemotron-4-340b-instruct"
+  },
+  {
+   "model": "nvidia/nemotron-nano-3-30b-a3b",
+   "ok": false,
+   "seconds": 0.2,
+   "error": "model_unavailable",
+   "detail": "None of the configured models are available: nvidia/nemotron-nano-3-30b-a3b"
+  },
+  {
+   "model": "openai/gpt-oss-20b",
+   "ok": true,
+   "seconds": 2.3,
+   "reply": "Led and mentored new cashiers, ensuring rapid skill acquisition and seamless integration into daily operations.",
+   "prompt_tokens": 88,
+   "completion_tokens": 33
+  },
+  {
+   "model": "z-ai/glm-5.3",
+   "ok": false,
+   "seconds": 10.8,
+   "error": "bad_response",
+   "detail": "The model returned an empty answer"
+  },
+  {
+   "model": "z-ai/glm-5.3-flash",
+   "ok": false,
+   "seconds": 121.2,
+   "error": "timeout",
+   "detail": "z-ai/glm-5.3-flash did not respond within 60s"
+  }
+ ]
+}
