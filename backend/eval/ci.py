@@ -21,6 +21,10 @@ async def main():
     out = Path("eval_out")
     out.mkdir(exist_ok=True)
     run_eval.TIMEOUT["s"] = float(req.get("timeout", 120))
+    # Paid providers stay off unless the request explicitly allows them (and their key exists).
+    from app.config import settings
+    settings.ALLOW_PAID_PROVIDERS = bool(req.get("allow_paid", False))
+    notice("paid providers", "allowed by request" if settings.ALLOW_PAID_PROVIDERS else "off")
     if req.get("discover"):
         await discover.main(out, timeout=float(req.get("discover_timeout", 60)), limit=int(req.get("discover_limit", 60)))
         found = json.loads((out / "discover.json").read_text())["probed"]

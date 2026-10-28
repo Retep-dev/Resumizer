@@ -16,6 +16,10 @@ jobs:
       contents: write
     env:
       NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+      # Optional. Used only if the secret exists AND eval/request.json sets "allow_paid": true.
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
     defaults:
       run:
         working-directory: backend
