@@ -13,6 +13,7 @@ One targeted retry is made for bullets whose candidates all failed or were skipp
 from __future__ import annotations
 
 import json
+import os
 import re
 from typing import Dict, List, Optional, Tuple
 
@@ -214,8 +215,45 @@ def _check_summary(summary: Optional[str], resume: ResumeSchema, resume_text: st
     return s, []
 
 
+SINGLE_SYSTEM_PROMPT = REWRITE_SYSTEM_PROMPT.split("Also write \"questions\"")[0] + """Answer for ONE bullet, in exactly this plain-text format and nothing else:
+SAFE: <rewrite>
+STRONG: <rewrite>
+QUESTION: <one question>"""
+
+
+def _parse_single(text: str, bullet_id: int) -> _Candidate:
+    def grab(label: str) -> Optional[str]:
+        m = re.search(rf"^\s*\**{label}\**\s*:\s*(.+)$", text or "", re.IGNORECASE | re.MULTILINE)
+        return m.group(1).strip().strip('"').strip() if m else None
+    q = grab("QUESTION")
+    return _Candidate(id=bullet_id, safe=grab("SAFE"), strong=grab("STRONG"), questions=[q] if q else [])
+
+
+async def _propose_single(client: ChatClient, items: List[Dict], supported: List[str], missing: List[str], job_description: str):
+    """One call per bullet, plain-text answer: some models copy their input when given a batch as JSON."""
+    import asyncio
+    sem = asyncio.Semaphore(4)
+    model = {"m": ""}
+
+    async def one(it):
+        user = (f"Role: {it['role']}\nBullet: {it['text']}\nFacts: {json.dumps(it['facts'].summary())}\n"
+                f"posting_terms: {', '.join(supported) or '(none)'}\nmissing_skills: {', '.join(missing) or '(none)'}\n"
+                f"Job posting (for wording only): {job_description[:1500]}")
+        async with sem:
+            out = await client.complete([{"role": "system", "content": SINGLE_SYSTEM_PROMPT}, {"role": "user", "content": user}],
+                                        temperature=0.3, max_tokens=1500)
+        model["m"] = out.model
+        return _parse_single(out.text, it["id"])
+
+    cands = await asyncio.gather(*(one(it) for it in items), return_exceptions=True)
+    errors = [c for c in cands if isinstance(c, Exception)]
+    if errors and len(errors) == len(cands):
+        raise errors[0]
+    return _Proposal(bullets=[c for c in cands if isinstance(c, _Candidate)], summary=None), model["m"]
+
+
 async def rewrite_with_ai(client: ChatClient, resume: ResumeSchema, resume_text: str, job_description: str,
-                          supported: List[str], missing: List[str]) -> Tuple[ResumeRewriteReport, List[str], str]:
+                          supported: List[str], missing: List[str], mode: Optional[str] = None) -> Tuple[ResumeRewriteReport, List[str], str]:
     known = _known_skills(resume, supported)
     items = _items(resume, known)
     if not items:
@@ -230,8 +268,12 @@ async def rewrite_with_ai(client: ChatClient, resume: ResumeSchema, resume_text:
             "bullets": [{"id": it["id"], "role": it["role"], "text": it["text"], "facts": it["facts"].summary()} for it in subset],
         }
 
-    user = f"Resume bullets (JSON):\n{json.dumps(payload(items), ensure_ascii=False)}\n\nJob posting (for wording only):\n{job_description[:5000]}"
-    proposal, model = await complete_json(client, REWRITE_SYSTEM_PROMPT, user, _Proposal, temperature=0.3, max_tokens=6000)
+    mode = mode or os.getenv("REWRITE_MODE", "batch")
+    if mode == "single":
+        proposal, model = await _propose_single(client, items, supported, missing, job_description)
+    else:
+        user = f"Resume bullets (JSON):\n{json.dumps(payload(items), ensure_ascii=False)}\n\nJob posting (for wording only):\n{job_description[:5000]}"
+        proposal, model = await complete_json(client, REWRITE_SYSTEM_PROMPT, user, _Proposal, temperature=0.3, max_tokens=6000)
     cands = {c.id: c for c in proposal.bullets}
 
     results: Dict[int, BulletPointRewrite] = {}

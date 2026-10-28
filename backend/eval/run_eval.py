@@ -39,7 +39,8 @@ from eval.baseline_coach import chat_with_career_coach as coach_baseline  # noqa
 from eval.baseline_rewrite import rewrite_with_ai as rewrite_baseline  # noqa: E402
 from eval.cases import CASES  # noqa: E402
 
-PIPELINES = {"baseline": rewrite_baseline, "v2": rewrite_v2}
+PIPELINES = {"baseline": rewrite_baseline, "v2": rewrite_v2,
+             "v2single": lambda *a: rewrite_v2(*a, mode="single")}
 TIMEOUT = {"s": 120.0}
 COACH = {"impl": "v2"}
 

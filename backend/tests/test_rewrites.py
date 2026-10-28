@@ -136,3 +136,19 @@ def test_model_nulls_are_tolerated():
     client = FakeClient(rewrite=json.dumps({"bullets": [{"id": 2, "safe": None, "strong": None, "questions": None}], "summary": None}))
     report, _, _ = run(client)
     assert by_original(report)[Q].status == "kept_original"
+
+
+def test_single_bullet_plain_text_mode_parses_and_verifies():
+    from tests.conftest import FakeClient as FC
+
+    def reply(messages):
+        bullet = messages[-1]["content"].split("Bullet: ")[1].split("\n")[0]
+        if bullet == Q:
+            return "SAFE: Cut nightly load failures from 9 to 2 per month by adding data quality checks.\nSTRONG: Cut nightly load failures from 9 to 2 per month by adding data quality checks [to N pipelines].\nQUESTION: How many pipelines?"
+        return f"SAFE: {bullet}\nSTRONG: {bullet}\nQUESTION: What changed?"
+    client = FC(rewrite=reply)
+    report, _, _ = asyncio.run(rewrite_with_ai(client, RESUME, PRIYA_RESUME, DATA_JD, SUPPORTED, MISSING, mode="single"))
+    assert len(client.calls) >= 5
+    q = by_original(report)[Q]
+    assert q.status == "rewritten" and "[to N pipelines]" in q.rewritten_bullet and q.needs_confirmation == ["How many pipelines?"]
+    assert by_original(report)[M].status == "kept_original"
