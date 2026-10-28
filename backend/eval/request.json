@@ -1,13 +1,12 @@
 {
-  "label": "round3-fixed-ledger-tighter-rewrites",
+  "label": "round4-calibrated-coach-final",
   "discover": false,
   "models": [
     "nvidia:nvidia/nemotron-3-ultra-550b-a55b",
-    "nvidia:nvidia/nemotron-3.5-bolt-e4b",
     "nvidia:openai/gpt-oss-20b",
     "nvidia:nvidia/nemotron-3.5-lightning-30b-a3b"
   ],
-  "pipelines": ["v2", "v2single"],
+  "pipelines": ["v2"],
   "tasks": ["rewrite", "coach"],
   "coach": ["v2"],
   "cases": "all",

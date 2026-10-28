@@ -189,3 +189,13 @@ def test_clean_wording_beats_a_placeholder_version_and_vague_placeholders_are_re
     assert s.rewritten_bullet == "Wrote the SQL models behind the pricing team's monthly reporting." and s.needs_confirmation
     t = by_original(report)[T]
     assert t.status == "kept_original"  # safe was identical, strong's placeholder asks for no number
+
+
+@pytest.mark.parametrize("original,rewrite,ok", [
+    ("Mentored two junior engineers.", "Mentored [N] junior engineers.", False),          # round-3 miss
+    ("Mentored two junior engineers.", "Mentored 2 junior engineers.", True),
+    ("Reviewed pull requests for three other frontend developers.", "Reviewed pull requests for three frontend developers.", True),
+    ("Mentored junior engineers.", "Mentored five junior engineers.", False),
+])
+def test_numbers_written_as_words_are_facts_too(original, rewrite, ok):
+    assert (verify_rewrite(original, rewrite) == []) is ok

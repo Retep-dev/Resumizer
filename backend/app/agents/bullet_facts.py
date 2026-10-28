@@ -84,6 +84,21 @@ OUTCOME_WORDS = {
 _HEDGE_RE = r"(?:around|about|approximately|approx\.?|roughly|nearly|almost|up to|over|more than|some|circa|~)\s*"
 
 
+_WORD_NUM = {w: str(i) for i, w in enumerate(
+    "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen "
+    "eighteen nineteen twenty".split())}
+_WORD_NUM.update({"thirty": "30", "forty": "40", "fifty": "50", "hundred": "100", "dozen": "12", "half": "0.5", "double": "2"})
+
+
+def word_numbers(text: str) -> Dict[str, str]:
+    """Numbers written as words ('two junior engineers'), outside placeholders. 'one' as a pronoun is excluded."""
+    t = re.sub(r"\[[^\]]*\]", " ", normalize(text or "")).lower()
+    out = {}
+    for m in re.finditer(r"\b(" + "|".join(k for k in _WORD_NUM if k not in ("half", "double", "one")) + r")\b", t):
+        out[m.group(1)] = _WORD_NUM[m.group(1)]
+    return out
+
+
 def lemma(word: str) -> str:
     w = word.lower().strip("'’")
     if w in _IRREGULAR:
@@ -194,7 +209,7 @@ def verify_rewrite(original: str, rewrite: str, *, missing: Iterable[str] = (), 
     problems: List[str] = []
     missing, known_skills = list(missing), list(known_skills)
 
-    bad = unsupported_numbers(rewrite, original)
+    bad = set(unsupported_numbers(rewrite, original)) - set(word_numbers(original).values())
     if bad:
         problems.append(f"added numbers that aren't in the original ({', '.join(sorted(bad))})")
     lost = [n for n in numbers_in(original) if n not in numbers_in(rewrite)]
@@ -204,6 +219,13 @@ def verify_rewrite(original: str, rewrite: str, *, missing: Iterable[str] = (), 
     made_exact = [n for n in hedged if n in rewrite and not re.search(rf"{_HEDGE_RE}{re.escape(n)}", normalize(rewrite), re.IGNORECASE)]
     if made_exact:
         problems.append(f"made an approximate number exact ({', '.join(made_exact)})")
+    on, rn = word_numbers(original), word_numbers(rewrite)
+    lost_words = [w for w, v in on.items() if w not in rn and v not in numbers_in(rewrite)]
+    if lost_words:
+        problems.append(f"dropped numbers from the original ({', '.join(lost_words)})")
+    added_words = [w for w, v in rn.items() if w not in on and v not in numbers_in(original)]
+    if added_words:
+        problems.append(f"added numbers that aren't in the original ({', '.join(added_words)})")
     garbled = _number_context_problems(original, rewrite)
     if garbled:
         problems.append(f"changed what a number measures ({', '.join(garbled)})")

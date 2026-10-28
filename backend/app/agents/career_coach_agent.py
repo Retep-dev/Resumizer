@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 
 from app.agents.coach_checks import (  # noqa: F401  (re-exported for the evaluation and tests)
     Problem, borrowed_from_posting, claimed_missing, listing_advice, merged_bullets, resume_bullets, rewrite_blocks,
-    rewrite_problems, scripted_claims, sentences, target_bullets,
+    rewrite_problems, scripted_claims, sentences, silent_rewrites, target_bullets, unsupported_claims,
 )
 from app.agents.coach_evidence import Ledger, build_ledger
 from app.llm import ChatClient, ProviderError, get_client
@@ -107,11 +107,20 @@ def _known(analysis: dict) -> List[str]:
     return list(dict.fromkeys((r.get("technical_skills") or []) + (r.get("tools_and_frameworks") or []) + (ats.get("matched_keywords") or [])))
 
 
-def check_reply(reply: str, user_message: str, ledger: Ledger, analysis: dict, resume_text: str, job_description: str) -> List[Problem]:
+def check_reply(reply: str, user_message: str, ledger: Ledger, analysis: dict, resume_text: str, job_description: str,
+                user_text: str = "") -> List[Problem]:
     bullets = resume_bullets(resume_text, analysis)
     targets = target_bullets(user_message, bullets)
-    return (scripted_claims(reply, ledger, resume_text) + listing_advice(reply, ledger)
-            + rewrite_problems(reply, targets, ledger, _known(analysis), bullets, resume_text, job_description))
+    problems = (scripted_claims(reply, ledger, resume_text) + listing_advice(reply, ledger)
+                + rewrite_problems(reply, targets, ledger, _known(analysis), bullets, resume_text, job_description)
+                + silent_rewrites(reply, bullets, ledger, _known(analysis), resume_text, job_description, targets))
+    problems += unsupported_claims(reply, ledger, resume_text, user_text)
+    out, seen = [], set()
+    for p in problems:  # one finding per piece of text; the first (most specific) wins
+        if p.text not in seen:
+            seen.add(p.text)
+            out.append(p)
+    return out
 
 
 def resolve(reply: str, problems: List[Problem]) -> str:
@@ -149,11 +158,12 @@ async def coach_reply(user_message: str, chat_history: Optional[List[Dict[str, s
     )
     messages = [{"role": "system", "content": system}] + history + [{"role": "user", "content": user_message.strip()[:MAX_MESSAGE_CHARS]}]
     draft = (await client.complete(messages, temperature=0.4, max_tokens=1200)).text
-    problems = check_reply(draft, user_message, ledger, analysis, grounding, job_description)
+    user_text = "\n".join([m["content"] for m in history if m["role"] == "user"] + [user_message])
+    problems = check_reply(draft, user_message, ledger, analysis, grounding, job_description, user_text)
     if not problems:
         return CoachResult(reply=draft)
     retry = (await _correct(client, messages, draft, _correction(problems))).text
-    remaining = check_reply(retry, user_message, ledger, analysis, grounding, job_description)
+    remaining = check_reply(retry, user_message, ledger, analysis, grounding, job_description, user_text)
     if not remaining:
         return CoachResult(reply=retry, status="corrected", notes=[p.detail for p in problems])
     return CoachResult(reply=resolve(retry, remaining), status="uncertain", notes=[p.detail for p in remaining])

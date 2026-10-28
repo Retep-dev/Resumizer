@@ -257,3 +257,59 @@ def test_rewrite_using_other_word_forms_is_still_verified():
              "and aligning coverage with carrier pickup windows.**")
     probs = rewrite_problems(reply, ["Responsible for scheduling shifts and approving overtime."], led, ctx["known"], ctx["bullets"], case["resume"], case["jd"])
     assert probs and any("numbers" in p.detail or "merged" in p.detail for p in probs)
+
+
+@pytest.mark.parametrize("case_id,question,target,reply", [
+    ("aisha", "Rewrite my bullet about helping new agents.",
+     "Helped new agents get up to speed by answering their questions and sitting with them on calls.",
+     "> Mentored and onboarded [number] new agents - ran side-by-side call coaching, answered daily questions, and tracked their ramp to full productivity."),
+    ("marcus", "Rewrite my scheduling bullet for this role.", "Responsible for scheduling shifts and approving overtime.",
+     "- **Coordinated night-shift scheduling for 22 associates, including overtime approval and shift-swap management.**"),
+])
+def test_round3_misses_two_candidate_targets_dont_dilute_detection(case_id, question, target, reply):
+    from app.agents.coach_checks import rewrite_problems, target_bullets
+    from app.agents.coach_evidence import build_ledger
+    from eval.cases import CASES
+    from eval.run_eval import context
+    case = next(c for c in CASES if c["id"] == case_id)
+    ctx = context(case)
+    targets = target_bullets(question, ctx["bullets"])
+    assert target in targets and len(targets) == 2  # the tie that caused the miss
+    led = build_ledger(case["resume"], ctx["analysis"], [question])
+    assert rewrite_problems(reply, targets, led, ctx["known"], ctx["bullets"], case["resume"], case["jd"])
+
+
+@pytest.mark.parametrize("case_id,reply", [
+    # Verified-but-wrong replies found in the round-3 human review.
+    ("priya", "What you can truthfully say\n- “My cloud experience is Snowflake. I'm comfortable with cloud concepts - IAM roles, VPC networking, S3 staging - because I've worked with the data side of them daily.”"),
+    ("priya", "3. I'm comfortable learning new tools quickly. I've already begun exploring AWS basics (EC2, S3, IAM) through the free tier and have written simple Terraform scripts to provision a small test environment."),
+    ("ngozi", "> \"Although my formal title has been Staff Nurse, over the last four years I have functioned as a unit-based educator: I built and ran the new-graduate orientation program on a 24-bed cardiac ward.\""),
+    ("marcus", "- In your cover letter or interview, state that while your current shift is 22 people, you have managed logistics for larger operations across the fulfillment centre."),
+    ("leila", "Think of a question you could answer: *\"I built a spreadsheet that compared actual spend to budget by department and highlighted the top three variances.\"*"),
+])
+def test_round3_verified_but_unsupported_claims_are_caught(case_id, reply):
+    from app.agents.career_coach_agent import check_reply
+    from app.agents.coach_evidence import build_ledger
+    from eval.cases import CASES
+    from eval.run_eval import context
+    case = next(c for c in CASES if c["id"] == case_id)
+    ctx = context(case)
+    led = build_ledger(case["resume"], ctx["analysis"], ["How should I handle this?"])
+    assert check_reply(reply, "How should I handle this?", led, ctx["analysis"], case["resume"], case["jd"])
+
+
+@pytest.mark.parametrize("case_id,reply", [
+    ("marcus", "No. Your resume does not mention Six Sigma. The closest related experience is cutting pick errors from 1.8% to 0.6% by introducing barcode scan checks."),
+    ("priya", "Don't say:\n- \"I know AWS/Terraform\" or \"I'm familiar with them.\""),
+    ("leila", "Acknowledge the gap, point to your Excel work, and express enthusiasm for developing deeper expertise."),
+    ("priya", "Be honest: say you haven't used AWS, then point to your Snowflake work at Halcyon Freight."),
+])
+def test_honest_answers_are_not_flagged(case_id, reply):
+    from app.agents.career_coach_agent import check_reply
+    from app.agents.coach_evidence import build_ledger
+    from eval.cases import CASES
+    from eval.run_eval import context
+    case = next(c for c in CASES if c["id"] == case_id)
+    ctx = context(case)
+    led = build_ledger(case["resume"], ctx["analysis"], ["How should I handle this?"])
+    assert check_reply(reply, "How should I handle this?", led, ctx["analysis"], case["resume"], case["jd"]) == []
