@@ -345,3 +345,25 @@ def test_round4_review_cases(case_id, question, reply, flag):
     ctx = context(case)
     led = build_ledger(case["resume"], ctx["analysis"], [question])
     assert bool(check_reply(reply, question, led, ctx["analysis"], case["resume"], case["jd"], question)) is flag
+
+
+def test_flagged_line_with_if_true_aside_is_replaced_in_place_and_partial_quotes_are_not_rewrites():
+    """Live preview (round 5): the flagged rewrite carried an '[if true: …]' aside, so it wasn't found and stayed in
+    the answer; a short quote of the original in the notes was treated as a rewrite that dropped numbers."""
+    from app.agents.career_coach_agent import check_reply, resolve
+    from app.agents.coach_evidence import build_ledger
+    from eval.cases import CASES
+    from eval.run_eval import context
+    case = next(c for c in CASES if c["id"] == "aisha")
+    ctx = context(case)
+    q = "Can you try the SLA bullet rewrite again?"
+    reply = ("Stronger rewrite: • Owned SLA adherence for UK email/phone support: improved compliance from 82% to 95% over the year "
+             "[if true: by introducing real-time queue monitoring in Zendesk and a daily escalation handoff process].\n\n"
+             "Notes:\n- \"Owned SLA adherence\" - stronger verb, stays honest (you were \"responsible for making sure SLAs were met\")\n"
+             "- The bracketed part is a suggestion - only keep it if you actually did those things")
+    led = build_ledger(case["resume"], ctx["analysis"], [q])
+    problems = check_reply(reply, q, led, ctx["analysis"], case["resume"], case["jd"], q)
+    assert len(problems) == 1 and "compliance" in problems[0].detail
+    out = resolve(reply, problems)
+    assert "Owned SLA adherence for UK" not in out and "queue monitoring" not in out
+    assert out.startswith("Responsible for making sure SLAs were met") and "responsible for making sure SLAs were met\")" in out

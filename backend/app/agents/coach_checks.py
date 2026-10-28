@@ -215,6 +215,10 @@ def bullet_segments(raw: str, bullet: str = "") -> List[str]:
 _NUM_RE = re.compile(r"\d+(?:\.\d+)?")
 
 
+def _plain(text: str) -> str:
+    return " ".join(re.sub(r"[^a-z0-9%$.]+", " ", normalize(text).lower()).split()).strip(" .")
+
+
 def _is_version(line: str, targets: List[str]) -> bool:
     """A line is a version of the requested bullet if it shares most of its words, or (for heavier
     rewording) some of its words plus every number the bullet states."""
@@ -237,8 +241,8 @@ def rewrite_problems(reply: str, targets: List[str], ledger: Ledger, known: List
             if not _is_version(line, targets):
                 continue
             target = max(targets, key=lambda t: len(_words(t) & _words(line)))
-            if " ".join(line.lower().split()).strip(" .") == " ".join(target.lower().split()).strip(" ."):
-                continue  # the original quoted as-is
+            if _plain(line) in _plain(target):
+                continue  # the original, or part of it, quoted as-is
             problems = verify_rewrite(target, line, missing=missing, known_skills=known, other_bullets=bullets)
             borrowed = borrowed_from_posting(line, [target], resume_text, job_description)
             if borrowed:

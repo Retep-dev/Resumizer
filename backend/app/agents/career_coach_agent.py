@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 
 from app.agents.safety import UNTRUSTED_DATA_NOTE
 from app.agents.coach_checks import (  # noqa: F401  (re-exported for the evaluation and tests)
-    Problem, borrowed_from_posting, claimed_missing, listing_advice, merged_bullets, resume_bullets, rewrite_blocks,
+    Problem, borrowed_from_posting, bullet_segments, claimed_missing, listing_advice, merged_bullets, resume_bullets, rewrite_blocks,
     rewrite_problems, scripted_claims, sentences, silent_rewrites, target_bullets, unsupported_claims,
 )
 from app.agents.coach_evidence import Ledger, build_ledger
@@ -136,6 +136,13 @@ def resolve(reply: str, problems: List[Problem]) -> str:
             replacement = f"_(Removed a suggestion that {p.detail}.)_"
         if p.text in out:
             out = out.replace(p.text, replacement, 1)
+            continue
+        # The checked text can differ from the raw line (labels, '[if true: …]' asides): replace the whole line.
+        lines = out.split("\n")
+        hit = next((i for i, line in enumerate(lines) if p.text in bullet_segments(line)), None)
+        if hit is not None:
+            lines[hit] = replacement
+            out = "\n".join(lines)
         else:
             out += "\n\n" + replacement
     return out
