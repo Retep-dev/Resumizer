@@ -22,6 +22,16 @@ class Settings:
         "NVIDIA_FALLBACK_MODELS",
         "openai/gpt-oss-20b",
     ))
+    # ── Optional additional providers (all off unless a key is set AND paid use is allowed) ──
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "").strip().strip('"').strip("'").strip()
+    OPENAI_BASE_URL: str = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+    OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "").strip().strip('"').strip("'").strip()
+    ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "").strip().strip('"').strip("'").strip()
+    # Safety switch: providers other than NVIDIA are never called unless this is "true".
+    ALLOW_PAID_PROVIDERS: bool = os.getenv("ALLOW_PAID_PROVIDERS", "false").strip().lower() == "true"
+    # Per-task model chains: comma-separated "provider:model" (provider defaults to nvidia).
+    # Unset = the NVIDIA chain above. Example: MODELS_REWRITE="anthropic:claude-haiku-4-5,nvidia:nvidia/nemotron-3.5-lightning-30b-a3b"
+    TASKS = ("analysis", "rewrite", "interview", "coach")
     LLM_TIMEOUT_SECONDS: float = float(os.getenv("LLM_TIMEOUT_SECONDS", "60"))
     SESSION_TTL_SECONDS: int = int(os.getenv("SESSION_TTL_SECONDS", str(6 * 3600)))
     HOST: str = os.getenv("HOST", "0.0.0.0")
@@ -40,6 +50,17 @@ class Settings:
             if m and m not in seen:
                 seen.add(m)
                 out.append(m)
+        return out
+
+
+    def task_chain(self, task: str):
+        """[(provider, model)] for a task, in fallback order."""
+        raw = os.getenv(f"MODELS_{task.upper()}", "").strip()
+        entries = _csv(raw) if raw else [f"nvidia:{m}" for m in self.model_chain]
+        out = []
+        for e in entries:
+            provider, _, model = e.partition(":") if ":" in e.split("/")[0] else ("nvidia", "", e)
+            out.append((provider.strip().lower(), model.strip()))
         return out
 
 

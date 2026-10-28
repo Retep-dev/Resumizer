@@ -1,0 +1,48 @@
+name: Writing evaluation
+
+# Runs when backend/eval/request.json changes on a design branch. Results are
+# pushed to the eval/results branch (artifacts can't be downloaded from the
+# environment that reviews them).
+on:
+  push:
+    branches: ["design/**"]
+    paths: ["backend/eval/request.json"]
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    permissions:
+      contents: write
+    env:
+      NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - run: pip install -r requirements.txt
+      - name: Run evaluation
+        if: env.NVIDIA_API_KEY != ''
+        run: python -m eval.ci
+      - name: Publish results to the eval/results branch
+        if: always() && env.NVIDIA_API_KEY != ''
+        working-directory: .
+        run: |
+          label=$(python -c "import json;print(json.load(open('backend/eval/request.json')).get('label','run'))")
+          dest="runs/$(date -u +%Y%m%d-%H%M)-${label}"
+          git config user.name "resumizer-eval"
+          git config user.email "resumizer-eval@users.noreply.github.com"
+          if git fetch -q origin eval/results; then
+            git worktree add -q /tmp/res FETCH_HEAD && cd /tmp/res && git checkout -q -B eval/results
+          else
+            git worktree add -q --detach /tmp/res && cd /tmp/res && git checkout -q --orphan eval/results && git rm -rfq .
+          fi
+          mkdir -p "$dest" && cp -r "$GITHUB_WORKSPACE/backend/eval_out/." "$dest/" 2>/dev/null || true
+          git add -A && git commit -qm "eval: $dest (${GITHUB_SHA::7})" && git push -q origin HEAD:eval/results
+          echo "::notice title=results::pushed $dest to eval/results"

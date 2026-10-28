@@ -1,0 +1,15 @@
+{
+  "label": "round1-baseline-vs-v2",
+  "discover": true,
+  "auto_add": 3,
+  "auto_max_seconds": 25,
+  "models": [
+    "nvidia:nvidia/nemotron-3.5-lightning-30b-a3b",
+    "nvidia:nvidia/nemotron-3.5-lightning-30b-a3b@think",
+    "nvidia:openai/gpt-oss-20b@think"
+  ],
+  "pipelines": ["baseline", "v2"],
+  "tasks": ["rewrite", "coach"],
+  "cases": "all",
+  "timeout": 120
+}

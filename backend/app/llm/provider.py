@@ -50,6 +50,10 @@ class ProviderError(Exception):
 class Completion:
     text: str
     model: str
+    provider: str = "nvidia"
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    seconds: float = 0.0
 
 
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
@@ -71,25 +75,28 @@ class ChatClient:
         raise NotImplementedError
 
 
+def split_options(model: str):
+    """'vendor/model@think,high' → ('vendor/model', {'think', 'high'})."""
+    name, _, opts = model.partition("@")
+    return name, {o.strip().lower() for o in opts.split(",") if o.strip()}
+
+
 @dataclass
-class NvidiaChatClient(ChatClient):
+class OpenAICompatibleClient(ChatClient):
+    """Any /chat/completions API (NVIDIA API Catalog, OpenAI, OpenRouter, …)."""
     api_key: str
     models: Sequence[str]
     base_url: str = "https://integrate.api.nvidia.com/v1"
     timeout: float = 60.0
     retired: set = field(default_factory=set)
     session: requests.Session = field(default_factory=requests.Session)
+    provider: str = "openai"
 
     def _payload(self, model: str, messages, temperature, max_tokens, json_mode):
-        body = {"model": model, "messages": messages, "temperature": temperature, "max_tokens": max_tokens, "stream": False}
+        name, _ = split_options(model)
+        body = {"model": name, "messages": messages, "temperature": temperature, "max_tokens": max_tokens, "stream": False}
         if json_mode:
             body["response_format"] = {"type": "json_object"}
-        if "nemotron-3" in model or "nemotron-nano-3" in model:
-            # Nemotron 3 models reason by default; we only want the final answer.
-            body["chat_template_kwargs"] = {"enable_thinking": False}
-        if "gpt-oss" in model:
-            # Reasoning tokens count against max_tokens; keep reasoning short so an answer is produced.
-            body["reasoning_effort"] = "low"
         return body
 
     def _post(self, body) -> requests.Response:
@@ -112,7 +119,7 @@ class NvidiaChatClient(ChatClient):
                 body.pop("reasoning_effort", None)
                 r = self._post(body)
         except requests.exceptions.InvalidHeader:
-            raise ProviderError("auth", "The NVIDIA API key is malformed (it contains spaces or line breaks)", model)
+            raise ProviderError("auth", f"The {self.provider} API key is malformed (it contains spaces or line breaks)", model)
         except requests.Timeout:
             raise ProviderError("timeout", f"{model} did not respond within {int(self.timeout)}s", model)
         except requests.RequestException as e:
@@ -127,11 +134,13 @@ class NvidiaChatClient(ChatClient):
                 raise ProviderError("bad_response", "The provider returned an unreadable response", model, 200)
             if not text:
                 raise ProviderError("bad_response", "The model returned an empty answer", model, 200)
-            return Completion(text=text, model=model)
+            usage = data.get("usage") or {}
+            return Completion(text=text, model=model, provider=self.provider,
+                              prompt_tokens=int(usage.get("prompt_tokens") or 0), completion_tokens=int(usage.get("completion_tokens") or 0))
 
         detail = _clean_message(r.text)
         if r.status_code in (401, 403):
-            raise ProviderError("auth", "The NVIDIA API key was rejected (check NVIDIA_API_KEY)", model, r.status_code)
+            raise ProviderError("auth", f"The {self.provider} API key was rejected", model, r.status_code)
         low = detail.lower()
         if r.status_code in (404, 410) or "end of life" in low or (r.status_code == 400 and "not found" in low):
             raise ProviderError("model_unavailable", f"{model} is not available: {detail}", model, r.status_code)
@@ -144,7 +153,7 @@ class NvidiaChatClient(ChatClient):
     def _complete_sync(self, messages, temperature, max_tokens, json_mode) -> Completion:
         self.api_key = (self.api_key or "").strip()
         if not self.api_key or "your-key-here" in self.api_key.lower():
-            raise ProviderError("not_configured", "NVIDIA_API_KEY is not configured on the server")
+            raise ProviderError("not_configured", f"No API key is configured on the server for {self.provider}")
         last: Optional[ProviderError] = None
         for model in self.models:
             if model in self.retired:
@@ -169,25 +178,93 @@ class NvidiaChatClient(ChatClient):
         raise last or ProviderError("model_unavailable", "No models configured")
 
     async def complete(self, messages, *, temperature=0.1, max_tokens=2048, json_mode=False) -> Completion:
-        return await asyncio.to_thread(self._complete_sync, messages, temperature, max_tokens, json_mode)
+        t0 = time.monotonic()
+        out = await asyncio.to_thread(self._complete_sync, messages, temperature, max_tokens, json_mode)
+        out.seconds = round(time.monotonic() - t0, 2)
+        return out
 
 
-_client: Optional[ChatClient] = None
+@dataclass
+class NvidiaChatClient(OpenAICompatibleClient):
+    provider: str = "nvidia"
+
+    def _payload(self, model: str, messages, temperature, max_tokens, json_mode):
+        body = super()._payload(model, messages, temperature, max_tokens, json_mode)
+        name, opts = split_options(model)
+        if "nemotron-3" in name or "nemotron-nano-3" in name:
+            # Nemotron 3 models reason by default. Off unless the chain asks for "@think".
+            body["chat_template_kwargs"] = {"enable_thinking": "think" in opts}
+        if "gpt-oss" in name:
+            # Reasoning tokens count against max_tokens; keep reasoning short so an answer is produced.
+            body["reasoning_effort"] = "medium" if "think" in opts else "low"
+        return body
 
 
-def get_client() -> ChatClient:
-    global _client
-    if _client is None:
-        _client = NvidiaChatClient(
-            api_key=settings.NVIDIA_API_KEY,
-            models=settings.model_chain,
-            base_url=settings.NVIDIA_BASE_URL,
-            timeout=settings.LLM_TIMEOUT_SECONDS,
-        )
-    return _client
+@dataclass
+class AnthropicChatClient(ChatClient):
+    """Anthropic Messages API. Only used when ANTHROPIC_API_KEY is set and paid providers are allowed."""
+    api_key: str
+    models: Sequence[str]
+    base_url: str = "https://api.anthropic.com/v1"
+    timeout: float = 60.0
+    retired: set = field(default_factory=set)
+    session: requests.Session = field(default_factory=requests.Session)
+    provider: str = "anthropic"
+
+    def _complete_sync(self, messages, temperature, max_tokens, json_mode) -> Completion:
+        if not (self.api_key or "").strip():
+            raise ProviderError("not_configured", "No API key is configured on the server for anthropic")
+        system = "\n\n".join(m["content"] for m in messages if m["role"] == "system")
+        convo = [m for m in messages if m["role"] in ("user", "assistant")]
+        last: Optional[ProviderError] = None
+        for model in self.models:
+            if model in self.retired:
+                continue
+            body = {"model": split_options(model)[0], "max_tokens": max_tokens, "temperature": temperature, "messages": convo}
+            if system:
+                body["system"] = system + ("\n\nReply with a single JSON object only." if json_mode else "")
+            try:
+                r = self.session.post(f"{self.base_url}/messages", json=body, timeout=self.timeout, headers={
+                    "x-api-key": self.api_key.strip(), "anthropic-version": "2023-06-01", "content-type": "application/json"})
+            except requests.Timeout:
+                last = ProviderError("timeout", f"{model} did not respond within {int(self.timeout)}s", model)
+                continue
+            except requests.RequestException as e:
+                last = ProviderError("network", f"Could not reach anthropic ({type(e).__name__})", model)
+                continue
+            if r.status_code == 200:
+                data = r.json()
+                text = "".join(b.get("text", "") for b in data.get("content", []) if b.get("type") == "text").strip()
+                if not text:
+                    last = ProviderError("bad_response", "The model returned an empty answer", model, 200)
+                    continue
+                u = data.get("usage") or {}
+                return Completion(text=text, model=model, provider="anthropic",
+                                  prompt_tokens=int(u.get("input_tokens") or 0), completion_tokens=int(u.get("output_tokens") or 0))
+            detail = _clean_message(r.text)
+            if r.status_code in (401, 403):
+                raise ProviderError("auth", "The anthropic API key was rejected", model, r.status_code)
+            if r.status_code == 404:
+                self.retired.add(model)
+                last = ProviderError("model_unavailable", f"{model} is not available: {detail}", model, 404)
+                continue
+            kind = "rate_limited" if r.status_code == 429 else "server" if r.status_code >= 500 else "bad_request"
+            last = ProviderError(kind, f"anthropic error {r.status_code}: {detail}", model, r.status_code)
+        raise last or ProviderError("model_unavailable", "No models configured")
+
+    async def complete(self, messages, *, temperature=0.1, max_tokens=2048, json_mode=False) -> Completion:
+        t0 = time.monotonic()
+        out = await asyncio.to_thread(self._complete_sync, messages, temperature, max_tokens, json_mode)
+        out.seconds = round(time.monotonic() - t0, 2)
+        return out
 
 
-def set_client(client: Optional[ChatClient]) -> None:
-    """Swap the provider (used by tests)."""
-    global _client
-    _client = client
+def get_client(task: str = "analysis") -> ChatClient:
+    from app.llm.router import get_client as _get
+    return _get(task)
+
+
+def set_client(client: Optional[ChatClient], task: Optional[str] = None) -> None:
+    """Swap the provider (used by tests). Without a task, applies to every task."""
+    from app.llm.router import set_client as _set
+    _set(client, task)

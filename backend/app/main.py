@@ -83,11 +83,16 @@ def root():
 @app.get("/api/v1/status")
 def ai_status():
     """Which models the server will use. Never includes the API key."""
-    client = get_client()
+    from app.llm.router import routing_status
+    retired = set()
+    for task in settings.TASKS:
+        retired |= set(getattr(get_client(task), "retired", set()))
     return {
         "api_key_configured": settings.api_key_configured,
         "model_chain": settings.model_chain,
-        "retired_this_process": sorted(getattr(client, "retired", [])),
+        "tasks": routing_status(),
+        "paid_providers_allowed": settings.ALLOW_PAID_PROVIDERS,
+        "retired_this_process": sorted(retired),
         "commit": (os.getenv("RENDER_GIT_COMMIT") or "")[:7] or None,
     }
 

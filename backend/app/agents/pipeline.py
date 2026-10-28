@@ -51,8 +51,13 @@ def _why(e: Exception) -> str:
     return "Unexpected error."
 
 
-async def run_resumizer_pipeline(raw_resume_text: str, job_description: str, client: Optional[ChatClient] = None) -> AnalysisResult:
-    client = client or get_client()
+async def run_resumizer_pipeline(raw_resume_text: str, job_description: str, client: Optional[ChatClient] = None,
+                                 clients: Optional[Dict[str, ChatClient]] = None) -> AnalysisResult:
+    """`client` (tests) is used for every task; otherwise each task uses its own routed client."""
+    clients = dict(clients or {})
+    for task in ("analysis", "rewrite", "interview"):
+        clients.setdefault(task, client or get_client(task))
+    client = clients["analysis"]
     stages: Dict[str, StageReport] = {}
     warnings: List[str] = []
     first_error: Dict[str, Optional[ProviderError]] = {"e": None}
@@ -109,7 +114,7 @@ async def run_resumizer_pipeline(raw_resume_text: str, job_description: str, cli
             stages["rewrite"] = StageReport(status="unavailable", message=_why(first_error["e"]) + " Rewrites need the AI, so none were produced.")
             return ResumeRewriteReport(), []
         try:
-            r, w, m = await rewrite_with_ai(client, resume, raw_resume_text, job_description, ats.matched_keywords, ats.missing_keywords)
+            r, w, m = await rewrite_with_ai(clients["rewrite"], resume, raw_resume_text, job_description, ats.matched_keywords, ats.missing_keywords)
             stages["rewrite"] = StageReport(status="ai", model=m or None)
             return r, w
         except (ProviderError, AgentOutputError) as e:
@@ -120,7 +125,7 @@ async def run_resumizer_pipeline(raw_resume_text: str, job_description: str, cli
     async def interview():
         if not ai_down():
             try:
-                r, w, m = await interview_with_ai(client, resume, raw_resume_text, reqs, ats.matched_keywords, ats.missing_keywords)
+                r, w, m = await interview_with_ai(clients["interview"], resume, raw_resume_text, reqs, ats.matched_keywords, ats.missing_keywords)
                 if r.questions:
                     stages["interview"] = StageReport(status="ai", model=m)
                     return r, w

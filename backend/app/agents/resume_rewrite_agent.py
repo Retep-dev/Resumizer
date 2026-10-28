@@ -1,118 +1,87 @@
-"""Stage 3a — rewrite bullets for clarity and relevance without inventing facts."""
+"""Stage 3a — rewrite bullets so they read stronger, without adding facts.
+
+For each bullet:
+  1. extract its facts in code (numbers, tools, kind of action, whether it states a result);
+  2. ask the model for two candidates: "safe" (better wording, same facts) and
+     "strong" (most compelling honest version, may add one [placeholder] the
+     candidate fills in);
+  3. verify every candidate against the original in code (bullet_facts.verify_rewrite);
+  4. keep the best candidate that passes and is a real improvement, not a cosmetic edit;
+  5. otherwise keep the original wording and ask for the missing detail instead.
+One targeted retry is made for bullets whose candidates all failed or were skipped.
+"""
 from __future__ import annotations
 
 import json
 import re
 from typing import Dict, List, Optional, Tuple
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
+from app.agents.bullet_facts import (
+    extract_facts, lemma, placeholders, verb_kinds, verification_note, verify_rewrite, words,
+)
 from app.llm import ChatClient, complete_json
 from app.schemas.resume import BulletPointRewrite, ResumeRewriteReport, ResumeSchema, WorkExperienceRewrite
 from app.services.text_utils import normalize, numbers_in, term_in_text, unsupported_numbers
 
-REWRITE_SYSTEM_PROMPT = """You are a careful resume editor. You improve how existing achievements are worded. You never add facts.
+REWRITE_SYSTEM_PROMPT = """You are an expert resume editor. You make each bullet read like a strong, specific professional achievement, using only the facts that bullet already contains.
 
-Hard rules:
-1. Keep the meaning of every bullet. Do not add tools, skills, employers, responsibilities, team sizes or outcomes that the original bullet doesn't state.
-2. Never add a real-looking number, percentage, amount or duration that isn't in the original bullet. If a metric or outcome would make a bullet stronger, you may add ONE bracketed placeholder the candidate fills in, written with letters not digits, e.g. "[for N users]", "[cutting X hours a week]", "[used by which team]", and ask for it in "needs_confirmation".
-3. Improve the wording where you can without new facts: a stronger action verb, a clearer order (action, then what, then for whom, then result), tighter phrasing, and the posting's terminology where the original already describes that thing. Don't add tools or skills the bullet itself doesn't name, even if they appear elsewhere in the resume.
-   Keep the meaning of the original verb: "maintain" is not "build", "helped" is not "led", "worked with" is not "managed".
-   Allowed: "Wrote the guide that new support agents used during their first week." → "Wrote the onboarding guide new support agents relied on in their first week."
-   Allowed: "Was responsible for updating the inventory spreadsheet in Excel every Friday." → "Updated the weekly inventory tracker in Excel every Friday."
-   Allowed: "Answered customer emails for the billing team." → "Resolved billing customers' email queries [about N a week], [keeping response time under X hours]."
-   Not allowed: "Ran A/B tests on the pricing page." → "Ran A/B tests on the pricing page to compare layouts" (adds a purpose).
-   Not allowed: "Maintain the payment service for the checkout team." → "...using Java and Kubernetes" (adds tools the bullet doesn't mention).
-   Not allowed: merging two bullets into one, or moving a result from one bullet into another.
-4. Rewrite every bullet you can make clearer, more specific to the posting, or stronger with a placeholder. Only if a bullet truly can't be improved, keep its wording and put 1-2 specific questions in "needs_confirmation" whose answers would make it stronger (e.g. for "Organised the quarterly team offsite.": "How many people attended, and what came out of it?").
-5. "added_keywords" lists only posting keywords that the original bullet genuinely supports. Never use a keyword from the "missing" list.
-6. "star_action" and "star_result" restate what the bullet says; leave star_result empty if the bullet has no result.
-7. The summary may only use facts present in the resume. Don't state years of experience unless the resume does.
+For every bullet you are given its text and its facts (numbers, tools, kind of action, whether it states a result). Write two candidates:
+- "safe": clearly better wording with exactly the same facts.
+- "strong": the most compelling honest version. It may add ONE bracketed placeholder for a missing metric, scope or result, written with letters not digits, e.g. "[N users]", "[by X%]", "[for which team]".
+
+How to improve a bullet (use whatever fits):
+1. Open with a precise, strong verb of the SAME kind as the original: maintained → maintained/ran/kept; built → built/developed/designed; helped → helped/supported/contributed to; worked with → partnered/collaborated with; mentored → mentored/coached.
+2. If the bullet states a result, lead with it: "Built X, which doubled Y" → "Doubled Y by building X".
+3. Cut filler: "Responsible for", "Worked on", "Duties included", "Various", "Successfully".
+4. Be concrete with what the bullet already says: what it was, who it was for, how often.
+5. Use the posting's wording only for things the bullet already describes (see posting_terms).
+6. One sentence, under 30 words, no first person.
+
+Never:
+- add numbers, tools, skills, team sizes, purposes, benefits or results the bullet doesn't state (no "improving accuracy", "saving time", "boosting performance", "for stakeholders");
+- upgrade the action (helped → led, maintained → built, mentored → managed, worked with → led);
+- move facts in from another bullet or merge bullets;
+- use any skill from missing_skills, even inside a placeholder.
+
+Examples (other professions):
+- "Responsible for training new cashiers." → safe: "Trained new cashiers." strong: "Trained [N] new cashiers."
+- "Reduced average patient wait time from 40 to 25 minutes by reorganising triage." → safe: "Cut average patient wait time from 40 to 25 minutes by reorganising triage." strong: "Cut average patient wait time from 40 to 25 minutes by reorganising the triage process [across N clinics]."
+- "Helped prepare quarterly board reports." → safe: "Helped prepare the quarterly board reports." strong: "Helped prepare quarterly board reports [covering which areas]."
+- Wrong: "Helped prepare quarterly board reports." → "Led quarterly board reporting, improving executive decisions." (upgrades the action and invents a benefit)
+
+Also write "questions": 1-2 short questions whose answers would fill the placeholder or make the bullet stronger.
+If a summary is given, return an improved "summary" (2 sentences max, only facts from the resume), or null.
 
 Return one JSON object:
-{"tailored_summary": str|null,
- "rewritten_experiences": [{"company": str, "job_title": str,
-   "rewritten_bullets": [{"original_bullet": str, "rewritten_bullet": str, "star_action": str, "star_result": str,
-                          "added_keywords": [str], "needs_confirmation": [str]}]}]}
-Include every bullet from the resume, with original_bullet copied exactly."""
+{"bullets": [{"id": int, "safe": str, "strong": str, "questions": [str]}], "summary": str|null}
+Include every bullet id you were given."""
+
+FILLER_RE = re.compile(r"^\s*(?:responsible for|worked on|tasked with|duties included|in charge of|involved in)\b", re.IGNORECASE)
+NO_CHANGE_NOTE = "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it."
+PLACEHOLDER_NOTE = "Replace the [bracketed] parts with your real details, or delete them, before using this."
 
 
-class _Draft(BaseModel):
-    tailored_summary: Optional[str] = None
-    rewritten_experiences: List[WorkExperienceRewrite] = Field(default_factory=list)
+class _Candidate(BaseModel):
+    id: int
+    safe: Optional[str] = None
+    strong: Optional[str] = None
+    questions: List[str] = Field(default_factory=list)
+
+    @field_validator("questions", mode="before")
+    @classmethod
+    def _qs(cls, v):
+        return [q for q in (v or []) if isinstance(q, str)]
+
+
+class _Proposal(BaseModel):
+    bullets: List[_Candidate] = Field(default_factory=list)
+    summary: Optional[str] = None
 
 
 def _norm(s: str) -> str:
     return " ".join(normalize(s).lower().split()).strip(" .")
-
-
-# What the candidate did, by kind. A rewrite may swap verbs within a kind
-# ("Built" → "Developed") but not across kinds ("Built" → "Maintain").
-_VERB_KINDS = {
-    "create": "build built create created develop developed design designed ship shipped launch launched implement implemented "
-              "write wrote author authored introduce introduced add added set establish established engineer engineered code coded",
-    "maintain": "maintain maintained support supported run ran operate operated manage-system monitor monitored update updated "
-                "fix fixed troubleshoot troubleshot debug debugged keep kept",
-    "lead": "lead led manage managed own owned head headed direct directed oversee oversaw spearhead spearheaded drive drove",
-    "help": "help helped assist assisted contribute contributed participate participated",
-    "collaborate": "work worked collaborate collaborated partner partnered liaise liaised coordinate coordinated",
-    "teach": "mentor mentored coach coached train trained teach taught onboard onboarded",
-    "improve": "reduce reduced cut increase increased improve improved grow grew raise raised boost boosted speed sped optimize optimized "
-               "optimise optimised streamline streamlined lower lowered",
-    "analyze": "analyze analyzed analyse analysed research researched investigate investigated measure measured evaluate evaluated "
-               "test tested audit audited model modeled modelled",
-}
-_VERB_KIND = {w: k for k, words in _VERB_KINDS.items() for w in words.split()}
-
-
-def _lead_verb_kind(text: str) -> Optional[str]:
-    words = re.findall(r"[a-z]+", normalize(text).lower())
-    return _VERB_KIND.get(words[0]) if words else None
-
-
-def _number_contexts(text: str) -> List[tuple]:
-    """Each number with the two words after it: ('9', 'per month')."""
-    toks = re.findall(r"\d+(?:[.,]\d+)?%?|[a-z]+", normalize(text).lower())
-    return [(t, " ".join(toks[i + 1:i + 3])) for i, t in enumerate(toks) if t[0].isdigit()]
-
-
-def check_bullet(rw: BulletPointRewrite, original: str, missing: List[str], supported: List[str],
-                 known_skills: Optional[List[str]] = None) -> List[str]:
-    """Reasons a rewrite isn't trustworthy (empty list = fine)."""
-    problems = []
-    bad_nums = unsupported_numbers(rw.rewritten_bullet, original)
-    if bad_nums:
-        problems.append(f"added numbers that aren't in the original ({', '.join(sorted(bad_nums))})")
-    claimed = [k for k in missing if term_in_text(k, rw.rewritten_bullet) and not term_in_text(k, original)]
-    if claimed:
-        problems.append(f"claimed {', '.join(claimed)}, which your resume doesn't show")
-    a, b = _lead_verb_kind(original), _lead_verb_kind(rw.rewritten_bullet)
-    if a and b and a != b:
-        problems.append(f"changed what you did (\"{original.split()[0]}\" became \"{rw.rewritten_bullet.split()[0]}\")")
-    # Words right after a number say what it measures; they must come from the original.
-    orig_words = set(re.findall(r"[a-z]+", normalize(original).lower()))
-    changed = [f"{n} {after}" for n, after in _number_contexts(rw.rewritten_bullet)
-               if any(w not in orig_words for w in re.findall(r"[a-z]+", after))]
-    if changed:
-        problems.append(f"changed what a number measures ({', '.join(changed)})")
-    attributed = [k for k in (known_skills or []) if k not in claimed and term_in_text(k, rw.rewritten_bullet) and not term_in_text(k, original)]
-    if attributed:
-        problems.append(f"attributed {', '.join(attributed)} to this bullet, which the original doesn't mention")
-    return problems
-
-
-PLACEHOLDER_NOTE = "Replace the [bracketed] parts with your real details, or delete them, before using this."
-
-
-def _clean(rw: BulletPointRewrite, original: str, supported: List[str]) -> BulletPointRewrite:
-    keywords = [k for k in rw.added_keywords if any(_norm(k) == _norm(s) for s in supported) and term_in_text(k, rw.rewritten_bullet)]
-    result = rw.star_result if not unsupported_numbers(rw.star_result, original) else ""
-    action = rw.star_action if not unsupported_numbers(rw.star_action, original) else ""
-    return BulletPointRewrite(
-        original_bullet=original, rewritten_bullet=rw.rewritten_bullet.strip(), star_action=action, star_result=result,
-        added_keywords=keywords, needs_confirmation=[q for q in rw.needs_confirmation if q.strip()][:3], status="rewritten",
-        note=PLACEHOLDER_NOTE if re.search(r"\[[^\]]+\]", rw.rewritten_bullet) else None,
-    )
 
 
 def follow_up_questions(bullet: str) -> List[str]:
@@ -124,117 +93,199 @@ def follow_up_questions(bullet: str) -> List[str]:
     return qs
 
 
-def validate_rewrites(draft: _Draft, resume: ResumeSchema, resume_text: str, missing: List[str], supported: List[str]
-                      ) -> Tuple[ResumeRewriteReport, Dict[str, List[str]], List[str]]:
-    """Match each rewrite to a real bullet and withhold any that add facts."""
-    originals = {_norm(b): (ji, b) for ji, j in enumerate(resume.work_experience) for b in j.bullet_points}
-    known = list(dict.fromkeys(resume.technical_skills + resume.tools_and_frameworks + supported))
-    out: Dict[int, List[BulletPointRewrite]] = {}
-    violations: Dict[str, List[str]] = {}
-    for exp in draft.rewritten_experiences:
-        for rw in exp.rewritten_bullets:
-            hit = originals.get(_norm(rw.original_bullet))
-            if not hit:
-                continue  # model referenced a bullet that doesn't exist
-            ji, original = hit
-            problems = check_bullet(rw, original, missing, supported, known)
-            if problems:
-                violations[original] = problems
-                out.setdefault(ji, []).append(BulletPointRewrite(
-                    original_bullet=original, rewritten_bullet=original, status="kept_original",
-                    note="Rewrite withheld: it " + " and ".join(problems) + ".",
-                    needs_confirmation=[q for q in rw.needs_confirmation if q.strip()][:3] or follow_up_questions(original),
-                ))
-            elif _norm(rw.rewritten_bullet) == _norm(original):
-                out.setdefault(ji, []).append(BulletPointRewrite(
-                    original_bullet=original, rewritten_bullet=original, status="kept_original",
-                    note="No stronger wording was suggested for this bullet.",
-                    needs_confirmation=[q for q in rw.needs_confirmation if q.strip()][:3] or follow_up_questions(original),
-                ))
-            else:
-                out.setdefault(ji, []).append(_clean(rw, original, supported))
+def change_ratio(original: str, rewrite: str) -> float:
+    """Share of word positions that differ (outside placeholders), 0..1."""
+    a = [lemma(w) for w in words(original)]
+    b = [lemma(w) for w in words(rewrite, keep_brackets=False)]
+    if not a:
+        return 1.0
+    # Longest common subsequence on words.
+    dp = [[0] * (len(b) + 1) for _ in range(len(a) + 1)]
+    for i in range(len(a) - 1, -1, -1):
+        for j in range(len(b) - 1, -1, -1):
+            dp[i][j] = dp[i + 1][j + 1] + 1 if a[i] == b[j] else max(dp[i + 1][j], dp[i][j + 1])
+    return round(1 - dp[0][0] / max(len(a), len(b)), 3)
 
-    warnings = []
-    summary = draft.tailored_summary.strip() if draft.tailored_summary else None
-    if summary and resume.summary and _norm(summary) == _norm(resume.summary):
-        warnings.append("The AI didn't suggest a different summary, so your original is unchanged.")
-        summary = None
-    if summary:
-        bad = unsupported_numbers(summary, resume_text)
-        claimed = [k for k in missing if term_in_text(k, summary) and not term_in_text(k, resume_text)]
-        if bad or claimed:
-            why = []
-            if bad:
-                why.append("numbers not in your resume (" + ", ".join(sorted(bad)) + ")")
-            if claimed:
-                why.append("skills your resume doesn't show (" + ", ".join(claimed) + ")")
-            warnings.append("The suggested summary was withheld because it included " + " and ".join(why) + ".")
-            summary = None
 
-    exps = []
+def improvement_score(original: str, rewrite: str, posting_terms: List[str]) -> Tuple[int, List[str]]:
+    """How much better a (verified) rewrite is, and why. Code, not opinion, so it can be audited."""
+    score, why = 0, []
+    if FILLER_RE.search(original) and not FILLER_RE.search(rewrite):
+        score += 2
+        why.append("cut filler")
+    ok, nk = verb_kinds(original), verb_kinds(rewrite)
+    if ok and nk and ok[0] != "improve" and nk[0] == "improve":
+        score += 2
+        why.append("leads with the result")
+    gained = [t for t in posting_terms if term_in_text(t, rewrite) and not term_in_text(t, original)]
+    if gained:
+        score += 1
+        why.append("uses the posting's wording")
+    if placeholders(rewrite):
+        score += 1
+        why.append("asks for a missing metric")
+    ratio = change_ratio(original, rewrite)
+    if ratio >= 0.25:
+        score += 1
+        why.append("clearer wording")
+    plain = re.sub(r"\[[^\]]*\]", "", rewrite)
+    if len(plain.split()) > 1.6 * len(original.split()) + 3:
+        score -= 1
+        why.append("longer")
+    if ratio < 0.12 and not placeholders(rewrite):
+        score = min(score, 0)  # cosmetic: an article or a comma isn't an improvement
+    return score, why
+
+
+def _known_skills(resume: ResumeSchema, supported: List[str]) -> List[str]:
+    return list(dict.fromkeys(resume.technical_skills + resume.tools_and_frameworks + supported))
+
+
+def _items(resume: ResumeSchema, known: List[str]) -> List[Dict]:
+    out, i = [], 1
     for ji, job in enumerate(resume.work_experience):
-        seen, bullets = set(), []
-        for b in out.get(ji, []):
-            if b.original_bullet not in seen:
-                seen.add(b.original_bullet)
-                bullets.append(b)
-        if bullets:
-            exps.append(WorkExperienceRewrite(company=job.company, job_title=job.job_title, rewritten_bullets=bullets))
-    return ResumeRewriteReport(tailored_summary=summary, rewritten_experiences=exps), violations, warnings
+        for b in job.bullet_points:
+            if b.strip():
+                f = extract_facts(b, known)
+                out.append({"id": i, "job": ji, "role": " at ".join(x for x in (job.job_title, job.company) if x), "text": b, "facts": f})
+                i += 1
+    return out
+
+
+def judge(item: Dict, cand: Optional[_Candidate], *, missing: List[str], known: List[str], all_bullets: List[str],
+          posting_terms: List[str]) -> Tuple[Optional[BulletPointRewrite], List[str]]:
+    """Pick the best verified candidate. Returns (rewrite or None, problems with the rejected candidates)."""
+    original = item["text"]
+    others = [b for b in all_bullets if b != original]
+    best, best_score, problems = None, 0, []
+    for kind in ("strong", "safe"):
+        text = (getattr(cand, kind) or "").strip() if cand else ""
+        if not text or _norm(text) == _norm(original):
+            continue
+        p = verify_rewrite(original, text, missing=missing, known_skills=known, other_bullets=others)
+        if len(placeholders(text)) > 2:
+            p.append("left too many blanks to fill in")
+        if p:
+            problems.append(f"{kind}: " + "; ".join(p))
+            continue
+        score, why = improvement_score(original, text, posting_terms)
+        if score > best_score:
+            best_score = score
+            best = BulletPointRewrite(
+                original_bullet=original, rewritten_bullet=text, status="rewritten",
+                star_action="", star_result="",
+                added_keywords=[t for t in posting_terms if term_in_text(t, text) and term_in_text(t, original)],
+                needs_confirmation=[q.strip() for q in (cand.questions if cand else []) if q.strip()][:2] or (follow_up_questions(original) if placeholders(text) else []),
+                note=PLACEHOLDER_NOTE if placeholders(text) else None,
+                checks=verification_note(item["facts"]) + [", ".join(why)] if why else verification_note(item["facts"]),
+            )
+    return best, problems
+
+
+def _kept(item: Dict, cand: Optional[_Candidate], problems: List[str]) -> BulletPointRewrite:
+    original = item["text"]
+    note = ("Rewrite withheld: " + problems[0].split(": ", 1)[1] + ".") if problems else NO_CHANGE_NOTE
+    qs = [q.strip() for q in (cand.questions if cand else []) if q.strip()][:2] or follow_up_questions(original)
+    return BulletPointRewrite(original_bullet=original, rewritten_bullet=original, status="kept_original", note=note, needs_confirmation=qs)
+
+
+def _check_summary(summary: Optional[str], resume: ResumeSchema, resume_text: str, missing: List[str]) -> Tuple[Optional[str], List[str]]:
+    from app.agents.bullet_facts import OUTCOME_WORDS
+    s = (summary or "").strip()
+    if not s:
+        return None, []
+    if resume.summary and _norm(s) == _norm(resume.summary):
+        return None, ["The AI didn't suggest a different summary, so your original is unchanged."]
+    why = []
+    bad = unsupported_numbers(s, resume_text)
+    if bad:
+        why.append("numbers not in your resume (" + ", ".join(sorted(bad)) + ")")
+    claimed = [k for k in missing if term_in_text(k, s) and not term_in_text(k, resume_text)]
+    if claimed:
+        why.append("skills your resume doesn't show (" + ", ".join(claimed) + ")")
+    resume_lemmas = {lemma(w) for w in words(resume_text)}
+    outcomes = sorted({w for w in words(s) if lemma(w) in {lemma(o) for o in OUTCOME_WORDS} and lemma(w) not in resume_lemmas})
+    if outcomes:
+        why.append("claims your resume doesn't make (" + ", ".join(outcomes) + ")")
+    if re.search(r"\b\d+\+?\s*years?\b", s, re.I) and not re.search(r"\b\d+\+?\s*years?\b", resume_text, re.I):
+        why.append("a years-of-experience figure your resume doesn't state")
+    if why:
+        return None, ["The suggested summary was withheld because it included " + " and ".join(why) + "."]
+    return s, []
 
 
 async def rewrite_with_ai(client: ChatClient, resume: ResumeSchema, resume_text: str, job_description: str,
                           supported: List[str], missing: List[str]) -> Tuple[ResumeRewriteReport, List[str], str]:
-    if not any(j.bullet_points for j in resume.work_experience):
+    known = _known_skills(resume, supported)
+    items = _items(resume, known)
+    if not items:
         return ResumeRewriteReport(), ["No bullet points were found under your roles, so there was nothing to rewrite."], ""
-    payload = {
-        "resume": json.loads(resume.model_dump_json(include={"summary", "work_experience", "technical_skills", "tools_and_frameworks"})),
-        "posting_keywords_supported_by_resume": supported,
-        "missing_keywords_do_not_use": missing,
-    }
-    user = f"Resume and keyword lists (JSON):\n{json.dumps(payload, ensure_ascii=False)}\n\nJob description:\n{job_description[:6000]}"
-    draft, model = await complete_json(client, REWRITE_SYSTEM_PROMPT, user, _Draft, temperature=0.2, max_tokens=4000)
-    report, violations, warnings = validate_rewrites(draft, resume, resume_text, missing, supported)
+    all_bullets = [it["text"] for it in items]
 
-    if violations:
-        # One targeted retry for the bullets that broke the rules.
-        fix_user = user + "\n\nYour previous rewrites of these bullets broke the rules:\n" + "\n".join(
-            f"- {b!r}: {', '.join(p)}" for b, p in violations.items()
-        ) + "\nRewrite only these bullets again, following the rules strictly. Same JSON format."
-        try:
-            fix, _ = await complete_json(client, REWRITE_SYSTEM_PROMPT, fix_user, _Draft, temperature=0.0, max_tokens=2500)
-            fixed, still_bad, _ = validate_rewrites(fix, resume, resume_text, missing, supported)
-            good = {b.original_bullet: b for e in fixed.rewritten_experiences for b in e.rewritten_bullets if b.status == "rewritten"}
-            for e in report.rewritten_experiences:
-                e.rewritten_bullets = [good.get(b.original_bullet, b) if b.status == "kept_original" else b for b in e.rewritten_bullets]
-        except Exception:
-            pass  # keep the withheld originals
-    # Ask once more for bullets the model skipped.
-    covered = {b.original_bullet for e in report.rewritten_experiences for b in e.rewritten_bullets}
-    skipped = [b for j in resume.work_experience for b in j.bullet_points if b not in covered]
-    if skipped:
-        more_user = user + "\n\nYou didn't rewrite these bullets. Rewrite exactly these, following the rules:\n" + "\n".join(f"- {b}" for b in skipped)
-        try:
-            more, _ = await complete_json(client, REWRITE_SYSTEM_PROMPT, more_user, _Draft, temperature=0.2, max_tokens=2500)
-            extra, _, _ = validate_rewrites(more, resume, resume_text, missing, supported)
-            by_job = {(e.company, e.job_title): e for e in report.rewritten_experiences}
-            for e in extra.rewritten_experiences:
-                target = by_job.get((e.company, e.job_title))
-                new = [b for b in e.rewritten_bullets if b.original_bullet not in covered]
-                if target:
-                    target.rewritten_bullets.extend(new)
-                elif new:
-                    report.rewritten_experiences.append(WorkExperienceRewrite(company=e.company, job_title=e.job_title, rewritten_bullets=new))
-        except Exception:
-            pass
-        # Keep the resume's role order.
-        order = {(j.company, j.job_title): i for i, j in enumerate(resume.work_experience)}
-        report.rewritten_experiences.sort(key=lambda e: order.get((e.company, e.job_title), 99))
+    def payload(subset: List[Dict]) -> Dict:
+        return {
+            "posting_terms": supported,
+            "missing_skills": missing,
+            "summary": resume.summary or None,
+            "bullets": [{"id": it["id"], "role": it["role"], "text": it["text"], "facts": it["facts"].summary()} for it in subset],
+        }
 
-    withheld = sum(1 for e in report.rewritten_experiences for b in e.rewritten_bullets if b.status == "kept_original" and b.note and b.note.startswith("Rewrite withheld"))
+    user = f"Resume bullets (JSON):\n{json.dumps(payload(items), ensure_ascii=False)}\n\nJob posting (for wording only):\n{job_description[:5000]}"
+    proposal, model = await complete_json(client, REWRITE_SYSTEM_PROMPT, user, _Proposal, temperature=0.3, max_tokens=6000)
+    cands = {c.id: c for c in proposal.bullets}
+
+    results: Dict[int, BulletPointRewrite] = {}
+    problems: Dict[int, List[str]] = {}
+    for it in items:
+        best, p = judge(it, cands.get(it["id"]), missing=missing, known=known, all_bullets=all_bullets, posting_terms=supported)
+        if best:
+            results[it["id"]] = best
+        else:
+            problems[it["id"]] = p
+
+    # One targeted retry: skipped bullets, and bullets whose candidates broke the rules.
+    retry = [it for it in items if it["id"] not in results and (it["id"] not in cands or problems.get(it["id"]))]
+    if retry:
+        notes = "\n".join(
+            f"- Bullet {it['id']}: " + ("you skipped it." if it["id"] not in cands else "your versions were rejected because they " + " | ".join(problems[it["id"]]) + ".")
+            for it in retry)
+        retry_user = (f"Resume bullets (JSON):\n{json.dumps(payload(retry), ensure_ascii=False)}\n\nJob posting (for wording only):\n{job_description[:5000]}"
+                      f"\n\nRewrite these bullets again, following the rules strictly:\n{notes}")
+        try:
+            again, _ = await complete_json(client, REWRITE_SYSTEM_PROMPT, retry_user, _Proposal, temperature=0.2, max_tokens=4000)
+            for c in again.bullets:
+                it = next((x for x in retry if x["id"] == c.id), None)
+                if not it:
+                    continue
+                best, p = judge(it, c, missing=missing, known=known, all_bullets=all_bullets, posting_terms=supported)
+                if best:
+                    results[it["id"]] = best
+                    problems.pop(it["id"], None)
+                elif p:
+                    problems[it["id"]] = p
+                cands.setdefault(c.id, c)
+        except Exception:
+            pass  # keep what we have
+
+    exps: List[WorkExperienceRewrite] = []
+    for ji, job in enumerate(resume.work_experience):
+        bullets = [results.get(it["id"]) or _kept(it, cands.get(it["id"]), problems.get(it["id"], [])) for it in items if it["job"] == ji]
+        if bullets:
+            exps.append(WorkExperienceRewrite(company=job.company, job_title=job.job_title, rewritten_bullets=bullets))
+
+    summary, warnings = _check_summary(proposal.summary, resume, resume_text, missing)
+    withheld = sum(1 for e in exps for b in e.rewritten_bullets if (b.note or "").startswith("Rewrite withheld"))
+    kept = sum(1 for e in exps for b in e.rewritten_bullets if b.note == NO_CHANGE_NOTE)
     if withheld:
-        warnings.append(f"{withheld} rewrite(s) were withheld because they added facts that aren't in your resume; the original wording is shown instead.")
-    unchanged = sum(1 for e in report.rewritten_experiences for b in e.rewritten_bullets if b.note == "No stronger wording was suggested for this bullet.")
-    if unchanged:
-        warnings.append(f"The AI suggested no change for {unchanged} bullet(s).")
-    return report, warnings, model
+        warnings.append(f"{withheld} suggested rewrite(s) were withheld because they changed your facts; the original wording is shown instead.")
+    if kept:
+        warnings.append(f"No safe improvement was found for {kept} bullet(s); they're shown with questions instead.")
+    return ResumeRewriteReport(tailored_summary=summary, rewritten_experiences=exps), warnings, model
+
+
+# ── Compatibility for callers/tests that check one rewrite at a time ──
+
+def check_bullet(rw: BulletPointRewrite, original: str, missing: List[str], supported: List[str],
+                 known_skills: Optional[List[str]] = None, other_bullets: Optional[List[str]] = None) -> List[str]:
+    """Reasons a rewrite isn't trustworthy (empty list = fine)."""
+    return verify_rewrite(original, rw.rewritten_bullet, missing=missing, known_skills=known_skills or [], other_bullets=other_bullets or [])

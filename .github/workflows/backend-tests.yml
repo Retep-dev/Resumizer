@@ -3,7 +3,7 @@ name: Backend tests
 on:
   push:
     branches: [main, "design/**"]
-    paths: ["backend/**", ".github/workflows/backend-tests.yml"]
+    paths: ["backend/**", "!backend/eval/request.json", ".github/workflows/backend-tests.yml"]
   pull_request:
     paths: ["backend/**"]
   workflow_dispatch:

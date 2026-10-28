@@ -120,23 +120,33 @@ def data_jd_json() -> str:
     })
 
 
+# Bullet ids follow resume order: 1-3 Halcyon Freight, 4-5 Brightwell Insurance.
+PRIYA_BULLETS = [
+    "Maintain Airflow pipelines that load shipment data into Snowflake.",
+    "Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks.",
+    "Mentored two junior engineers.",
+    "Built weekly claims dashboards in Tableau for the operations team.",
+    "Wrote SQL models that the pricing team used for monthly reporting.",
+]
+
+
+def proposal_json(bullets=None, summary=None) -> str:
+    """bullets: {id: (safe, strong)} or {id: (safe, strong, [questions])}."""
+    out = []
+    for i, v in (bullets or {}).items():
+        safe, strong = v[0], v[1]
+        out.append({"id": i, "safe": safe, "strong": strong, "questions": list(v[2]) if len(v) > 2 else []})
+    return json.dumps({"bullets": out, "summary": summary})
+
+
 def good_rewrite_json() -> str:
-    return json.dumps({
-        "tailored_summary": "Data engineer who builds reliable Airflow and Snowflake pipelines for logistics and insurance analytics.",
-        "rewritten_experiences": [{
-            "company": "Halcyon Freight", "job_title": "Senior Data Engineer",
-            "rewritten_bullets": [
-                {"original_bullet": "Maintain Airflow pipelines that load shipment data into Snowflake.",
-                 "rewritten_bullet": "Maintain the Airflow orchestration pipelines that load shipment data into Snowflake.",
-                 "star_action": "Maintain Airflow pipelines", "star_result": "",
-                 "added_keywords": ["Airflow", "Snowflake"],
-                 "needs_confirmation": ["How many pipelines or how much data do they move each day?"]},
-                {"original_bullet": "Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks.",
-                 "rewritten_bullet": "Cut nightly load failures from 9 to 2 per month by adding data quality checks.",
-                 "star_action": "Added data quality checks", "star_result": "Failures fell from 9 to 2 per month",
-                 "added_keywords": [], "needs_confirmation": []},
-            ]}],
-    })
+    return proposal_json({
+        1: ("Maintain the Airflow pipelines that load shipment data into Snowflake.",
+            "Maintain the Airflow pipelines that load shipment data into Snowflake [about N GB a day].",
+            ["How much shipment data do the pipelines load each day?"]),
+        2: ("Cut nightly load failures from 9 to 2 per month by adding data quality checks.",
+            "Cut nightly load failures from 9 to 2 per month by adding data quality checks to the pipelines."),
+    }, summary="Data engineer who builds reliable Airflow and Snowflake pipelines for logistics and insurance analytics.")
 
 
 def interview_json(answer_extra: str = "") -> str:
@@ -159,7 +169,7 @@ class FakeClient(ChatClient):
     ROUTES = {
         "extract facts from a resume": "parse",
         "read a job description": "job",
-        "careful resume editor": "rewrite",
+        "expert resume editor": "rewrite",
         "hiring manager preparing": "interview",
         "career coach": "coach",
     }

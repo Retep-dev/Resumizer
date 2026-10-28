@@ -108,6 +108,7 @@ class BulletPointRewrite(BaseModel):
     needs_confirmation: List[str] = Field(default_factory=list, description="Questions for the candidate, e.g. a metric to add")
     status: Literal["rewritten", "kept_original"] = "rewritten"
     note: Optional[str] = None
+    checks: List[str] = Field(default_factory=list, description="What was verified against the original, in plain English")
 
     @field_validator("star_action", "star_result", mode="before")
     @classmethod

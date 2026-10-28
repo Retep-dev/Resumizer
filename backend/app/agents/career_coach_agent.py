@@ -205,7 +205,7 @@ async def chat_with_career_coach(
     analysis: dict,
     client: Optional[ChatClient] = None,
 ) -> str:
-    client = client or get_client()
+    client = client or get_client("coach")
     system = COACH_SYSTEM_PROMPT.format(
         resume=(resume_text or _resume_from_analysis(analysis))[:12000],
         job=(job_description or "(not available)")[:8000],
