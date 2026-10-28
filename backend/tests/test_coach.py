@@ -274,7 +274,7 @@ def test_round3_misses_two_candidate_targets_dont_dilute_detection(case_id, ques
     case = next(c for c in CASES if c["id"] == case_id)
     ctx = context(case)
     targets = target_bullets(question, ctx["bullets"])
-    assert target in targets and len(targets) == 2  # the tie that caused the miss
+    assert target in targets  # (this used to tie with a second bullet, which diluted detection)
     led = build_ledger(case["resume"], ctx["analysis"], [question])
     assert rewrite_problems(reply, targets, led, ctx["known"], ctx["bullets"], case["resume"], case["jd"])
 
@@ -325,6 +325,14 @@ def test_honest_answers_are_not_flagged(case_id, reply):
      "- \"I'm currently learning Power BI and have started a financial model for a personal budget.\"", True),
     ("aisha", "Rewrite my bullet about helping new agents.",
      "**\"Helped new agents get up to speed by answering their questions and sitting with them on calls, reducing ramp-up time for new hires.\"**", True),
+    # Live preview (round 5): heavy rewording of an acronym bullet ("SLA") was not recognised as the requested rewrite.
+    ("aisha", "Rewrite my SLA bullet so it's stronger.",
+     "Current: • Responsible for making sure SLAs were met, which went from 82% to 95% over the year.\n\n"
+     "Stronger: • Owned SLA management for UK market support: raised first-response compliance from 82% to 95% in 12 months "
+     "by introducing real-time queue monitoring in Zendesk and a daily escalation handoff process.", True),
+    ("aisha", "Rewrite my SLA bullet so it's stronger.",
+     "Current: • Responsible for making sure SLAs were met, which went from 82% to 95% over the year.\n\n"
+     "Stronger: • Owned SLAs, which rose from 82% to 95% over the year.", False),
     ("priya", "How should I handle the AWS gap?", "That way I can focus my learning on the areas that matter most.", False),
     ("tomas", "How should I handle the TypeScript gap?", "Those are the patterns TypeScript is often used to protect, so I'm already working in the right space.", False),
 ])

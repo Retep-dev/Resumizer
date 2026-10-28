@@ -18,8 +18,15 @@ _GENERIC = {"bullet", "bullets", "point", "line", "rewrite", "stronger", "better
 
 def _words(text: str) -> set:
     """Content words as lemmas, so 'scheduled' and 'scheduling' count as the same word."""
-    return {w if w.isdigit() else lemma(w) for w in re.findall(r"[a-z][a-z0-9+#.]*|\d+", normalize(text).lower())
-            if (len(w) >= 4 or w.isdigit()) and w not in _GENERIC}
+    out = set()
+    for tok in re.findall(r"[A-Za-z][A-Za-z0-9+#.]*|\d+", normalize(text)):
+        tok = tok.rstrip(".")
+        w = tok.lower()
+        # Short acronyms (SLA, KPI, SQL, CRM) are content words; other short words are not.
+        acronym = 2 <= len(tok) <= 3 and tok.isupper()
+        if (len(w) >= 4 or w.isdigit() or acronym) and w not in _GENERIC:
+            out.add(w if w.isdigit() or acronym else lemma(w))
+    return out
 
 
 def _best_overlap(text: str, targets: List[str]) -> float:
@@ -176,7 +183,7 @@ def scripted_claims(reply: str, ledger: Ledger, resume_text: str) -> List[Proble
     return out
 
 
-_LINE_PREFIX = re.compile(r"^\s*(?:[-*•→>]+\s*|\d+[.)]\s*|\*\*[^*]{0,40}\*\*\s*:?\s*|(?:option \d+|rewrite|rewritten|new version|stronger version|version \d+|safe|strong|suggested|after)\s*[:—-]\s*)+", re.IGNORECASE)
+_LINE_PREFIX = re.compile(r"^\s*(?:[-*•→>]+\s*|\d+[.)]\s*|\*\*[^*]{0,40}\*\*\s*:?\s*|(?:option \d+|rewrite|rewritten|new version|stronger version|version \d+|safe|strong|stronger|suggested|after|before|current|original|improved|revised|updated|polished|tighter|final)\s*[:—-]\s*|[A-Za-z][A-Za-z ]{0,24}:\s*(?=[-*•]))+", re.IGNORECASE)
 
 
 def _clean_line(line: str) -> str:
@@ -205,6 +212,19 @@ def bullet_segments(raw: str, bullet: str = "") -> List[str]:
     return [clean]
 
 
+_NUM_RE = re.compile(r"\d+(?:\.\d+)?")
+
+
+def _is_version(line: str, targets: List[str]) -> bool:
+    """A line is a version of the requested bullet if it shares most of its words, or (for heavier
+    rewording) some of its words plus every number the bullet states."""
+    ov = _best_overlap(line, targets)
+    if ov >= 0.4:
+        return True
+    nums = set(_NUM_RE.findall(line))
+    return ov >= 0.2 and any(set(_NUM_RE.findall(t)) and set(_NUM_RE.findall(t)) <= nums for t in targets)
+
+
 def rewrite_problems(reply: str, targets: List[str], ledger: Ledger, known: List[str], bullets: List[str],
                      resume_text: str, job_description: str) -> List[Problem]:
     """Verify every quoted or bullet-like line that is a version of the requested bullet, exactly as rewrites are verified."""
@@ -214,7 +234,7 @@ def rewrite_problems(reply: str, targets: List[str], ledger: Ledger, known: List
     missing = [m for m in ledger.missing if m not in ledger.may_claim()]
     for raw in normalize(reply or "").splitlines():
         for line in bullet_segments(raw):
-            if _best_overlap(line, targets) < 0.4:
+            if not _is_version(line, targets):
                 continue
             target = max(targets, key=lambda t: len(_words(t) & _words(line)))
             if " ".join(line.lower().split()).strip(" .") == " ".join(target.lower().split()).strip(" ."):
@@ -313,7 +333,7 @@ def silent_rewrites(reply: str, bullets: List[str], ledger: Ledger, known: List[
     missing = [m for m in ledger.missing if m not in ledger.may_claim()]
     for raw in normalize(reply or "").splitlines():
         for line in bullet_segments(raw):
-            if skip_targets and _best_overlap(line, skip_targets) >= 0.4:
+            if skip_targets and _is_version(line, skip_targets):
                 continue  # a version of the requested bullet: rewrite_problems judges it
             scored = [(len(_words(line) & _words(b)) / max(len(_words(b)), 1), b) for b in bullets if b not in skip_targets]
             if not scored:
