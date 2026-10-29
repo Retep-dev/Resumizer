@@ -8,6 +8,17 @@ def _csv(value: str):
     return [v.strip() for v in value.split(",") if v.strip()]
 
 
+# Production defaults: Groq free plan only (the one free provider whose terms allow serving real users).
+# Each task leads with a different model because Groq's free quotas are per model. Provisional until the
+# Groq evaluation (backend/eval) confirms the choice.
+PRODUCTION_CHAINS = {
+    "analysis": ["groq:openai/gpt-oss-20b", "groq:qwen/qwen3.8-27b"],
+    "interview": ["groq:openai/gpt-oss-20b", "groq:qwen/qwen3.8-27b"],
+    "rewrite": ["groq:openai/gpt-oss-120b", "groq:qwen/qwen3.8-27b"],
+    "coach": ["groq:qwen/qwen3.8-27b", "groq:openai/gpt-oss-120b"],
+}
+
+
 class Settings:
     # Strip whitespace and quotes: keys pasted into secret stores often pick up a
     # trailing newline, which makes the Authorization header invalid.
@@ -60,15 +71,7 @@ class Settings:
         if raw:
             entries = _csv(raw)
         elif os.getenv("AI_DEPLOYMENT", "production").strip().lower() != "evaluation":
-            # Production: Groq free plan only (the one free provider whose terms allow serving real users).
-            # Each task leads with a different model because Groq's free quotas are per model, so spreading
-            # tasks spreads load. Provisional until the Groq evaluation (backend/eval) confirms the choice.
-            entries = {
-                "analysis": ["groq:openai/gpt-oss-20b", "groq:qwen/qwen3.8-27b"],
-                "interview": ["groq:openai/gpt-oss-20b", "groq:qwen/qwen3.8-27b"],
-                "rewrite": ["groq:openai/gpt-oss-120b", "groq:qwen/qwen3.8-27b"],
-                "coach": ["groq:qwen/qwen3.8-27b", "groq:openai/gpt-oss-120b"],
-            }.get(task, ["groq:openai/gpt-oss-20b"])
+            entries = PRODUCTION_CHAINS.get(task, PRODUCTION_CHAINS["analysis"])
         else:
             # Free-only defaults chosen by the writing evaluation (backend/eval). Writing tasks lead with the
             # larger Nemotron model; extraction stays on the fast one. Thinking modes are excluded: they

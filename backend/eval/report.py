@@ -98,7 +98,7 @@ def examples(results: List[Dict], spec: str, pipe: str, limit: int = 40) -> str:
 
 def main(paths: List[str]):
     results = [json.loads(Path(p).read_text()) for p in paths]
-    rrows, crows = [], []
+    rrows, crows, irows, jrows = [], [], [], []
     for res in results:
         for spec, entry in res["models"].items():
             for k, block in entry.items():
@@ -106,12 +106,23 @@ def main(paths: List[str]):
                     rrows.append(rewrite_row(spec, k[8:], block))
                 elif k.startswith("coach"):
                     crows.append(coach_row(spec, k.split("_", 1)[1] if "_" in k else "baseline", block))
+                elif k == "interview":
+                    irows.append({"model": spec, **{x: y for x, y in block["summary"].items() if x not in ("prompt_tokens", "completion_tokens")},
+                                  "tokens_per_case": round((block["summary"]["prompt_tokens"] + block["summary"]["completion_tokens"]) / max(block["summary"]["cases"], 1))})
+                elif k == "journey":
+                    sm = block["summary"]
+                    jrows.append({"model": spec, "cases": sm["cases"], "errors": sm["errors"], "stages_fell_back": sm["fell_back"],
+                                  **{f"{t}_req/tok": f"{v['requests']} / {v['prompt_tokens'] + v['completion_tokens']:,}" for t, v in sm["per_journey_avg"].items()},
+                                  "tokens_per_journey": f"{sm['tokens_per_journey']:,}", "largest_request": sm["max_single_request_tokens"],
+                                  "failed_requests": sm["failed_requests"], "analysis_s": sm["analysis_seconds"]})
     print("## Rewrites\n")
     print(table(rrows))
     print("## Coach\n")
     print(table(crows))
-    print("## Cost estimate\n")
-    print(table(cost_rows(rrows, crows)))
+    print("## Interview prep\n")
+    print(table(irows))
+    print("## User journey (1 analysis + 5 coach messages)\n")
+    print(table(jrows))
     for spec in {r["model"] for r in rrows}:
         for pipe in ("baseline", "v2"):
             ex = examples(results, spec, pipe)

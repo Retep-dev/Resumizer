@@ -172,9 +172,17 @@ async def eval_interview(spec: str, case: Dict, ctx: Dict) -> Dict:
             **audit_interview(report, case, ctx)}
 
 
+def journey_client(spec: str, task: str) -> ChatClient:
+    """'production-chains' = the app's production default chain for each task; otherwise one spec for every task."""
+    if spec == "production-chains":
+        from app.config import PRODUCTION_CHAINS
+        return make_client(",".join(PRODUCTION_CHAINS[task]))
+    return make_client(spec)
+
+
 async def eval_journey(spec: str, case: Dict, ctx: Dict) -> Dict:
     """The whole analysis exactly as the app runs it (AI parsing included), plus 5 coach turns: requests and tokens per task."""
-    recs = {t: Recorder(make_client(spec)) for t in ("analysis", "rewrite", "interview", "coach")}
+    recs = {t: Recorder(journey_client(spec, t)) for t in ("analysis", "rewrite", "interview", "coach")}
     t0 = time.monotonic()
     out: Dict = {"case": case["id"]}
     try:
@@ -271,43 +279,59 @@ def summarize_coach(runs: List[Dict]) -> Dict:
     }
 
 
+async def run_model(spec: str, req: Dict, cases: List[Dict], ctxs: Dict, results: Dict, out_dir: Path):
+    entry = results["models"].setdefault(spec, {})
+    journey_cases = [c for c in cases if req.get("journey_cases", "all") == "all" or c["id"] in req["journey_cases"]]
+
+    def save():
+        (out_dir / "results.json").write_text(json.dumps(results, indent=1, ensure_ascii=False))
+
+    for pipeline in req.get("pipelines", ["v2"]) if "rewrite" in req.get("tasks", ["rewrite"]) else []:
+        runs = []
+        for c in cases:
+            print(f"[{spec}] rewrite/{pipeline}/{c['id']}", flush=True)
+            runs.append(await eval_rewrite(spec, pipeline, c, ctxs[c["id"]]))
+        entry[f"rewrite_{pipeline}"] = {"summary": summarize_rewrites(runs), "runs": runs}
+        print(json.dumps(entry[f"rewrite_{pipeline}"]["summary"]), flush=True)
+        save()
+    if "interview" in req.get("tasks", []):
+        runs = []
+        for c in cases:
+            print(f"[{spec}] interview/{c['id']}", flush=True)
+            runs.append(await eval_interview(spec, c, ctxs[c["id"]]))
+        entry["interview"] = {"summary": summarize_interview(runs), "runs": runs}
+        print(json.dumps(entry["interview"]["summary"]), flush=True)
+        save()
+    for impl in req.get("coach", ["v2"]) if "coach" in req.get("tasks", []) else []:
+        COACH["impl"] = impl
+        runs = []
+        for c in cases:
+            print(f"[{spec}] coach-{impl}/{c['id']}", flush=True)
+            runs.append(await eval_coach(spec, c, ctxs[c["id"]]))
+        entry[f"coach_{impl}"] = {"summary": summarize_coach(runs), "runs": runs}
+        print(json.dumps(entry[f"coach_{impl}"]["summary"]), flush=True)
+        save()
+    if "journey" in req.get("tasks", []):
+        runs = []
+        for c in journey_cases:
+            print(f"[{spec}] journey/{c['id']}", flush=True)
+            runs.append(await eval_journey(spec, c, ctxs[c["id"]]))
+        entry["journey"] = {"summary": summarize_journeys(runs), "runs": runs}
+        print(json.dumps(entry["journey"]["summary"]), flush=True)
+        save()
+
+
 async def main(req: Dict, out_dir: Path):
     out_dir.mkdir(parents=True, exist_ok=True)
     cases = [c for c in CASES if req.get("cases", "all") == "all" or c["id"] in req["cases"]]
     ctxs = {c["id"]: context(c) for c in cases}
     results = {"request": req, "started": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "models": {}}
-    for spec in req["models"]:
-        entry = results["models"].setdefault(spec, {})
-        for pipeline in req.get("pipelines", ["v2"]) if "rewrite" in req.get("tasks", ["rewrite"]) else []:
-            runs = []
-            for c in cases:
-                print(f"[{spec}] rewrite/{pipeline}/{c['id']}", flush=True)
-                runs.append(await eval_rewrite(spec, pipeline, c, ctxs[c["id"]]))
-            entry[f"rewrite_{pipeline}"] = {"summary": summarize_rewrites(runs), "runs": runs}
-            print(json.dumps(entry[f"rewrite_{pipeline}"]["summary"]), flush=True)
-        for impl in req.get("coach", ["v2"]) if "coach" in req.get("tasks", []) else []:
-            COACH["impl"] = impl
-            runs = []
-            for c in cases:
-                print(f"[{spec}] coach-{impl}/{c['id']}", flush=True)
-                runs.append(await eval_coach(spec, c, ctxs[c["id"]]))
-            entry[f"coach_{impl}"] = {"summary": summarize_coach(runs), "runs": runs}
-            print(json.dumps(entry[f"coach_{impl}"]["summary"]), flush=True)
-        if "interview" in req.get("tasks", []):
-            runs = []
-            for c in cases:
-                print(f"[{spec}] interview/{c['id']}", flush=True)
-                runs.append(await eval_interview(spec, c, ctxs[c["id"]]))
-            entry["interview"] = {"summary": summarize_interview(runs), "runs": runs}
-            print(json.dumps(entry["interview"]["summary"]), flush=True)
-        if "journey" in req.get("tasks", []):
-            runs = []
-            for c in cases:
-                print(f"[{spec}] journey/{c['id']}", flush=True)
-                runs.append(await eval_journey(spec, c, ctxs[c["id"]]))
-            entry["journey"] = {"summary": summarize_journeys(runs), "runs": runs}
-            print(json.dumps(entry["journey"]["summary"]), flush=True)
-        (out_dir / "results.json").write_text(json.dumps(results, indent=1, ensure_ascii=False))
+    if req.get("parallel_models"):
+        # Free quotas are per model, so models can run side by side without sharing a limit.
+        await asyncio.gather(*(run_model(spec, req, cases, ctxs, results, out_dir) for spec in req["models"]))
+    else:
+        for spec in req["models"]:
+            await run_model(spec, req, cases, ctxs, results, out_dir)
     results["finished"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     (out_dir / "results.json").write_text(json.dumps(results, indent=1, ensure_ascii=False))
     return results
