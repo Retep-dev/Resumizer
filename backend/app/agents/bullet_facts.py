@@ -203,6 +203,73 @@ def distinctive_words(text: str, exclude: Set[str]) -> Set[str]:
     return {lemma(w) for w in words(text, keep_brackets=False) if len(w) >= 4 and lemma(w) not in _FUNCTION_LEMMAS} - exclude
 
 
+# ── Meaning checks: who did what with whom, how much of it, when, and what came of it ──
+
+# Words that set up a relationship between the candidate and other people. Introducing one the original
+# doesn't have changes who did what ("sat with new agents on calls" → "shadowed calls" reverses who watched).
+_RELATION_GROUPS = {
+    "observing someone else's work": r"\bshadow\w*|\bobserv\w*|\bsat in on\b|\bsit in on\b",
+    "working under someone": r"\bunder (?:the )?(?:supervision|guidance|direction)\b|\bsupervised by\b|\breport(?:ed|ing|s)? to\b|\bmentored by\b|\btrained by\b|\bcoached by\b",
+    "acting on someone's behalf": r"\bon behalf of\b",
+}
+# Words that make the candidate's part bigger than the original says.
+_SCOPE_UP = r"\b(?:independently|single-handedly|singlehandedly|solely|sole|alone|by myself|on my own|from scratch|end-to-end|entire|entirely|all|every|full|fully|company-wide|organization-wide|organisation-wide|whole)\b"
+# Words that say the work was shared or partial. If the original has one, the rewrite must keep one.
+_SHARED = r"\b(?:team|teams|group|alongside|jointly|together|co-\w+|colleagues?|assist\w*|support\w*|contribut\w*|participat\w*|part of|help(?:ed|ing|s)?\b(?!\s+(?:centre|center|desk|line|page|articles?|docs?|content)))\b"
+# Qualifiers that limit a claim: plans, attempts, targets and estimates are not results.
+_QUALIFIERS = r"\b(?:plan\w*|propos\w*|recommend\w*|suggest\w*|pilot\w*|draft\w*|trial\w*|attempt\w*|tried|try|aim\w*|goal|target\w*|expected|projected|estimated|forecast\w*|partial\w*|partly|nominated|shortlisted|finalist|runner-up|in progress|ongoing|working on|initial|prototype\w*)\b"
+# Recurring periods. Changing one changes the chronology ("weekly reports" → "daily reports").
+_PERIODS = {"day": r"\bdaily\b|\bper day\b|\ba day\b|\beach day\b|\bevery day\b|\bdays?\b",
+            "week": r"\bweekly\b|\bweeks?\b", "month": r"\bmonthly\b|\bmonths?\b", "quarter": r"\bquarterly\b|\bquarters?\b",
+            "year": r"\byearly\b|\bannual\w*\b|\byears?\b", "night": r"\bnightly\b|\bnights?\b|\bovernight\b",
+            "hour": r"\bhourly\b|\bhours?\b", "shift": r"\bshifts?\b"}
+# Results and recognition. Dropping one loses an accomplishment the candidate has.
+_ACCOMPLISHMENTS = {"award", "recognition", "recognised", "recognized", "promote", "praise", "commend", "select", "win", "won",
+                    "certify", "record", "rank", "exceed", "surpass", "achieve", "save", "satisfaction", "revenue", "profit",
+                    "accuracy", "retention", "conversion", "uptime", "productivity", "efficiency", "compliance", "growth"}
+_ACCOMPLISHMENT_LEMMAS = {lemma(w) for w in _ACCOMPLISHMENTS}
+
+
+def _plain(text: str) -> str:
+    return normalize(re.sub(r"\[[^\]]*\]", " ", text or "")).lower()
+
+
+def meaning_problems(original: str, rewrite: str) -> List[str]:
+    """Changes of meaning that keep every fact word-for-word but still misdescribe the work."""
+    o, r = _plain(original), _plain(rewrite)
+    out = []
+    for what, pat in _RELATION_GROUPS.items():
+        if re.search(pat, r) and not re.search(pat, o):
+            out.append(f"changed who did what (it now describes {what})")
+    passive = (r"\b(?:was|were|been|being|is|are|got)\s+(?:\w+ly\s+)?\w+(?:ed|ght|en|wn)\s+by\b|"
+               r"\b(?:mentored|trained|coached|supervised|managed|led|taught|guided|assisted|supported|directed|overseen|hired|chosen|selected|assigned)\s+by\b")
+    if re.search(passive, o) and not re.search(passive, r):
+        out.append("changed who did what (the original says someone else did it to or for you)")
+    up = sorted({m.group(0) for m in re.finditer(_SCOPE_UP, r)} - {m.group(0) for m in re.finditer(_SCOPE_UP, o)})
+    if up:
+        out.append(f"made your part bigger than the original says ({', '.join(up)})")
+    if re.search(_SHARED, o) and not re.search(_SHARED, r):
+        out.append("dropped that this was shared or team work")
+    lost_q = sorted({m.group(0) for m in re.finditer(_QUALIFIERS, o)} - {m.group(0) for m in re.finditer(_QUALIFIERS, r)})
+    if lost_q and not any(re.search(rf"\b{re.escape(lemma(q))}", r) for q in lost_q):
+        out.append(f"dropped a qualifier that limits the claim ({', '.join(lost_q)})")
+    op = {k for k, pat in _PERIODS.items() if re.search(pat, o)}
+    rp = {k for k, pat in _PERIODS.items() if re.search(pat, r)}
+    added, gone = sorted(rp - op), sorted(op - rp)
+    if added and gone:
+        out.append(f"changed the timeframe ({', '.join(gone)} → {', '.join(added)})")
+    elif added:
+        out.append(f"added a time detail the original doesn't give ({', '.join(added)})")
+    elif gone:
+        out.append(f"dropped a time detail from the original ({', '.join(gone)})")
+    ol = {lemma(w) for w in words(original, keep_brackets=False)}
+    rl = {lemma(w) for w in words(rewrite, keep_brackets=False)}
+    lost_a = sorted((ol & _ACCOMPLISHMENT_LEMMAS) - rl)
+    if lost_a:
+        out.append(f"dropped a result the original states ({', '.join(lost_a)})")
+    return out
+
+
 def verify_rewrite(original: str, rewrite: str, *, missing: Iterable[str] = (), known_skills: Iterable[str] = (),
                    other_bullets: Iterable[str] = ()) -> List[str]:
     """Reasons the rewrite says something the original doesn't (empty list = faithful)."""
@@ -262,6 +329,8 @@ def verify_rewrite(original: str, rewrite: str, *, missing: Iterable[str] = (), 
     new_outcomes = sorted({w for w in words(rewrite, keep_brackets=False) if lemma(w) in _OUTCOME_LEMMAS and lemma(w) not in orig_lemmas})
     if new_outcomes:
         problems.append(f"added an outcome or claim the original doesn't state ({', '.join(new_outcomes)})")
+
+    problems += meaning_problems(original, rewrite)
 
     keep = distinctive_words(original, set())
     got = distinctive_words(rewrite, set())

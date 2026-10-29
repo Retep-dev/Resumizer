@@ -44,13 +44,18 @@ How to improve a bullet (use whatever fits):
 Never:
 - add numbers, tools, skills, team sizes, purposes, benefits or results the bullet doesn't state (no "improving accuracy", "saving time", "boosting performance", "for stakeholders");
 - upgrade the action (helped → led, maintained → built, mentored → managed, worked with → led);
-- move facts in from another bullet or merge bullets;
+- move facts in from another bullet or merge bullets, or add details from the job title (e.g. "night shift");
+- change who did what with whom ("sat with new agents on calls" is not "shadowed calls"; "trained by" is not "trained");
+- drop that work was shared ("part of the team that", "helped", "supported") or make it bigger ("all", "independently", "end-to-end");
+- change or add how often or when ("weekly" stays weekly, "over the year" stays over the year);
+- turn a plan, proposal, target or attempt into a result, or drop a result or award the bullet states;
 - use any skill from missing_skills, even inside a placeholder.
 
 Examples (other professions):
 - "Responsible for training new cashiers." → safe: "Trained new cashiers." strong: "Trained [N] new cashiers."
 - "Reduced average patient wait time from 40 to 25 minutes by reorganising triage." → safe: "Cut average patient wait time from 40 to 25 minutes by reorganising triage." strong: "Cut average patient wait time from 40 to 25 minutes by reorganising the triage process [across N clinics]."
 - "Helped prepare quarterly board reports." → safe: "Helped prepare the quarterly board reports." strong: "Helped prepare quarterly board reports [covering which areas]."
+- "Part of the crew that refitted the store layout in 2021." → safe: "Helped refit the store layout in 2021." (keeps that it was shared work)
 - Wrong: "Helped prepare quarterly board reports." → "Led quarterly board reporting, improving executive decisions." (upgrades the action and invents a benefit)
 
 Also write "questions": 1-2 short questions whose answers would fill the placeholder or make the bullet stronger.

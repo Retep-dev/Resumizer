@@ -46,6 +46,15 @@ GOOD = [
      "Helped move the help centre to a new platform in 2020."),
     ("Handled around 60 chats a day with a customer satisfaction score of 4.7 out of 5.",
      "Handled around 60 chats a day while keeping a 4.7 out of 5 customer satisfaction score."),
+    # Meaning-preserving edits that the meaning checks must still accept.
+    ("Worked closely with the product team giving them feedback from customers about bugs.",
+     "Collaborated with the product team, sharing customer feedback on bugs."),
+    ("Supported the finance team during the annual audit.",
+     "Supported the finance team through the annual audit."),
+    ("Ran weekly stand-ups for a team of 6.",
+     "Ran the weekly stand-ups for a team of 6."),
+    ("Shadowed senior nurses on night shifts.",
+     "Shadowed senior nurses during night shifts."),
 ]
 
 BAD = [
@@ -71,4 +80,21 @@ BAD = [
      "Led cross-functional collaboration with designers in Figma to ship a new onboarding screen.", "invented leadership"),
     ("Maintained the company WordPress site and fixed CSS bugs.",
      "Maintained the company WordPress site and fixed CSS bugs, improving site performance and SEO.", "invented results"),
+    # Meaning changes that keep every fact word-for-word (round 5).
+    ("Helped new agents get up to speed by answering their questions and sitting with them on calls.",
+     "Helped new agents ramp up by answering questions and shadowing calls.", "reversed who watched whom"),
+    ("Part of the team that moved the help centre to a new platform in 2020.",
+     "Moved the help centre to a new platform in 2020.", "team work made solo"),
+    ("Did weekly reporting on ticket volumes for management using Zendesk and Excel.",
+     "Reported daily ticket volumes to management using Zendesk and Excel.", "changed the timeframe"),
+    ("Maintained the shipping dashboards in Tableau.",
+     "Independently maintained all shipping dashboards in Tableau.", "inflated scope"),
+    ("Was trained by the senior pharmacist on stock audits.",
+     "Trained the senior pharmacist on stock audits.", "reversed who trained whom"),
+    ("Handled refund requests, earning a team recognition award in 2022.",
+     "Handled refund requests in 2022.", "dropped an accomplishment"),
+    ("Set a target to cut onboarding time from 10 days to 7.",
+     "Cut onboarding time from 10 days to 7.", "a target turned into a result"),
+    ("Proposed a new triage checklist for the emergency department.",
+     "Introduced a new triage checklist for the emergency department.", "a proposal turned into a change"),
 ]
