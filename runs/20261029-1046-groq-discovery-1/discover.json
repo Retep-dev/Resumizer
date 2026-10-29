@@ -1,0 +1,7 @@
+{
+ "status": {
+  "groq": "off: no GROQ_API_KEY on the server"
+ },
+ "listed": {},
+ "probed": []
+}
