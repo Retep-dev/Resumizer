@@ -31,12 +31,15 @@ class ProviderError(Exception):
           'timeout' | 'network' | 'server' | 'bad_request' | 'bad_response'
     """
 
-    def __init__(self, kind: str, message: str, model: Optional[str] = None, status: Optional[int] = None):
+    def __init__(self, kind: str, message: str, model: Optional[str] = None, status: Optional[int] = None,
+                 retry_after: Optional[float] = None, scope: Optional[str] = None):
         super().__init__(message)
         self.kind = kind
         self.message = message
         self.model = model
         self.status = status
+        self.retry_after = retry_after  # seconds, from the provider's Retry-After header
+        self.scope = scope              # 'minute' or 'day' for rate limits, when the provider says which
 
     @property
     def retryable(self) -> bool:
@@ -54,6 +57,7 @@ class Completion:
     prompt_tokens: int = 0
     completion_tokens: int = 0
     seconds: float = 0.0
+    quota: Dict[str, str] = field(default_factory=dict)  # provider's x-ratelimit-* headers (remaining requests/tokens)
 
 
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
@@ -62,6 +66,8 @@ _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
 def _clean_message(text: str, limit: int = 300) -> str:
     """Strip anything that could be a credential and cap length."""
     t = re.sub(r"nvapi-[A-Za-z0-9_\-]+", "nvapi-***", text or "")
+    t = re.sub(r"gsk_[A-Za-z0-9]+", "gsk_***", t)
+    t = re.sub(r"csk-[A-Za-z0-9]+", "csk-***", t)
     t = re.sub(r"(?i)bearer\s+[A-Za-z0-9_\-.]+", "Bearer ***", t)
     t = " ".join(t.split())
     return t[:limit]
@@ -93,8 +99,11 @@ class OpenAICompatibleClient(ChatClient):
     provider: str = "openai"
 
     def _payload(self, model: str, messages, temperature, max_tokens, json_mode):
-        name, _ = split_options(model)
+        name, opts = split_options(model)
         body = {"model": name, "messages": messages, "temperature": temperature, "max_tokens": max_tokens, "stream": False}
+        effort = opts & {"low", "medium", "high"}
+        if effort:  # reasoning models (gpt-oss): less reasoning = fewer tokens against the free quota
+            body["reasoning_effort"] = effort.pop()
         if json_mode:
             body["response_format"] = {"type": "json_object"}
         return body
@@ -135,7 +144,8 @@ class OpenAICompatibleClient(ChatClient):
             if not text:
                 raise ProviderError("bad_response", "The model returned an empty answer", model, 200)
             usage = data.get("usage") or {}
-            return Completion(text=text, model=model, provider=self.provider,
+            quota = {k.lower(): v for k, v in (getattr(r, "headers", None) or {}).items() if k.lower().startswith("x-ratelimit-")}
+            return Completion(text=text, model=model, provider=self.provider, quota=quota,
                               prompt_tokens=int(usage.get("prompt_tokens") or 0), completion_tokens=int(usage.get("completion_tokens") or 0))
 
         detail = _clean_message(r.text)
@@ -144,8 +154,14 @@ class OpenAICompatibleClient(ChatClient):
         low = detail.lower()
         if r.status_code in (404, 410) or "end of life" in low or (r.status_code == 400 and "not found" in low):
             raise ProviderError("model_unavailable", f"{model} is not available: {detail}", model, r.status_code)
-        if r.status_code == 429:
-            raise ProviderError("rate_limited", "The provider's rate limit was hit", model, 429)
+        if r.status_code == 429 or (r.status_code == 413 and "rate limit" in low):
+            try:
+                retry_after = float((getattr(r, "headers", None) or {}).get("retry-after", ""))
+            except (TypeError, ValueError):
+                retry_after = None
+            scope = "day" if re.search(r"per day|\b(tpd|rpd)\b", low) else "minute" if re.search(r"per minute|\b(tpm|rpm)\b", low) else None
+            raise ProviderError("rate_limited", "The provider's free rate limit was hit" + (" for today" if scope == "day" else ""),
+                                model, r.status_code, retry_after=retry_after, scope=scope)
         if r.status_code >= 500:
             raise ProviderError("server", f"Provider error {r.status_code}: {detail}", model, r.status_code)
         raise ProviderError("bad_request", f"Provider rejected the request ({r.status_code}): {detail}", model, r.status_code)
@@ -169,8 +185,14 @@ class OpenAICompatibleClient(ChatClient):
                         break
                     if e.kind in ("auth", "not_configured", "bad_request"):
                         raise
+                    if e.kind == "rate_limited" and e.scope == "day":
+                        break  # nothing to wait for today: let the router try another free model
                     if e.retryable and attempt == 0:
-                        time.sleep(2.0 if e.kind == "rate_limited" else 1.0)
+                        wait = 1.0
+                        if e.kind == "rate_limited":
+                            # A per-minute token limit clears within seconds; waiting is cheaper than failing over.
+                            wait = min(e.retry_after, 20.0) + 0.5 if e.retry_after is not None else 2.0
+                        time.sleep(wait)
                         continue
                     break  # retryable failure twice: move to the next model
         if last and last.kind == "model_unavailable":
@@ -194,7 +216,7 @@ class NvidiaChatClient(OpenAICompatibleClient):
         if "nemotron-3" in name or "nemotron-nano-3" in name:
             # Nemotron 3 models reason by default. Off unless the chain asks for "@think".
             body["chat_template_kwargs"] = {"enable_thinking": "think" in opts}
-        if "gpt-oss" in name:
+        if "gpt-oss" in name and "reasoning_effort" not in body:
             # Reasoning tokens count against max_tokens; keep reasoning short so an answer is produced.
             body["reasoning_effort"] = "medium" if "think" in opts else "low"
         return body

@@ -30,12 +30,51 @@ from app.llm.provider import ChatClient, Completion, NvidiaChatClient, OpenAICom
 
 log = logging.getLogger("resumizer.llm")
 
-FREE_PROVIDERS: Dict[str, Dict[str, str]] = {
-    "nvidia": {"base": "", "terms": "free trial: NVIDIA's terms allow internal testing and evaluation only, not production"},
-    "groq": {"base": "https://api.groq.com/openai/v1", "terms": "free tier; Groq does not train on inputs or outputs; enable Zero Data Retention"},
-    "cerebras": {"base": "https://api.cerebras.ai/v1", "terms": "free tier; Cerebras states it does not retain inputs or outputs"},
+FREE_PROVIDERS: Dict[str, Dict[str, object]] = {
+    "nvidia": {"base": "", "production": False,
+               "terms": "free trial: NVIDIA's API trial terms allow internal testing and evaluation only, not production or personal data"},
+    "groq": {"base": "https://api.groq.com/openai/v1", "production": True,
+             "terms": "free plan: serving end users is allowed; no inference data kept by default; enable Zero Data Retention; "
+                      "no payment method means no charges"},
+    "cerebras": {"base": "https://api.cerebras.ai/v1", "production": False,
+                 "terms": "free tier: production rights not yet verified, so evaluation only"},
 }
 PROVIDERS = tuple(FREE_PROVIDERS)
+
+# Published free-plan limits (console.groq.com/docs/rate-limits, read 29 Oct 2026). Limits apply per Groq
+# organisation, not per key. Override with MODEL_QUOTAS="groq:openai/gpt-oss-120b:rpd=1000:tpd=200000:tpm=8000;…"
+# once the account's own limits page or rate-limit headers show different numbers.
+DEFAULT_QUOTAS: Dict[str, Dict[str, int]] = {
+    "groq:openai/gpt-oss-120b": {"rpd": 1000, "tpd": 200_000, "tpm": 8_000, "rpm": 30},
+    "groq:openai/gpt-oss-20b": {"rpd": 1000, "tpd": 200_000, "tpm": 8_000, "rpm": 30},
+    "groq:qwen/qwen3.8-27b": {"rpd": 1000, "tpd": 200_000, "tpm": 8_000, "rpm": 30},
+}
+QUOTA_HEADROOM = float(os.getenv("QUOTA_HEADROOM", "0.9"))  # stop at 90% so one long request can't push past the limit
+
+
+def deployment() -> str:
+    """'production' (default): only providers whose terms allow serving real users. 'evaluation': fictional data only."""
+    return "evaluation" if os.getenv("AI_DEPLOYMENT", "production").strip().lower() == "evaluation" else "production"
+
+
+def quotas() -> Dict[str, Dict[str, int]]:
+    out = {k: dict(v) for k, v in DEFAULT_QUOTAS.items()}
+    for part in [p.strip() for p in os.getenv("MODEL_QUOTAS", "").split(";") if p.strip()]:
+        fields = part.split(":")
+        name, nums = [], {}
+        for f in fields:
+            k, eq, v = f.partition("=")
+            if eq and v.strip().isdigit():
+                nums[k.strip().lower()] = int(v)
+            else:
+                name.append(f)
+        if name and nums:
+            out.setdefault(":".join(name).lower(), {}).update(nums)
+    return out
+
+
+def _base_model(model: str) -> str:
+    return model.split("@")[0]
 
 FAILS_BEFORE_COOLDOWN = int(os.getenv("MODEL_FAILS_BEFORE_COOLDOWN", "3"))
 COOLDOWN_SECONDS = float(os.getenv("MODEL_COOLDOWN_SECONDS", "300"))
@@ -49,6 +88,8 @@ def provider_status(provider: str) -> Tuple[bool, str]:
     """(usable, reason) for a provider name. Never includes a key."""
     if provider not in FREE_PROVIDERS:
         return False, f"not allowed: '{provider}' is not a free provider supported by Resumizer"
+    if deployment() == "production" and not FREE_PROVIDERS[provider]["production"]:
+        return False, f"not used in production: {FREE_PROVIDERS[provider]['terms']}"
     key = _key(provider)
     if not key or "your-key-here" in key.lower():
         return False, f"off: no {provider.upper()}_API_KEY on the server"
@@ -72,13 +113,15 @@ class Health:
         self.lock = threading.Lock()
         self.day = ""
         self.used: Dict[str, int] = {}
+        self.tokens: Dict[str, int] = {}
+        self.reported: Dict[str, Dict[str, str]] = {}
         self.fails: Dict[str, int] = {}
         self.cool_until: Dict[str, float] = {}
 
     def _roll(self):
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         if today != self.day:
-            self.day, self.used = today, {}
+            self.day, self.used, self.tokens = today, {}, {}
 
     def available(self, provider: str, model: str) -> Tuple[bool, str]:
         with self.lock:
@@ -92,19 +135,37 @@ class Health:
                 used = self.used.get(name, 0)
                 if cap is not None and used >= cap:
                     return False, f"daily free quota reached ({used}/{cap})"
+            q = quotas().get(f"{provider}:{_base_model(model)}")
+            if q:
+                base = f"{provider}:{_base_model(model)}"
+                if "rpd" in q and self.used.get(base, 0) >= q["rpd"] * QUOTA_HEADROOM:
+                    return False, f"daily free quota reached ({self.used.get(base, 0)} of {q['rpd']} requests)"
+                if "tpd" in q and self.tokens.get(base, 0) >= q["tpd"] * QUOTA_HEADROOM:
+                    return False, f"daily free quota reached ({self.tokens.get(base, 0):,} of {q['tpd']:,} tokens)"
             return True, "ready"
 
-    def record(self, provider: str, model: str, ok: bool, kind: str = ""):
+    def record(self, provider: str, model: str, ok: bool, kind: str = "", tokens: int = 0,
+               retry_after: Optional[float] = None, scope: Optional[str] = None, reported: Optional[Dict[str, str]] = None):
         with self.lock:
             self._roll()
             key = f"{provider}:{model}"
-            for name in (key, provider):
+            base = f"{provider}:{_base_model(model)}"
+            for name in {key, base, provider}:
                 self.used[name] = self.used.get(name, 0) + 1
+                self.tokens[name] = self.tokens.get(name, 0) + tokens
+            if reported:
+                self.reported[base] = reported
             if ok:
                 self.fails[key] = 0
                 return
             if kind == "rate_limited":
-                self.cool_until[key] = time.time() + 60
+                if scope == "day":
+                    # Used up for today: rest until the provider says, or until midnight UTC.
+                    now = datetime.now(timezone.utc)
+                    midnight = (now.replace(hour=0, minute=0, second=0, microsecond=0).timestamp() + 86400)
+                    self.cool_until[key] = max(midnight, time.time() + (retry_after or 0))
+                else:
+                    self.cool_until[key] = time.time() + max(60.0, retry_after or 0)
             self.fails[key] = self.fails.get(key, 0) + 1
             if self.fails[key] >= FAILS_BEFORE_COOLDOWN:
                 self.cool_until[key] = time.time() + COOLDOWN_SECONDS
@@ -115,7 +176,8 @@ class Health:
         with self.lock:
             self._roll()
             now = time.time()
-            return {"day": self.day, "requests_today": dict(self.used),
+            return {"day": self.day, "requests_today": dict(self.used), "tokens_today": dict(self.tokens),
+                    "provider_reported": {k: {h.replace("x-ratelimit-", ""): v for h, v in r.items()} for k, r in self.reported.items()},
                     "cooling_down": {k: round(v - now) for k, v in self.cool_until.items() if v > now}}
 
 
@@ -166,10 +228,10 @@ class ChainClient(ChatClient):
             client = dataclasses.replace(provider_client(provider), models=[model])
             try:
                 out = await client.complete(messages, temperature=temperature, max_tokens=max_tokens, json_mode=json_mode)
-                HEALTH.record(provider, model, True)
+                HEALTH.record(provider, model, True, tokens=out.prompt_tokens + out.completion_tokens, reported=out.quota)
                 return out
             except ProviderError as e:
-                HEALTH.record(provider, model, False, e.kind)
+                HEALTH.record(provider, model, False, e.kind, retry_after=e.retry_after, scope=e.scope)
                 last = e
                 reasons.append(f"{provider}:{model} {e.kind}")
                 log.warning("%s: %s:%s failed (%s); trying next", self.task, provider, model, e.kind)
@@ -216,7 +278,8 @@ def routing_status() -> Dict[str, List[Dict[str, object]]]:
             if ok:
                 ok, note = HEALTH.available(p, m)
             rows.append({"provider": p, "model": m, "ready": ok, "note": note,
-                         "terms": FREE_PROVIDERS.get(p, {}).get("terms", "not allowed")})
+                         "terms": FREE_PROVIDERS.get(p, {}).get("terms", "not allowed"),
+                         "free_quota": quotas().get(f"{p}:{_base_model(m)}")})
         out[task] = rows
     return out
 

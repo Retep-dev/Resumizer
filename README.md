@@ -73,28 +73,27 @@ Every response carries a processing status (`complete`, `partial`, `unavailable`
 
 ### LLM (free providers only)
 
-Resumizer never calls a paid inference API. Each task has its own chain of free models:
+Resumizer never calls a paid inference API, and no paid provider exists in the code. Two modes, set by `AI_DEPLOYMENT`:
 
-| Task | Default chain |
-|------|---------------|
-| Analysis (resume parsing, posting requirements) | `nemotron-3.5-lightning-30b-a3b` → `gpt-oss-20b` |
-| Rewriting | `nemotron-3-ultra-550b-a55b` → `nemotron-3.5-lightning-30b-a3b` → `gpt-oss-20b` |
-| Interview prep | `nemotron-3.5-lightning-30b-a3b` → `gpt-oss-20b` |
-| Coach | `nemotron-3-ultra-550b-a55b` → `gpt-oss-20b` → `nemotron-3.5-lightning-30b-a3b` |
+- **`production` (default):** only providers whose terms allow serving real users' resumes. Today that is Groq's free
+  plan (no payment method on the account, so it cannot bill; turn on Zero Data Retention in Groq's data controls).
+- **`evaluation`:** also allows NVIDIA's API Catalog trial and Cerebras. NVIDIA's trial terms allow internal testing
+  and evaluation only, not production use or personal data, and Cerebras's production rights aren't verified. Use
+  fictional resumes only; the upload page shows a warning in this mode.
 
-Supported providers: `nvidia` (API Catalog trial key), `groq` and `cerebras` (free tiers, used only when their key is set).
-**NVIDIA's trial terms allow internal testing and evaluation only, not production use or personal data.** Before
-serving real users, move the chains to a provider whose terms allow it (see `/api/v1/status`, which shows each
-provider's terms note). Models that fail repeatedly are cooled down; when no free model is available the app
-returns its rule-based result or a clear error. Choices are backed by `backend/eval` (see its request file).
+| Task | Production default chain (Groq free plan) |
+|------|-------------------------------------------|
+| Analysis (resume parsing, posting requirements) | `openai/gpt-oss-20b` → `qwen/qwen3.8-27b` |
+| Rewriting | `openai/gpt-oss-120b` → `qwen/qwen3.8-27b` |
+| Interview prep | `openai/gpt-oss-20b` → `qwen/qwen3.8-27b` |
+| Coach | `qwen/qwen3.8-27b` → `openai/gpt-oss-120b` |
 
--------|----------|
-| `nvidia/nemotron-3-super-120b-a12b` (default) | NVIDIA API Catalog |
-| `nvidia/nemotron-3.5-lightning-30b-a3b`, `openai/gpt-oss-20b` (fallbacks) | NVIDIA API Catalog |
-
-Models are configurable. If a model is retired the client moves to the next one automatically. Check what your key can use with `python backend/scripts/check_models.py`.
-
----
+These are provisional until the Groq evaluation in `backend/eval` confirms them. Groq's free quotas are per model and
+per account (about 1,000 requests, 200,000 tokens a day and 8,000 tokens a minute per model), so tasks lead with
+different models. The router counts tokens against each model's daily quota and stops at 90%, waits out per-minute
+limits, and rests a model for the day when Groq reports its daily limit. When no free model is left, the app returns
+its rule-based result or a clear "free AI capacity is used up" error. `/api/v1/status` shows the mode, each task's
+chain, its terms note and quota, usage so far, and the limits below with how they were worked out.
 
 ## Features
 
@@ -191,7 +190,7 @@ Errors are `{"detail": {"code": ..., "message": ...}}` with codes `validation_fa
 cd backend
 pip install -r requirements.txt
 cp .env.example .env
-# Edit .env and add your NVIDIA_API_KEY
+# Edit .env and add your GROQ_API_KEY (or set AI_DEPLOYMENT=evaluation with an NVIDIA key and fictional resumes)
 python -m uvicorn app.main:app --reload --port 8000
 ```
 
@@ -214,29 +213,24 @@ The frontend runs on `http://localhost:5173` and proxies `/api` requests to the 
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `NVIDIA_API_KEY` | NVIDIA API Catalog key (trial: evaluation only) | — |
-| `GROQ_API_KEY`, `CEREBRAS_API_KEY` | Optional free-tier keys (accounts with no payment method) | — |
-| `NVIDIA_MODEL_NAME`, `NVIDIA_FALLBACK_MODELS` | Fast model chain used by analysis and interview prep | `nemotron-3.5-lightning-30b-a3b`, `gpt-oss-20b` |
+| `AI_DEPLOYMENT` | `production` (only providers cleared for real users) or `evaluation` (fictional data only) | `production` |
+| `GROQ_API_KEY` | Groq free-plan key (account with no payment method) | — |
+| `NVIDIA_API_KEY`, `CEREBRAS_API_KEY` | Evaluation-only keys | — |
 | `MODELS_ANALYSIS`, `MODELS_REWRITE`, `MODELS_INTERVIEW`, `MODELS_COACH` | Per-task chain, `provider:model,…` (free providers only) | see above |
-| `DAILY_REQUEST_CAPS` | Requests per UTC day per `provider` or `provider:model`, to stay inside free quotas, e.g. `groq:900` | none |
+| `MODEL_QUOTAS` | The account's real free quotas if they differ from Groq's published ones, e.g. `groq:openai/gpt-oss-120b:rpd=1000:tpd=200000:tpm=8000` | published free plan |
+| `QUOTA_HEADROOM` | Share of a model's daily quota to use before stopping | `0.9` |
+| `DAILY_REQUEST_CAPS` | Extra request caps per `provider` or `provider:model`, e.g. `groq:900` | none |
 | `REWRITE_MODE` | `batch` (1–2 requests per resume) or `single` (one per bullet) | `batch` |
-| `ANALYZE_LIMIT_PER_HOUR` / `ANALYZE_LIMIT_PER_DAY` | Analyses per client | `5` / `15` |
-| `CHAT_LIMIT_PER_HOUR` / `CHAT_LIMIT_PER_SESSION` | Coach messages per client / per analysis | `40` / `30` |
-| `GLOBAL_ANALYZE_LIMIT_PER_DAY` / `GLOBAL_CHAT_LIMIT_PER_DAY` | Whole-app daily caps | `300` / `2000` |
-| `MAX_CONCURRENT_ANALYSES` / `MAX_CONCURRENT_CHATS` | Simultaneous requests before "busy" | `3` / `6` |
-| `PIPELINE_TIMEOUT_SECONDS` / `CHAT_TIMEOUT_SECONDS` | Overall request timeouts | `180` / `90` |
+| `ANALYZE_LIMIT_PER_DAY` / `ANALYZE_LIMIT_PER_HOUR` | Analyses per person | `3` / `3` |
+| `CHAT_LIMIT_PER_SESSION` / `CHAT_LIMIT_PER_DAY` / `CHAT_LIMIT_PER_HOUR` | Coach messages per analysis / per person per day / per hour | `10` / `20` / `20` |
+| `GLOBAL_ANALYZE_LIMIT_PER_DAY` / `GLOBAL_CHAT_LIMIT_PER_DAY` | Whole-app daily caps. Unset = worked out from the free quota and the measured tokens per journey | from quota |
+| `JOURNEY_TOKENS`, `EXPECTED_COACH_MESSAGES` | Tokens per stage and coach messages per analysis used to size the global caps | measured values, `4` |
+| `MAX_CONCURRENT_ANALYSES` / `MAX_CONCURRENT_CHATS` | Simultaneous requests before "busy". Unset analyses = from the per-minute token limit | from quota / `4` |
+| `PIPELINE_TIMEOUT_SECONDS` / `CHAT_TIMEOUT_SECONDS` | Overall request timeouts | `240` / `90` |
 | `LLM_TIMEOUT_SECONDS` | Per-request model timeout | `60` |
 | `HOST` / `PORT` | Backend bind address | `0.0.0.0` / `8000` |
 
 `ALLOW_PAID_PROVIDERS` has no effect: there is no paid provider in the code.
-
-----------|-------------|---------|
-| `NVIDIA_API_KEY` | NVIDIA NIM API key (required) | — |
-| `NVIDIA_MODEL_NAME` | Primary chat model | `nvidia/nemotron-3-super-120b-a12b` |
-| `NVIDIA_FALLBACK_MODELS` | Comma-separated models tried in order if the primary is retired | `nvidia/nemotron-3.5-lightning-30b-a3b,openai/gpt-oss-20b` |
-| `LLM_TIMEOUT_SECONDS` | Per-request model timeout | `60` |
-| `HOST` | Backend bind host | `0.0.0.0` |
-| `PORT` | Backend bind port | `8000` |
 
 ---
 

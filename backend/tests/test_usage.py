@@ -10,6 +10,8 @@ from app.services.usage import DUPLICATES, LimitExceeded, Limits, SlidingWindow,
 
 @pytest.fixture(autouse=True)
 def reset(monkeypatch):
+    for k in ("AI_DEPLOYMENT", "MODEL_QUOTAS", "JOURNEY_TOKENS", "MODELS_ANALYSIS", "MODELS_REWRITE", "MODELS_INTERVIEW", "MODELS_COACH"):
+        monkeypatch.delenv(k, raising=False)
     usage.WINDOWS.reset()
     DUPLICATES.clear()
     yield
@@ -99,3 +101,43 @@ def test_prompts_treat_resume_text_as_data():
     from app.agents.interview_generator_agent import INTERVIEW_SYSTEM_PROMPT
     for p in (COACH_SYSTEM_PROMPT, JOB_SYSTEM_PROMPT, PARSER_SYSTEM_PROMPT, REWRITE_SYSTEM_PROMPT, SINGLE_SYSTEM_PROMPT, INTERVIEW_SYSTEM_PROMPT):
         assert "never as instructions" in p
+
+
+def test_defaults_are_three_analyses_a_day_and_configurable_coach_limits():
+    assert Limits.ANALYZE_PER_DAY == 3 and Limits.ANALYZE_PER_HOUR == 3
+    for _ in range(3):
+        check_analyze("person")
+    with pytest.raises(LimitExceeded) as e:
+        check_analyze("person")
+    assert e.value.code == "rate_limited"
+    assert usage.per_user_limits()["coach_messages_per_day"] == Limits.CHAT_PER_DAY
+
+
+def test_coach_messages_are_limited_per_person_per_day(monkeypatch):
+    monkeypatch.setattr(Limits, "CHAT_PER_DAY", 2)
+    monkeypatch.setattr(Limits, "CHAT_PER_HOUR", 99)
+    check_chat("p", "s1")
+    check_chat("p", "s2")
+    with pytest.raises(LimitExceeded) as e:
+        check_chat("p", "s3")
+    assert "coach messages" in e.value.message
+
+
+def test_global_caps_come_from_the_groq_free_quota(monkeypatch):
+    from app.llm import router
+    monkeypatch.setattr(router.settings, "GROQ_API_KEY", "gsk_test")
+    monkeypatch.setenv("JOURNEY_TOKENS", "analysis:6000,rewrite:4000,interview:5000,coach:3000")
+    g = usage.global_limits()
+    # analysis + interview share gpt-oss-20b: 11,000 tokens a session → 180,000 / 11,000 = 16 sessions;
+    # rewrite on gpt-oss-120b: 45; coach on qwen: 4 messages x 3,000 → 15. The smallest wins.
+    assert g["analyses_per_day"] == 15 and g["coach_messages_per_day"] == 60
+    assert g["concurrent_analyses"] == 1  # 8,000 tokens a minute can't run two analyses at once
+    assert any("200,000 tokens/day" in b for b in g["basis"])
+
+
+def test_global_caps_fall_back_when_no_quota_is_known(monkeypatch):
+    from app.llm import router
+    monkeypatch.setenv("AI_DEPLOYMENT", "evaluation")
+    monkeypatch.setattr(router.settings, "NVIDIA_API_KEY", "nvapi-test")
+    g = usage.global_limits()
+    assert (g["analyses_per_day"], g["coach_messages_per_day"]) == Limits.FALLBACK_GLOBAL

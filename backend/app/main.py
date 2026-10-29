@@ -102,11 +102,17 @@ def root():
 @app.get("/api/v1/status")
 def ai_status():
     """Which models the server will use. Never includes the API key."""
-    from app.llm.router import HEALTH, routing_status
+    from app.llm.router import HEALTH, deployment, routing_status
+    from app.services.usage import global_limits, per_user_limits
     retired = set()
     for task in settings.TASKS:
         retired |= set(getattr(get_client(task), "retired", set()))
     return {
+        "ai_deployment": deployment(),
+        "ai_deployment_note": ("production: only providers whose terms allow real users' resumes (Groq free plan)"
+                               if deployment() == "production" else
+                               "evaluation: NVIDIA and other evaluation-only providers are on; use fictional resumes only"),
+        "limits": {"per_user": per_user_limits(), "global": global_limits()},
         "api_key_configured": settings.api_key_configured,
         "model_chain": settings.model_chain,
         "tasks": routing_status(),

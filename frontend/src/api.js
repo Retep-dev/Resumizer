@@ -19,6 +19,16 @@ export default api;
 export const ACCEPTED_EXTENSIONS = ['pdf', 'docx', 'txt', 'md'];
 export const MAX_FILE_MB = 10;
 
+/** GET /api/v1/status — which AI mode the server is in. Never throws; null if unreachable. */
+export async function getServerStatus() {
+  try {
+    const response = await api.get('/api/v1/status', { timeout: 15000 });
+    return response.data;
+  } catch {
+    return null;
+  }
+}
+
 /** POST /api/v1/analyze — runs the multi-agent pipeline. Returns { session_id, analysis }. */
 export async function analyzeResume(file, jobDescription, { signal } = {}) {
   const formData = new FormData();

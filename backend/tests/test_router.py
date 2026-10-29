@@ -17,6 +17,8 @@ def clean(monkeypatch):
     for t in ("ANALYSIS", "REWRITE", "INTERVIEW", "COACH"):
         monkeypatch.delenv(f"MODELS_{t}", raising=False)
     monkeypatch.delenv("DAILY_REQUEST_CAPS", raising=False)
+    monkeypatch.delenv("MODEL_QUOTAS", raising=False)
+    monkeypatch.setenv("AI_DEPLOYMENT", "evaluation")  # these tests use NVIDIA, which production mode excludes
     monkeypatch.setattr(router.settings, "NVIDIA_API_KEY", KEY)
     yield
     router._provider_clients.clear()
@@ -141,3 +143,51 @@ def test_nvidia_think_option_and_usage_are_passed_through():
     out = asyncio.run(c.complete([{"role": "user", "content": "hi"}]))
     assert c.session.calls[0]["json"]["chat_template_kwargs"] == {"enable_thinking": True}
     assert (out.prompt_tokens, out.completion_tokens) == (120, 30)
+
+
+def test_production_mode_allows_only_providers_cleared_for_real_users(monkeypatch):
+    monkeypatch.delenv("AI_DEPLOYMENT", raising=False)  # production is the default
+    monkeypatch.setattr(router.settings, "GROQ_API_KEY", "gsk_test")
+    monkeypatch.setattr(router.settings, "CEREBRAS_API_KEY", "csk-test")
+    assert router.deployment() == "production"
+    assert router.provider_status("groq") == (True, "ready")
+    for p in ("nvidia", "cerebras"):
+        usable, why = router.provider_status(p)
+        assert not usable and why.startswith("not used in production")
+    monkeypatch.setenv("MODELS_COACH", "nvidia:m1")
+    with pytest.raises(ProviderError) as e:
+        asyncio.run(router.get_client("coach").complete([{"role": "user", "content": "x"}]))
+    assert "not used in production" in e.value.message
+    for task in ("analysis", "rewrite", "interview"):
+        assert all(p == "groq" for p, _ in router.settings.task_chain(task))
+
+
+def test_daily_token_quota_stops_before_the_free_limit(monkeypatch):
+    monkeypatch.setenv("MODEL_QUOTAS", "nvidia:m1:tpd=1000")
+    big = FakeResponse(200, {"choices": [{"message": {"content": "a"}}], "usage": {"prompt_tokens": 800, "completion_tokens": 150}})
+    session = FakeSession([big, big])
+    router.provider_client("nvidia").session = session
+    chain = router.ChainClient(task="coach", entries=[("nvidia", "m1")])
+    asyncio.run(chain.complete([{"role": "user", "content": "x"}]))  # 950 tokens: over 90% of 1,000
+    with pytest.raises(ProviderError) as e:
+        asyncio.run(chain.complete([{"role": "user", "content": "x"}]))
+    assert e.value.kind == "rate_limited" and len(session.calls) == 1
+    assert router.HEALTH.snapshot()["tokens_today"]["nvidia:m1"] == 950
+
+
+def test_per_minute_limit_waits_for_retry_after_and_daily_limit_fails_over(monkeypatch):
+    slept = []
+    monkeypatch.setattr("time.sleep", lambda s: slept.append(s))
+    tpm = FakeResponse(429, {"error": {"message": "Rate limit reached on tokens per minute (TPM): Limit 8000"}}, {"retry-after": "3"})
+    tpd = FakeResponse(429, {"error": {"message": "Rate limit reached on tokens per day (TPD): Limit 200000"}}, {"retry-after": "4000"})
+    session = FakeSession([tpm, ok("after wait"), tpd, ok("from backup")])
+    router.provider_client("nvidia").session = session
+    chain = router.ChainClient(task="rewrite", entries=[("nvidia", "a"), ("nvidia", "b")])
+    assert asyncio.run(chain.complete([{"role": "user", "content": "x"}])).text == "after wait" and slept == [3.5]
+    assert asyncio.run(chain.complete([{"role": "user", "content": "x"}])).text == "from backup"
+    assert router.HEALTH.snapshot()["cooling_down"]["nvidia:a"] >= 4000  # rested until its daily quota resets
+
+
+def test_provider_keys_are_masked_in_error_text():
+    from app.llm.provider import _clean_message
+    assert "SECRET" not in _clean_message("bad key gsk_SECRET123 and csk-SECRET456 and nvapi-SECRET")

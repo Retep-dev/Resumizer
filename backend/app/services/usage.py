@@ -25,18 +25,90 @@ def _env_int(name: str, default: int) -> int:
 
 
 class Limits:
-    ANALYZE_PER_HOUR = _env_int("ANALYZE_LIMIT_PER_HOUR", 5)
-    ANALYZE_PER_DAY = _env_int("ANALYZE_LIMIT_PER_DAY", 15)
-    CHAT_PER_HOUR = _env_int("CHAT_LIMIT_PER_HOUR", 40)
-    CHAT_PER_SESSION = _env_int("CHAT_LIMIT_PER_SESSION", 30)
-    GLOBAL_ANALYZE_PER_DAY = _env_int("GLOBAL_ANALYZE_LIMIT_PER_DAY", 300)
-    GLOBAL_CHAT_PER_DAY = _env_int("GLOBAL_CHAT_LIMIT_PER_DAY", 2000)
-    MAX_CONCURRENT_ANALYSES = _env_int("MAX_CONCURRENT_ANALYSES", 3)
-    MAX_CONCURRENT_CHATS = _env_int("MAX_CONCURRENT_CHATS", 6)
-    QUEUE_WAIT_SECONDS = float(os.getenv("QUEUE_WAIT_SECONDS", "20"))
-    PIPELINE_TIMEOUT_SECONDS = float(os.getenv("PIPELINE_TIMEOUT_SECONDS", "180"))
+    # Per person (hashed IP). Analyses are the expensive part of the free quota.
+    ANALYZE_PER_DAY = _env_int("ANALYZE_LIMIT_PER_DAY", 3)
+    ANALYZE_PER_HOUR = _env_int("ANALYZE_LIMIT_PER_HOUR", ANALYZE_PER_DAY)
+    CHAT_PER_SESSION = _env_int("CHAT_LIMIT_PER_SESSION", 10)   # coach messages per analysis
+    CHAT_PER_DAY = _env_int("CHAT_LIMIT_PER_DAY", 20)           # coach messages per person per day
+    CHAT_PER_HOUR = _env_int("CHAT_LIMIT_PER_HOUR", CHAT_PER_DAY)
+    # Whole app. Unset = worked out from the free provider quota (see global_limits()).
+    GLOBAL_ANALYZE_PER_DAY = _env_int("GLOBAL_ANALYZE_LIMIT_PER_DAY", 0)
+    GLOBAL_CHAT_PER_DAY = _env_int("GLOBAL_CHAT_LIMIT_PER_DAY", 0)
+    MAX_CONCURRENT_ANALYSES = _env_int("MAX_CONCURRENT_ANALYSES", 0)  # 0 = from the per-minute token limit
+    MAX_CONCURRENT_CHATS = _env_int("MAX_CONCURRENT_CHATS", 4)
+    QUEUE_WAIT_SECONDS = float(os.getenv("QUEUE_WAIT_SECONDS", "45"))
+    PIPELINE_TIMEOUT_SECONDS = float(os.getenv("PIPELINE_TIMEOUT_SECONDS", "240"))
     CHAT_TIMEOUT_SECONDS = float(os.getenv("CHAT_TIMEOUT_SECONDS", "90"))
     DUPLICATE_CACHE_SECONDS = _env_int("DUPLICATE_CACHE_SECONDS", 6 * 3600)
+    # Measured cost of one journey (backend/eval journey task). Tokens per analysis stage and per coach message.
+    # Override with JOURNEY_TOKENS="analysis:7000,rewrite:4000,interview:5000,coach:3500".
+    JOURNEY_TOKENS_DEFAULT = {"analysis": 7000, "rewrite": 4500, "interview": 5000, "coach": 3500}
+    EXPECTED_COACH_MESSAGES = _env_int("EXPECTED_COACH_MESSAGES", 4)  # per analysis, for sizing the global caps
+    FALLBACK_GLOBAL = (300, 2000)  # used only when no chain model has a published quota (e.g. evaluation)
+
+
+def journey_tokens() -> Dict[str, int]:
+    out = dict(Limits.JOURNEY_TOKENS_DEFAULT)
+    for part in [p.strip() for p in os.getenv("JOURNEY_TOKENS", "").split(",") if p.strip()]:
+        k, _, v = part.partition(":")
+        if v.strip().isdigit():
+            out[k.strip().lower()] = int(v)
+    return out
+
+
+def global_limits() -> Dict[str, object]:
+    """Daily caps for the whole app, sized to the free quota of the first usable model of each task.
+
+    One "session" = one analysis + EXPECTED_COACH_MESSAGES coach messages. For each model, its daily token
+    budget (minus headroom) divided by what one session costs on that model gives the sessions it can serve;
+    the smallest wins. Fallback models are not counted, so they are spare capacity for spikes, not plan.
+    """
+    from app.config import settings
+    from app.llm.router import QUOTA_HEADROOM, _base_model, provider_status, quotas
+
+    tokens, q = journey_tokens(), quotas()
+    demand: Dict[str, float] = {}
+    per_minute: Dict[str, float] = {}
+    primaries = {}
+    for task in settings.TASKS:
+        primary = next((f"{p}:{_base_model(m)}" for p, m in settings.task_chain(task) if provider_status(p)[0]), None)
+        primaries[task] = primary
+        if not primary:
+            continue
+        cost = tokens.get(task, 0) * (Limits.EXPECTED_COACH_MESSAGES if task == "coach" else 1)
+        demand[primary] = demand.get(primary, 0) + cost
+        if task != "coach":
+            per_minute[primary] = per_minute.get(primary, 0) + tokens.get(task, 0)
+    sessions, basis = [], []
+    for model, need in demand.items():
+        tpd = (q.get(model) or {}).get("tpd")
+        if tpd and need:
+            n = int(tpd * QUOTA_HEADROOM // need)
+            sessions.append(n)
+            basis.append(f"{model}: {tpd:,} tokens/day x {QUOTA_HEADROOM:.0%} / {int(need):,} per session = {n}")
+    if sessions:
+        analyses = max(1, min(sessions))
+        chats = analyses * Limits.EXPECTED_COACH_MESSAGES
+        tpms = [(q.get(m) or {}).get("tpm") for m in per_minute]
+        conc = max(1, min(int(t // per_minute[m]) for m, t in zip(per_minute, tpms) if t) if any(tpms) else 1)
+    else:
+        analyses, chats = Limits.FALLBACK_GLOBAL
+        conc = 3
+        basis.append("no published free quota for the configured models; using fixed fallback caps")
+    return {
+        "analyses_per_day": Limits.GLOBAL_ANALYZE_PER_DAY or analyses,
+        "coach_messages_per_day": Limits.GLOBAL_CHAT_PER_DAY or chats,
+        "concurrent_analyses": Limits.MAX_CONCURRENT_ANALYSES or conc,
+        "overridden": [k for k, v in (("analyses_per_day", Limits.GLOBAL_ANALYZE_PER_DAY), ("coach_messages_per_day", Limits.GLOBAL_CHAT_PER_DAY),
+                                      ("concurrent_analyses", Limits.MAX_CONCURRENT_ANALYSES)) if v],
+        "basis": basis, "primary_models": primaries, "journey_tokens": tokens,
+        "expected_coach_messages_per_analysis": Limits.EXPECTED_COACH_MESSAGES,
+    }
+
+
+def per_user_limits() -> Dict[str, int]:
+    return {"analyses_per_day": Limits.ANALYZE_PER_DAY, "analyses_per_hour": Limits.ANALYZE_PER_HOUR,
+            "coach_messages_per_analysis": Limits.CHAT_PER_SESSION, "coach_messages_per_day": Limits.CHAT_PER_DAY}
 
 
 class LimitExceeded(Exception):
@@ -85,8 +157,9 @@ DAY, HOUR = 86400.0, 3600.0
 
 
 def check_analyze(client: str):
+    g = global_limits()
     for key, limit, window, code, msg in (
-        ("global:analyze", Limits.GLOBAL_ANALYZE_PER_DAY, DAY, "daily_capacity_reached",
+        ("global:analyze", g["analyses_per_day"], DAY, "daily_capacity_reached",
          "Resumizer has reached today's limit of free analyses. Please try again tomorrow."),
         (f"{client}:analyze:h", Limits.ANALYZE_PER_HOUR, HOUR, "rate_limited",
          f"You've run {Limits.ANALYZE_PER_HOUR} analyses in the last hour. Please wait before running another."),
@@ -99,11 +172,14 @@ def check_analyze(client: str):
 
 
 def check_chat(client: str, session_id: str):
+    g = global_limits()
     for key, limit, window, code, msg in (
-        ("global:chat", Limits.GLOBAL_CHAT_PER_DAY, DAY, "daily_capacity_reached",
+        ("global:chat", g["coach_messages_per_day"], DAY, "daily_capacity_reached",
          "The coach has reached today's limit of free messages. Please try again tomorrow."),
         (f"{client}:chat:h", Limits.CHAT_PER_HOUR, HOUR, "rate_limited",
          "You're sending messages faster than the free coach allows. Please wait a little and try again."),
+        (f"{client}:chat:d", Limits.CHAT_PER_DAY, DAY, "rate_limited",
+         f"You've reached today's limit of {Limits.CHAT_PER_DAY} coach messages. Please come back tomorrow."),
         (f"session:{session_id}:chat", Limits.CHAT_PER_SESSION, DAY, "rate_limited",
          f"This analysis has reached its limit of {Limits.CHAT_PER_SESSION} coach messages. Run a new analysis to keep chatting."),
     ):
@@ -115,9 +191,13 @@ def check_chat(client: str, session_id: str):
 class Gate:
     """Caps simultaneous work; waits briefly, then reports 'busy' rather than queueing forever."""
 
-    def __init__(self, size: int):
-        self.size = size
+    def __init__(self, size):
+        self._size = size  # an int, or a function returning one (worked out on first use)
         self._sem: Optional[asyncio.Semaphore] = None
+
+    @property
+    def size(self) -> int:
+        return self._size() if callable(self._size) else self._size
 
     def _semaphore(self) -> asyncio.Semaphore:
         if self._sem is None:
@@ -135,7 +215,7 @@ class Gate:
         self._semaphore().release()
 
 
-ANALYSIS_GATE = Gate(Limits.MAX_CONCURRENT_ANALYSES)
+ANALYSIS_GATE = Gate(lambda: int(global_limits()["concurrent_analyses"]))
 CHAT_GATE = Gate(Limits.MAX_CONCURRENT_CHATS)
 
 

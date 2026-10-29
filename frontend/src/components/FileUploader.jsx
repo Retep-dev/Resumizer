@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ACCEPTED_EXTENSIONS, MAX_FILE_MB } from '../api';
+import { ACCEPTED_EXTENSIONS, MAX_FILE_MB, getServerStatus } from '../api';
 import ErrorNotice from './ErrorNotice';
 
 const MIN_JD_WORDS = 25;
@@ -35,6 +35,13 @@ export default function FileUploader({ file, onFileChange, jobDescription, onJob
   const input = useRef(null);
   const summaryRef = useRef(null);
   const errorRef = useRef(null);
+  const [evaluationMode, setEvaluationMode] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+    getServerStatus().then((s) => { if (live) setEvaluationMode(s?.ai_deployment === 'evaluation'); });
+    return () => { live = false; };
+  }, []);
 
   const fileError = validateFile(file);
   const jdError = validateJd(jobDescription);
@@ -70,6 +77,16 @@ export default function FileUploader({ file, onFileChange, jobDescription, onJob
             <p className="t-lede">Your resume, and the job you want it scored against.</p>
           </div>
         </div>
+
+        {evaluationMode && (
+          <div className="notice" role="note" aria-labelledby="eval-mode-title">
+            <span className="notice__mark" aria-hidden="true">!</span>
+            <div>
+              <h2 id="eval-mode-title">Test build: use a made-up resume</h2>
+              <p style={{ margin: 0 }}>This version sends text to an AI service that is for testing only. Please don't upload your real resume here.</p>
+            </div>
+          </div>
+        )}
 
         {serverError && <ErrorNotice ref={errorRef} error={serverError} onRetry={onAnalyze} />}
 

@@ -15,6 +15,8 @@ jobs:
     permissions:
       contents: write
     env:
+      # The evaluation only ever sends the fictional resumes in backend/eval/cases.py.
+      AI_DEPLOYMENT: evaluation
       NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
       # Optional free-tier keys (accounts with no payment method). Fictional test resumes only.
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}

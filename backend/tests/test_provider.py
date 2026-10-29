@@ -13,9 +13,10 @@ KEY = "nvapi-TESTKEY-should-never-leak-1234567890"
 
 
 class FakeResponse:
-    def __init__(self, status, body):
+    def __init__(self, status, body, headers=None):
         self.status_code = status
         self._body = body
+        self.headers = headers or {}
         self.text = body if isinstance(body, str) else json.dumps(body)
 
     def json(self):
