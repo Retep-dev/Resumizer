@@ -41,7 +41,7 @@ def _why(e: Exception) -> str:
         return {
             "model_unavailable": "The AI model isn't available from the provider.",
             "auth": "The AI provider rejected the server's API key.",
-            "not_configured": "The server has no AI provider key configured.",
+            "not_configured": "No free AI service that's cleared for real resumes is set up on the server yet.",
             "rate_limited": "Resumizer's free AI capacity was used up, so this part used the rule-based fallback.",
             "timeout": "The AI provider took too long to respond.",
             "network": "The server couldn't reach the AI provider.",

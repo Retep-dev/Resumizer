@@ -94,7 +94,8 @@ def global_limits() -> Dict[str, object]:
     else:
         analyses, chats = Limits.FALLBACK_GLOBAL
         conc = 3
-        basis.append("no published free quota for the configured models; using fixed fallback caps")
+        basis.append("no AI model with a published free quota is ready (no key, or evaluation-only models); "
+                     "fixed fallback caps, which only limit rule-based or evaluation use")
     return {
         "analyses_per_day": Limits.GLOBAL_ANALYZE_PER_DAY or analyses,
         "coach_messages_per_day": Limits.GLOBAL_CHAT_PER_DAY or chats,

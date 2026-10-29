@@ -159,6 +159,22 @@ HARD_SKILLS = [
     "UX research", "User research", "Prototyping", "Wireframing", "Accessibility", "SEO", "SEM", "Content marketing", "Salesforce",
     "HubSpot", "CRM", "Financial modeling", "Budgeting", "Accounting", "IFRS", "GAAP", "Project management", "PMP", "Six Sigma",
     "Supply chain management", "Customer success", "Copywriting",
+    # customer support
+    "Zendesk", "Zendesk Explore", "Freshdesk", "Intercom", "ServiceNow", "Salesforce Service Cloud", "SLA management",
+    "Quality assurance", "Workforce planning", "Ticketing", "Live chat", "Escalation management", "Knowledge base",
+    "Customer-reported bugs", "CSAT", "NPS",
+    # healthcare
+    "Patient care", "Patient education", "EHR", "Epic", "Cerner", "Clinical education", "BLS", "ACLS", "Infection control",
+    "Medication administration", "Triage", "Simulation", "Competency assessment", "Curriculum design", "Adult learning",
+    # marketing
+    "Google Ads", "Meta Ads", "LinkedIn Ads", "Paid social", "Email marketing", "Mailchimp", "Marketing automation",
+    "Campaign management", "Social media",
+    # finance
+    "Reconciliation", "Month-end close", "Variance analysis", "FP&A", "NetSuite", "SAP", "QuickBooks", "Xero", "Audit",
+    "Accounts payable", "Accounts receivable",
+    # operations
+    "Warehouse management", "WMS", "Inventory management", "Lean", "KPI", "Health and safety", "OSHA",
+    "Workforce scheduling", "Continuous improvement",
 ]
 SOFT_SKILLS = [
     "Communication", "Stakeholder management", "Stakeholder communication", "Leadership", "Mentoring", "Collaboration", "Teamwork",
@@ -183,8 +199,16 @@ def rule_based_requirements(jd: str) -> Tuple[JobRequirements, List[str]]:
     reqs: List[JobRequirement] = []
     seen = set()
     for category, vocab in (("hard", HARD_SKILLS), ("soft", SOFT_SKILLS)):
-        for term in vocab:
+        # Longest names first, so "Salesforce Service Cloud" is found and "Salesforce" isn't added again.
+        for term in sorted(vocab, key=len, reverse=True):
             if term.lower() in seen or not term_in_text(term, text):
+                continue
+            # Count only mentions outside longer names already found ("Zendesk" in "Zendesk Explore" doesn't count).
+            rest = text
+            for r in reqs:
+                if term_in_text(term, r.term):
+                    rest = re.sub(re.escape(r.term), " ", rest, flags=re.IGNORECASE)
+            if not term_in_text(term, rest):
                 continue
             # 'R' and 'Go' are too ambiguous without context.
             if term in ("R", "Go") and not re.search(rf"\b{term}\b(?:\s*(?:,|and|or|/))", text):
