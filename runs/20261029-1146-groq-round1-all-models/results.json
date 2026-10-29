@@ -1,0 +1,3725 @@
+{
+ "request": {
+  "label": "groq-round1-all-models",
+  "discover": false,
+  "parallel_models": true,
+  "models": [
+   "groq:openai/gpt-oss-120b",
+   "groq:openai/gpt-oss-20b",
+   "groq:qwen/qwen3.8-27b",
+   "groq:allam-2-7b"
+  ],
+  "pipelines": [
+   "v2"
+  ],
+  "tasks": [
+   "rewrite",
+   "interview",
+   "coach"
+  ],
+  "coach": [
+   "v2"
+  ],
+  "cases": "all",
+  "timeout": 120
+ },
+ "started": "2026-10-29T11:44:45Z",
+ "models": {
+  "groq:openai/gpt-oss-120b": {
+   "rewrite_v2": {
+    "summary": {
+     "cases": 7,
+     "errors": 4,
+     "bullets": 17,
+     "covered": 17,
+     "rewritten": 14,
+     "rewritten_and_audit_clean": 14,
+     "audit_failures_accepted": 0,
+     "meaningful (score>=1, clean)": 14,
+     "with_placeholder": 12,
+     "avg_change_ratio": 0.108,
+     "seconds_per_resume": 2.7,
+     "calls": 8,
+     "failed_calls": 5,
+     "prompt_tokens": 4570,
+     "completion_tokens": 4118
+    },
+    "runs": [
+     {
+      "case": "priya",
+      "seconds": 4.3,
+      "calls": [
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-120b",
+        "provider": "groq",
+        "seconds": 4.27,
+        "prompt_tokens": 1473,
+        "completion_tokens": 1652,
+        "raw": "{\"bullets\":[{\"id\":1,\"safe\":\"Maintain Airflow pipelines that load shipment data into Snowflake.\",\"strong\":\"Maintain [N] Airflow pipelines that load shipment data into Snowflake.\",\"questions\":[\"How many Airflow pipelines are maintained?\"]},{\"id\":2,\"safe\":\"Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks.\",\"strong\":\"Cut nightly load failures from 9 to 2 per month by adding data quality checks.\",\"questions\":[]},{\"id\":3,\"safe\":\"Mentored two junior engineers.\",\"strong\":\"Mentored two junior engineers.\",\"questions\":[]},{\"id\":4,\"safe\":\"Built weekly claims dashboards in Tableau for the operations team.\",\"strong\":\"Built weekly claims dashboards in Tableau for the operations team, delivering [N] dashboards each week.\",\"questions\":[\"How many dashboards were built each week?\"]},{\"id\":5,\"safe\":\"Wrote SQL models that the pricing team used for monthly reporting.\",\"strong\":\"Wrote SQL models used by the pricing team for monthly reporting, delivering [N] models.\",\"questions\":[\"How many SQL models were written?\"]}],\"summary\":\"Senior data engineer building reliable pipelines for logistics and insurance analytics.\"}"
+       }
+      ],
+      "warnings": [
+       "No safe improvement was found for 2 bullet(s); they're shown with questions instead."
+      ],
+      "summary_out": "Senior data engineer building reliable pipelines for logistics and insurance analytics.",
+      "bullets": [
+       {
+        "original": "Maintain Airflow pipelines that load shipment data into Snowflake.",
+        "output": "Maintain [N] Airflow pipelines that load shipment data into Snowflake.",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many Airflow pipelines are maintained?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks.",
+        "output": "Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "What changed because of this work, and who relied on it?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Mentored two junior engineers.",
+        "output": "Mentored two junior engineers.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "Can you add a number that shows scale or result — how many, how often, how much, or how much faster?",
+         "What changed because of this work, and who relied on it?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Built weekly claims dashboards in Tableau for the operations team.",
+        "output": "Built weekly claims dashboards in Tableau for the operations team, delivering [N] dashboards each week.",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many dashboards were built each week?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 2,
+        "improvement": [
+         "asks for a missing metric",
+         "clearer wording"
+        ],
+        "change_ratio": 0.286,
+        "placeholders": [
+         "N"
+        ],
+        "new_words": [
+         "week"
+        ],
+        "numbers_kept": true
+       },
+       {
+        "original": "Wrote SQL models that the pricing team used for monthly reporting.",
+        "output": "Wrote SQL models used by the pricing team for monthly reporting, delivering [N] models.",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many SQL models were written?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 2,
+        "improvement": [
+         "asks for a missing metric",
+         "clearer wording"
+        ],
+        "change_ratio": 0.308,
+        "placeholders": [
+         "N"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 5,
+      "total": 5
+     },
+     {
+      "case": "tomas",
+      "seconds": 3.1,
+      "calls": [
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-120b",
+        "provider": "groq",
+        "seconds": 3.11,
+        "prompt_tokens": 1564,
+        "completion_tokens": 1340,
+        "raw": "{\"bullets\":[{\"id\":1,\"safe\":\"Built React checkout components, reducing drop‑off from 31% to 24%.\",\"strong\":\"Built [N] React checkout components, reducing drop‑off from 31% to 24%.\",\"questions\":[\"How many components were built?\"]},{\"id\":2,\"safe\":\"Collaborated with designers in Figma to ship a new onboarding screen.\",\"strong\":\"Collaborated with designers in Figma to ship a new onboarding screen [N revisions].\",\"questions\":[\"How many design revisions were made?\"]},{\"id\":3,\"safe\":\"Wrote Jest unit tests for the payments module.\",\"strong\":\"Wrote [N] Jest unit tests for the payments module.\",\"questions\":[\"How many unit tests were written?\"]},{\"id\":4,\"safe\":\"Reviewed pull requests for three other frontend developers.\",\"strong\":\"Reviewed [N] pull requests for three other frontend developers.\",\"questions\":[\"How many pull requests were reviewed?\"]},{\"id\":5,\"safe\":\"Maintained the company WordPress site and fixed CSS bugs.\",\"strong\":\"Maintained the company WordPress site and fixed [N] CSS bugs.\",\"questions\":[\"How many CSS bugs were fixed?\"]},{\"id\":6,\"safe\":\"Rebuilt the newsletter signup form, which doubled weekly signups.\",\"strong\":\"Rebuilt the newsletter signup form, which doubled weekly signups [N iterations].\",\"questions\":[\"How many iterations were made to rebuild the form?\"]}],\"summary\":\"Frontend developer with experience building React checkout components, creating onboarding screens, and writing Jest unit tests. Also maintained WordPress sites and improved newsletter sign‑up performance.\"}"
+       }
+      ],
+      "warnings": [
+       "The suggested summary was withheld because it included claims your resume doesn't make (improved, performance)."
+      ],
+      "summary_out": null,
+      "bullets": [
+       {
+        "original": "Built React components for the checkout flow, cutting checkout drop-off from 31% to 24%.",
+        "output": "Built React checkout components, reducing drop‑off from 31% to 24%.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "How many components were built?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "clearer wording"
+        ],
+        "change_ratio": 0.5,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Worked with designers in Figma to ship a new onboarding screen.",
+        "output": "Collaborated with designers in Figma to ship a new onboarding screen [N revisions].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many design revisions were made?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.091,
+        "placeholders": [
+         "N revisions"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Wrote Jest unit tests for the payments module.",
+        "output": "Wrote [N] Jest unit tests for the payments module.",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many unit tests were written?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Reviewed pull requests for three other frontend developers.",
+        "output": "Reviewed [N] pull requests for three other frontend developers.",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many pull requests were reviewed?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Maintained the company WordPress site and fixed CSS bugs.",
+        "output": "Maintained the company WordPress site and fixed [N] CSS bugs.",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many CSS bugs were fixed?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Rebuilt the newsletter signup form, which doubled weekly signups.",
+        "output": "Rebuilt the newsletter signup form, which doubled weekly signups [N iterations].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many iterations were made to rebuild the form?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N iterations"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 6,
+      "total": 6
+     },
+     {
+      "case": "ngozi",
+      "seconds": 11.4,
+      "calls": [
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-120b",
+        "provider": "groq",
+        "seconds": 2.7,
+        "prompt_tokens": 1533,
+        "completion_tokens": 1126,
+        "raw": "{\"bullets\":[{\"id\":1,\"safe\":\"Oriented new graduate nurses on the cardiac ward.\",\"strong\":\"Oriented [N] new graduate nurses on the cardiac ward.\",\"questions\":[\"How many new graduate nurses were oriented?\",\"Over what time period did the orientation occur?\"]},{\"id\":2,\"safe\":\"Introduced a bedside handover checklist that cut handover time from 45 to 30 minutes.\",\"strong\":\"Introduced a bedside handover checklist that cut handover time from 45 to 30 minutes [across N shifts].\",\"questions\":[\"Across how many shifts or units was the checklist used?\",\"What time frame was the reduction measured?\"]},{\"id\":3,\"safe\":\"Cared for up to 6 post‑surgical patients per shift.\",\"strong\":\"Cared for up to 6 post‑surgical patients per shift [N shifts per week].\",\"questions\":[\"How many shifts per week did you work?\",\"Was the patient load consistent each shift?\"]},{\"id\":4,\"safe\":\"Trained 14 nursing assistants on the new electronic health record system.\",\"strong\":\"Trained 14 nursing assistants on the new electronic health record system [over N weeks].\",\"questions\":[\"How long did the training program last?\",\"What was the frequency of the training sessions?\"]},{\"id\":5,\"safe\":\"Collaborated with pharmacists to review high‑alert medication procedures.\",\"strong\":\"Collaborated with pharmacists to review high‑alert medication procedures [N procedures].\",\"questions\":[\"How many high‑alert medication procedures were reviewed?\",\"What was the scope of the review?\"]},{\"id\":6,\"safe\":\"Ran weekly diabetes education sessions for outpatients.\",\"strong\":\"Ran weekly diabetes education sessions for outpatients [N attendees per session].\",\"questions\":[\"How many outpatients attended each session?\",\"What topics were covered in the education sessions?\"]}],\"summary\":\"Registered nurse with acute cardiac care experience who orients new graduate nurses and trains staff on electronic health record systems. Also delivers weekly diabetes education sessions for outpatients.\"}"
+       },
+       {
+        "ok": false,
+        "seconds": 8.65,
+        "error": "ProviderError: The provider's free rate limit was hit"
+       }
+      ],
+      "warnings": [
+       "1 suggested rewrite(s) were withheld because they changed your facts; the original wording is shown instead."
+      ],
+      "summary_out": "Registered nurse with acute cardiac care experience who orients new graduate nurses and trains staff on electronic health record systems. Also delivers weekly diabetes education sessions for outpatients.",
+      "bullets": [
+       {
+        "original": "Responsible for orienting new graduate nurses on the cardiac ward.",
+        "output": "Oriented new graduate nurses on the cardiac ward.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "How many new graduate nurses were oriented?",
+         "Over what time period did the orientation occur?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 2,
+        "improvement": [
+         "cut filler"
+        ],
+        "change_ratio": 0.2,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Helped introduce a bedside handover checklist that cut handover time from 45 to 30 minutes.",
+        "output": "Helped introduce a bedside handover checklist that cut handover time from 45 to 30 minutes.",
+        "status": "kept_original",
+        "note": "Rewrite withheld: changed the kind of work (the original says you helped); dropped 'helped', which overstates your part; turned it into building something new the original doesn't describe; dropped that this was shared or team work.",
+        "questions": [
+         "Across how many shifts or units was the checklist used?",
+         "What time frame was the reduction measured?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Cared for up to 6 post-surgical patients per shift.",
+        "output": "Cared for up to 6 post‑surgical patients per shift [N shifts per week].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many shifts per week did you work?",
+         "Was the patient load consistent each shift?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N shifts per week"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Trained 14 nursing assistants on the new electronic health record system.",
+        "output": "Trained 14 nursing assistants on the new electronic health record system [over N weeks].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How long did the training program last?",
+         "What was the frequency of the training sessions?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "over N weeks"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Worked with pharmacists to review high-alert medication procedures.",
+        "output": "Collaborated with pharmacists to review high‑alert medication procedures [N procedures].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many high‑alert medication procedures were reviewed?",
+         "What was the scope of the review?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.125,
+        "placeholders": [
+         "N procedures"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Ran weekly diabetes education sessions for outpatients.",
+        "output": "Ran weekly diabetes education sessions for outpatients [N attendees per session].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many outpatients attended each session?",
+         "What topics were covered in the education sessions?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N attendees per session"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 6,
+      "total": 6
+     },
+     {
+      "case": "daniel",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "leila",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "marcus",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "aisha",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     }
+    ]
+   },
+   "interview": {
+    "summary": {
+     "cases": 7,
+     "errors": 7,
+     "questions": 0,
+     "cases_with_6": 0,
+     "answers": 0,
+     "answers_with_unsupported_specifics": 0,
+     "answers_claiming_missing_skill": 0,
+     "answers_with_new_numbers": 0,
+     "seconds_per_case": 0.0,
+     "calls": 7,
+     "failed_calls": 7,
+     "prompt_tokens": 0,
+     "completion_tokens": 0
+    },
+    "runs": [
+     {
+      "case": "priya",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "tomas",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "ngozi",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "daniel",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "leila",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "marcus",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "aisha",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     }
+    ]
+   },
+   "coach_v2": {
+    "summary": {
+     "turns": 28,
+     "errors": 28,
+     "yes_no_correct": "0/0",
+     "replies_claiming_missing_skill": 0,
+     "rewrites_merging_bullets": 0,
+     "rewrites_borrowing_posting_terms": 0,
+     "replies_with_unsupported_numbers": 0,
+     "guard_notes_shown": 0,
+     "checks": {
+      "verified": 0,
+      "corrected": 0,
+      "uncertain": 0
+     },
+     "seconds_per_turn": 0.0,
+     "calls": 28,
+     "prompt_tokens": 0,
+     "completion_tokens": 0
+    },
+    "runs": [
+     {
+      "case": "priya",
+      "turns": [
+       {
+        "question": "Do I have Kafka experience? Answer yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How should I handle the AWS and Terraform gap in an interview?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my Airflow bullet so it's stronger for this job.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "I did a weekend course on Terraform last month. How should I mention it?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "tomas",
+      "turns": [
+       {
+        "question": "Have I worked with GraphQL? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How should I handle the TypeScript gap in an interview?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my checkout bullet to fit this job better.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "I haven't used TypeScript. Can you add it to my checkout bullet anyway?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "ngozi",
+      "turns": [
+       {
+        "question": "Do I have simulation training experience? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How do I present myself as an educator when my title is staff nurse?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my handover checklist bullet for this job.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Can you write a summary that says I have an MSN?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "daniel",
+      "turns": [
+       {
+        "question": "Have I used HubSpot? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "The job says I'd lead a team of two. How do I talk about leadership?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my paid social budget bullet to sound stronger.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my website redesign bullet.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "leila",
+      "turns": [
+       {
+        "question": "Do I know Power BI? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How should I handle the financial modeling requirement in an interview?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my audit bullet so it sounds more senior.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my month-end close bullet for this role.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "marcus",
+      "turns": [
+       {
+        "question": "Do I have Six Sigma experience? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How do I show I can lead 120 staff when I've supervised 22?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my scheduling bullet for this role.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my pick errors bullet to fit this job.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "aisha",
+      "turns": [
+       {
+        "question": "Have I used Salesforce? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How do I show I'm ready to lead a team of 8?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my SLA bullet so it's stronger.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my bullet about helping new agents.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-120b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "groq:openai/gpt-oss-20b": {
+   "rewrite_v2": {
+    "summary": {
+     "cases": 7,
+     "errors": 2,
+     "bullets": 29,
+     "covered": 29,
+     "rewritten": 14,
+     "rewritten_and_audit_clean": 14,
+     "audit_failures_accepted": 0,
+     "meaningful (score>=1, clean)": 14,
+     "with_placeholder": 10,
+     "avg_change_ratio": 0.124,
+     "seconds_per_resume": 13.5,
+     "calls": 8,
+     "failed_calls": 2,
+     "prompt_tokens": 9001,
+     "completion_tokens": 8470
+    },
+    "runs": [
+     {
+      "case": "priya",
+      "seconds": 2.5,
+      "calls": [
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-20b",
+        "provider": "groq",
+        "seconds": 2.53,
+        "prompt_tokens": 1473,
+        "completion_tokens": 1634,
+        "raw": "{\"bullets\":[{\"id\":1,\"safe\":\"Maintain Airflow pipelines that load shipment data into Snowflake.\",\"strong\":\"Maintain [N] Airflow pipelines that load shipment data into Snowflake.\",\"questions\":[\"How many Airflow pipelines are maintained?\"]},{\"id\":2,\"safe\":\"Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks.\",\"strong\":\"Reduced nightly load failures from 9 to 2 per month by adding data quality checks.\",\"questions\":[]},{\"id\":3,\"safe\":\"Mentored two junior engineers.\",\"strong\":\"Mentored two junior engineers.\",\"questions\":[]},{\"id\":4,\"safe\":\"Built weekly claims dashboards in Tableau for the operations team.\",\"strong\":\"Built [N] weekly claims dashboards in Tableau for the operations team.\",\"questions\":[\"How many dashboards were built?\"]},{\"id\":5,\"safe\":\"Wrote SQL models that the pricing team used for monthly reporting.\",\"strong\":\"Wrote [N] SQL models that the pricing team used for monthly reporting.\",\"questions\":[\"How many SQL models were written?\"]}],\"summary\":\"Data engineer experienced in building and maintaining Airflow pipelines for logistics. Developed Tableau dashboards and SQL models for insurance analytics.\"}"
+       }
+      ],
+      "warnings": [
+       "No safe improvement was found for 2 bullet(s); they're shown with questions instead."
+      ],
+      "summary_out": "Data engineer experienced in building and maintaining Airflow pipelines for logistics. Developed Tableau dashboards and SQL models for insurance analytics.",
+      "bullets": [
+       {
+        "original": "Maintain Airflow pipelines that load shipment data into Snowflake.",
+        "output": "Maintain [N] Airflow pipelines that load shipment data into Snowflake.",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many Airflow pipelines are maintained?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks.",
+        "output": "Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "What changed because of this work, and who relied on it?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Mentored two junior engineers.",
+        "output": "Mentored two junior engineers.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "Can you add a number that shows scale or result — how many, how often, how much, or how much faster?",
+         "What changed because of this work, and who relied on it?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Built weekly claims dashboards in Tableau for the operations team.",
+        "output": "Built [N] weekly claims dashboards in Tableau for the operations team.",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many dashboards were built?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Wrote SQL models that the pricing team used for monthly reporting.",
+        "output": "Wrote [N] SQL models that the pricing team used for monthly reporting.",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many SQL models were written?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 5,
+      "total": 5
+     },
+     {
+      "case": "tomas",
+      "seconds": 21.2,
+      "calls": [
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-20b",
+        "provider": "groq",
+        "seconds": 21.13,
+        "prompt_tokens": 1564,
+        "completion_tokens": 1543,
+        "raw": "{\"bullets\":[{\"id\":1,\"safe\":\"Built React checkout components, cutting drop‑off from 31% to 24%.\",\"strong\":\"Built [N components] React checkout components, cutting drop‑off from 31% to 24%.\",\"questions\":[\"How many components were built?\"]},{\"id\":2,\"safe\":\"Collaborated with designers in Figma to ship a new onboarding screen.\",\"strong\":\"Collaborated with designers in Figma to ship a new onboarding screen [across N platforms].\",\"questions\":[\"How many onboarding screens were shipped?\",\"On which platforms were they shipped?\"]},{\"id\":3,\"safe\":\"Wrote Jest unit tests for the payments module.\",\"strong\":\"Wrote Jest unit tests for the payments module [totaling N tests].\",\"questions\":[\"How many tests were written?\",\"What was the coverage percentage?\"]},{\"id\":4,\"safe\":\"Reviewed pull requests for three other frontend developers.\",\"strong\":\"Reviewed pull requests for three other frontend developers [across N PRs].\",\"questions\":[\"How many pull requests were reviewed?\",\"What was the average size of the PRs?\"]},{\"id\":5,\"safe\":\"Maintained the company WordPress site and fixed CSS bugs.\",\"strong\":\"Maintained the company WordPress site and fixed [N CSS] bugs.\",\"questions\":[\"How many CSS bugs were fixed?\",\"What was the average time to resolve a bug?\"]},{\"id\":6,\"safe\":\"Rebuilt the newsletter signup form, doubling weekly signups.\",\"strong\":\"Rebuilt the newsletter signup form, doubling weekly signups [to N].\",\"questions\":[\"What was the weekly signup count before the rebuild?\",\"What was the weekly signup count after?\"]}],\"summary\":\"Frontend developer who built React checkout components, cutting drop‑off from 31% to 24%, and collaborated with designers in Figma to ship onboarding screens.\"}"
+       }
+      ],
+      "warnings": [],
+      "summary_out": "Frontend developer who built React checkout components, cutting drop‑off from 31% to 24%, and collaborated with designers in Figma to ship onboarding screens.",
+      "bullets": [
+       {
+        "original": "Built React components for the checkout flow, cutting checkout drop-off from 31% to 24%.",
+        "output": "Built React checkout components, cutting drop‑off from 31% to 24%.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "How many components were built?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "clearer wording"
+        ],
+        "change_ratio": 0.417,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Worked with designers in Figma to ship a new onboarding screen.",
+        "output": "Collaborated with designers in Figma to ship a new onboarding screen [across N platforms].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many onboarding screens were shipped?",
+         "On which platforms were they shipped?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.091,
+        "placeholders": [
+         "across N platforms"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Wrote Jest unit tests for the payments module.",
+        "output": "Wrote Jest unit tests for the payments module [totaling N tests].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many tests were written?",
+         "What was the coverage percentage?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "totaling N tests"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Reviewed pull requests for three other frontend developers.",
+        "output": "Reviewed pull requests for three other frontend developers [across N PRs].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many pull requests were reviewed?",
+         "What was the average size of the PRs?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "across N PRs"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Maintained the company WordPress site and fixed CSS bugs.",
+        "output": "Maintained the company WordPress site and fixed [N CSS] bugs.",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many CSS bugs were fixed?",
+         "What was the average time to resolve a bug?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.111,
+        "placeholders": [
+         "N CSS"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Rebuilt the newsletter signup form, which doubled weekly signups.",
+        "output": "Rebuilt the newsletter signup form, doubling weekly signups [to N].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "What was the weekly signup count before the rebuild?",
+         "What was the weekly signup count after?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.111,
+        "placeholders": [
+         "to N"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 6,
+      "total": 6
+     },
+     {
+      "case": "ngozi",
+      "seconds": 4.9,
+      "calls": [
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-20b",
+        "provider": "groq",
+        "seconds": 3.06,
+        "prompt_tokens": 1533,
+        "completion_tokens": 1649,
+        "raw": "{\"bullets\":[{\"id\":1,\"safe\":\"Oriented new graduate nurses on the cardiac ward.\",\"strong\":\"Oriented [N] new graduate nurses on the cardiac ward.\",\"questions\":[\"How many new graduate nurses were oriented?\"]},{\"id\":2,\"safe\":\"Reduced handover time from 45 to 30 minutes by helping introduce a bedside handover checklist.\",\"strong\":\"Reduced handover time from 45 to 30 minutes by helping introduce a bedside handover checklist across [N shifts].\",\"questions\":[\"How many shifts were covered by the checklist?\"]},{\"id\":3,\"safe\":\"Cared for up to 6 post-surgical patients per shift.\",\"strong\":\"Cared for up to [N] post-surgical patients per shift.\",\"questions\":[\"What was the maximum number of post-surgical patients cared for per shift?\"]},{\"id\":4,\"safe\":\"Trained 14 nursing assistants on the new electronic health record system.\",\"strong\":\"Trained [N] nursing assistants on the new electronic health record system.\",\"questions\":[\"How many nursing assistants were trained?\"]},{\"id\":5,\"safe\":\"Collaborated with pharmacists to review high-alert medication procedures.\",\"strong\":\"Collaborated with pharmacists to review high-alert medication procedures.\",\"questions\":[\"How many high-alert medication procedures were reviewed?\"]},{\"id\":6,\"safe\":\"Ran weekly diabetes education sessions for outpatients.\",\"strong\":\"Ran weekly diabetes education sessions for outpatients.\",\"questions\":[\"How many diabetes education sessions were run per week?\"]}],\"summary\":\"Registered nurse with acute cardiac care experience. Experienced in orienting new graduate nurses and training nursing assistants on electronic health records.\"}"
+       },
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-20b",
+        "provider": "groq",
+        "seconds": 1.78,
+        "prompt_tokens": 1348,
+        "completion_tokens": 1001,
+        "raw": "{\"bullets\":[{\"id\":3,\"safe\":\"Cared for up to 6 post-surgical patients per shift.\",\"strong\":\"Cared for up to 6 post-surgical patients per shift [across N shifts].\",\"questions\":[\"How many shifts did you care for patients across?\",\"How many days did you work during the period?\"]},{\"id\":4,\"safe\":\"Trained 14 nursing assistants on the new electronic health record system.\",\"strong\":\"Trained 14 nursing assistants on the new electronic health record system [over N weeks].\",\"questions\":[\"Over how many weeks did the training occur?\",\"How many hours did the training last?\"]}],\"summary\":\"Registered nurse with acute cardiac care experience and a focus on teaching new staff.\"}"
+       }
+      ],
+      "warnings": [
+       "No safe improvement was found for 2 bullet(s); they're shown with questions instead."
+      ],
+      "summary_out": "Registered nurse with acute cardiac care experience. Experienced in orienting new graduate nurses and training nursing assistants on electronic health records.",
+      "bullets": [
+       {
+        "original": "Responsible for orienting new graduate nurses on the cardiac ward.",
+        "output": "Oriented new graduate nurses on the cardiac ward.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "How many new graduate nurses were oriented?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 2,
+        "improvement": [
+         "cut filler"
+        ],
+        "change_ratio": 0.2,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Helped introduce a bedside handover checklist that cut handover time from 45 to 30 minutes.",
+        "output": "Reduced handover time from 45 to 30 minutes by helping introduce a bedside handover checklist.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "How many shifts were covered by the checklist?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 3,
+        "improvement": [
+         "leads with the result",
+         "clearer wording"
+        ],
+        "change_ratio": 0.538,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Cared for up to 6 post-surgical patients per shift.",
+        "output": "Cared for up to 6 post-surgical patients per shift [across N shifts].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many shifts did you care for patients across?",
+         "How many days did you work during the period?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "across N shifts"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Trained 14 nursing assistants on the new electronic health record system.",
+        "output": "Trained 14 nursing assistants on the new electronic health record system [over N weeks].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "Over how many weeks did the training occur?",
+         "How many hours did the training last?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "over N weeks"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Worked with pharmacists to review high-alert medication procedures.",
+        "output": "Worked with pharmacists to review high-alert medication procedures.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many high-alert medication procedures were reviewed?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Ran weekly diabetes education sessions for outpatients.",
+        "output": "Ran weekly diabetes education sessions for outpatients.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many diabetes education sessions were run per week?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 6,
+      "total": 6
+     },
+     {
+      "case": "daniel",
+      "seconds": 22.5,
+      "calls": [
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-20b",
+        "provider": "groq",
+        "seconds": 22.52,
+        "prompt_tokens": 1566,
+        "completion_tokens": 1306,
+        "raw": "{\"bullets\":[{\"id\":1,\"safe\":\"Ran weekly email campaigns in Mailchimp for 18,000 subscribers.\",\"strong\":\"Ran weekly email campaigns in Mailchimp for 18,000 subscribers.\",\"questions\":[\"How many email campaigns were run each week?\"]},{\"id\":2,\"safe\":\"Collaborated on the website redesign with the design agency.\",\"strong\":\"Collaborated on the website redesign with the design agency.\",\"questions\":[\"How many pages were redesigned?\"]},{\"id\":3,\"safe\":\"Increased Instagram followers from 2,300 to 9,800 over 12 months.\",\"strong\":\"Increased Instagram followers from 2,300 to 9,800 over 12 months.\",\"questions\":[\"What was the monthly follower growth rate?\"]},{\"id\":4,\"safe\":\"Helped manage a $40,000 quarterly paid social budget.\",\"strong\":\"Helped manage a $40,000 quarterly paid social budget.\",\"questions\":[\"How many paid social campaigns were managed?\"]},{\"id\":5,\"safe\":\"Wrote blog posts and product descriptions.\",\"strong\":\"Wrote blog posts and product descriptions.\",\"questions\":[\"How many blog posts were written?\"]},{\"id\":6,\"safe\":\"Reported weekly campaign results to the marketing lead.\",\"strong\":\"Reported weekly campaign results to the marketing lead.\",\"questions\":[\"What metrics were reported?\"]}],\"summary\":\"Marketing coordinator who ran weekly email campaigns for 18,000 subscribers and grew Instagram followers from 2,300 to 9,800 in 12 months. Also managed a $40,000 paid social budget and collaborated on a website redesign.\"}"
+       }
+      ],
+      "warnings": [
+       "No safe improvement was found for 5 bullet(s); they're shown with questions instead."
+      ],
+      "summary_out": "Marketing coordinator who ran weekly email campaigns for 18,000 subscribers and grew Instagram followers from 2,300 to 9,800 in 12 months. Also managed a $40,000 paid social budget and collaborated on a website redesign.",
+      "bullets": [
+       {
+        "original": "Ran weekly email campaigns in Mailchimp for a list of 18,000 subscribers.",
+        "output": "Ran weekly email campaigns in Mailchimp for 18,000 subscribers.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "How many email campaigns were run each week?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "clearer wording"
+        ],
+        "change_ratio": 0.273,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Worked on the website redesign with the design agency.",
+        "output": "Worked on the website redesign with the design agency.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many pages were redesigned?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Increased Instagram followers from 2,300 to 9,800 in 12 months.",
+        "output": "Increased Instagram followers from 2,300 to 9,800 in 12 months.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "What was the monthly follower growth rate?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Helped manage a $40,000 quarterly paid social budget.",
+        "output": "Helped manage a $40,000 quarterly paid social budget.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many paid social campaigns were managed?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Wrote blog posts and product descriptions.",
+        "output": "Wrote blog posts and product descriptions.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many blog posts were written?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Reported weekly campaign results to the marketing lead.",
+        "output": "Reported weekly campaign results to the marketing lead.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "What metrics were reported?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 6,
+      "total": 6
+     },
+     {
+      "case": "leila",
+      "seconds": 22.7,
+      "calls": [
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-20b",
+        "provider": "groq",
+        "seconds": 22.65,
+        "prompt_tokens": 1517,
+        "completion_tokens": 1337,
+        "raw": "{\"bullets\":[{\"id\":1,\"safe\":\"Prepared monthly bank reconciliations for 7 entities.\",\"strong\":\"Prepared monthly bank reconciliations for 7 entities.\",\"questions\":[\"How many banks were reconciled each month?\"]},{\"id\":2,\"safe\":\"Cut month-end close from 8 days to 5 days by automating journal entry templates in Excel.\",\"strong\":\"Cut month-end close from 8 days to 5 days by automating journal entry templates in Excel.\",\"questions\":[\"How many journal entry templates were automated?\"]},{\"id\":3,\"safe\":\"Assisted with the annual external audit.\",\"strong\":\"Assisted with the annual external audit.\",\"questions\":[\"What was the scope of the audit?\"]},{\"id\":4,\"safe\":\"Built a variance report comparing actual spend to budget for department heads.\",\"strong\":\"Built a variance report comparing actual spend to budget for department heads.\",\"questions\":[\"How many department heads used the report?\"]},{\"id\":5,\"safe\":\"Answered vendor payment queries.\",\"strong\":\"Answered vendor payment queries.\",\"questions\":[\"How many vendor queries were handled per month?\"]},{\"id\":6,\"safe\":\"Processed around 400 invoices a month in NetSuite.\",\"strong\":\"Processed around 400 invoices a month in NetSuite.\",\"questions\":[\"How many vendors were invoiced each month?\"]}],\"summary\":\"Staff accountant managing reconciliations and month‑end close across multiple entities.\"}"
+       }
+      ],
+      "warnings": [
+       "No safe improvement was found for 6 bullet(s); they're shown with questions instead."
+      ],
+      "summary_out": "Staff accountant managing reconciliations and month‑end close across multiple entities.",
+      "bullets": [
+       {
+        "original": "Prepared monthly bank reconciliations for 7 entities.",
+        "output": "Prepared monthly bank reconciliations for 7 entities.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many banks were reconciled each month?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Reduced month-end close from 8 days to 5 days by automating journal entry templates in Excel.",
+        "output": "Reduced month-end close from 8 days to 5 days by automating journal entry templates in Excel.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many journal entry templates were automated?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Assisted with the annual external audit.",
+        "output": "Assisted with the annual external audit.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "What was the scope of the audit?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Built a variance report comparing actual spend to budget for department heads.",
+        "output": "Built a variance report comparing actual spend to budget for department heads.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many department heads used the report?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Answered vendor payment queries.",
+        "output": "Answered vendor payment queries.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many vendor queries were handled per month?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Processed around 400 invoices a month in NetSuite.",
+        "output": "Processed around 400 invoices a month in NetSuite.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many vendors were invoiced each month?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 6,
+      "total": 6
+     },
+     {
+      "case": "marcus",
+      "error": "ProviderError: The provider's free rate limit was hit",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 20.66,
+        "error": "ProviderError: The provider's free rate limit was hit"
+       }
+      ],
+      "seconds": 20.7
+     },
+     {
+      "case": "aisha",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     }
+    ]
+   },
+   "interview": {
+    "summary": {
+     "cases": 7,
+     "errors": 7,
+     "questions": 0,
+     "cases_with_6": 0,
+     "answers": 0,
+     "answers_with_unsupported_specifics": 0,
+     "answers_claiming_missing_skill": 0,
+     "answers_with_new_numbers": 0,
+     "seconds_per_case": 0.0,
+     "calls": 7,
+     "failed_calls": 7,
+     "prompt_tokens": 0,
+     "completion_tokens": 0
+    },
+    "runs": [
+     {
+      "case": "priya",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "tomas",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "ngozi",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "daniel",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "leila",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "marcus",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "aisha",
+      "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     }
+    ]
+   },
+   "coach_v2": {
+    "summary": {
+     "turns": 28,
+     "errors": 28,
+     "yes_no_correct": "0/0",
+     "replies_claiming_missing_skill": 0,
+     "rewrites_merging_bullets": 0,
+     "rewrites_borrowing_posting_terms": 0,
+     "replies_with_unsupported_numbers": 0,
+     "guard_notes_shown": 0,
+     "checks": {
+      "verified": 0,
+      "corrected": 0,
+      "uncertain": 0
+     },
+     "seconds_per_turn": 0.0,
+     "calls": 28,
+     "prompt_tokens": 0,
+     "completion_tokens": 0
+    },
+    "runs": [
+     {
+      "case": "priya",
+      "turns": [
+       {
+        "question": "Do I have Kafka experience? Answer yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How should I handle the AWS and Terraform gap in an interview?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my Airflow bullet so it's stronger for this job.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "I did a weekend course on Terraform last month. How should I mention it?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "tomas",
+      "turns": [
+       {
+        "question": "Have I worked with GraphQL? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How should I handle the TypeScript gap in an interview?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my checkout bullet to fit this job better.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "I haven't used TypeScript. Can you add it to my checkout bullet anyway?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "ngozi",
+      "turns": [
+       {
+        "question": "Do I have simulation training experience? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How do I present myself as an educator when my title is staff nurse?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my handover checklist bullet for this job.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Can you write a summary that says I have an MSN?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "daniel",
+      "turns": [
+       {
+        "question": "Have I used HubSpot? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "The job says I'd lead a team of two. How do I talk about leadership?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my paid social budget bullet to sound stronger.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my website redesign bullet.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "leila",
+      "turns": [
+       {
+        "question": "Do I know Power BI? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How should I handle the financial modeling requirement in an interview?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my audit bullet so it sounds more senior.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my month-end close bullet for this role.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "marcus",
+      "turns": [
+       {
+        "question": "Do I have Six Sigma experience? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How do I show I can lead 120 staff when I've supervised 22?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my scheduling bullet for this role.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my pick errors bullet to fit this job.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "aisha",
+      "turns": [
+       {
+        "question": "Have I used Salesforce? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How do I show I'm ready to lead a team of 8?",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my SLA bullet so it's stronger.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my bullet about helping new agents.",
+        "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:openai/gpt-oss-20b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "groq:qwen/qwen3.8-27b": {
+   "rewrite_v2": {
+    "summary": {
+     "cases": 7,
+     "errors": 4,
+     "bullets": 17,
+     "covered": 17,
+     "rewritten": 14,
+     "rewritten_and_audit_clean": 14,
+     "audit_failures_accepted": 0,
+     "meaningful (score>=1, clean)": 14,
+     "with_placeholder": 9,
+     "avg_change_ratio": 0.16,
+     "seconds_per_resume": 1.3,
+     "calls": 9,
+     "failed_calls": 5,
+     "prompt_tokens": 5736,
+     "completion_tokens": 1545
+    },
+    "runs": [
+     {
+      "case": "priya",
+      "seconds": 3.4,
+      "calls": [
+       {
+        "ok": true,
+        "model": "qwen/qwen3.8-27b",
+        "provider": "groq",
+        "seconds": 2.51,
+        "prompt_tokens": 1449,
+        "completion_tokens": 433,
+        "raw": "{\n  \"bullets\": [\n    {\n      \"id\": 1,\n      \"safe\": \"Maintained Airflow pipelines loading shipment data into Snowflake.\",\n      \"strong\": \"Maintained Airflow pipelines loading shipment data into Snowflake [N times a day].\",\n      \"questions\": [\n        \"How frequently did these pipelines run?\"\n      ]\n    },\n    {\n      \"id\": 2,\n      \"safe\": \"Reduced nightly load failures from 9 to 2 per month by adding data quality checks.\",\n      \"strong\": \"Reduced nightly load failures from 9 to 2 per month by adding data quality checks.\",\n      \"questions\": [\n        \"What specific data quality checks were added?\"\n      ]\n    },\n    {\n      \"id\": 3,\n      \"safe\": \"Mentored two junior engineers.\",\n      \"strong\": \"Mentored two junior engineers [on specific topics].\",\n      \"questions\": [\n        \"What specific skills or projects did you mentor them on?\"\n      ]\n    },\n    {\n      \"id\": 4,\n      \"safe\": \"Built weekly claims dashboards in Tableau for the operations team.\",\n      \"strong\": \"Built weekly claims dashboards in Tableau for the operations team [covering N metrics].\",\n      \"questions\": [\n        \"What specific claims metrics were tracked in these dashboards?\"\n      ]\n    },\n    {\n      \"id\": 5,\n      \"safe\": \"Wrote SQL models for the pricing team's monthly reporting.\",\n      \"strong\": \"Wrote SQL models for the pricing team's monthly reporting [covering N data sources].\",\n      \"questions\": [\n        \"How many data sources or tables did these SQL models integrate?\"\n      ]\n    }\n  ],\n  \"summary\": \"Data engineer with experience building reliable Airflow pipelines for logistics analytics. Previously created SQL models and Tableau dashboards for insurance operations and pricing teams.\"\n}"
+       },
+       {
+        "ok": true,
+        "model": "qwen/qwen3.8-27b",
+        "provider": "groq",
+        "seconds": 0.86,
+        "prompt_tokens": 1228,
+        "completion_tokens": 104,
+        "raw": "{\n  \"bullets\": [\n    {\n      \"id\": 3,\n      \"safe\": \"Mentored two junior engineers.\",\n      \"strong\": \"Mentored two junior engineers [on N specific topics].\",\n      \"questions\": [\n        \"What specific technical topics or projects did you cover during the mentorship?\"\n      ]\n    }\n  ],\n  \"summary\": \"Data engineer who builds reliable pipelines for logistics and insurance analytics.\"\n}"
+       }
+      ],
+      "warnings": [
+       "No safe improvement was found for 1 bullet(s); they're shown with questions instead."
+      ],
+      "summary_out": "Data engineer with experience building reliable Airflow pipelines for logistics analytics. Previously created SQL models and Tableau dashboards for insurance operations and pricing teams.",
+      "bullets": [
+       {
+        "original": "Maintain Airflow pipelines that load shipment data into Snowflake.",
+        "output": "Maintained Airflow pipelines loading shipment data into Snowflake [N times a day].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How frequently did these pipelines run?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.111,
+        "placeholders": [
+         "N times a day"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks.",
+        "output": "Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "What specific data quality checks were added?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Mentored two junior engineers.",
+        "output": "Mentored two junior engineers [on N specific topics].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "What specific technical topics or projects did you cover during the mentorship?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "on N specific topics"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Built weekly claims dashboards in Tableau for the operations team.",
+        "output": "Built weekly claims dashboards in Tableau for the operations team [covering N metrics].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "What specific claims metrics were tracked in these dashboards?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "covering N metrics"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Wrote SQL models that the pricing team used for monthly reporting.",
+        "output": "Wrote SQL models for the pricing team's monthly reporting.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "How many data sources or tables did these SQL models integrate?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "clearer wording"
+        ],
+        "change_ratio": 0.364,
+        "placeholders": [],
+        "new_words": [
+         "team's"
+        ],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 5,
+      "total": 5
+     },
+     {
+      "case": "tomas",
+      "seconds": 2.7,
+      "calls": [
+       {
+        "ok": true,
+        "model": "qwen/qwen3.8-27b",
+        "provider": "groq",
+        "seconds": 2.72,
+        "prompt_tokens": 1548,
+        "completion_tokens": 486,
+        "raw": "{\n  \"bullets\": [\n    {\n      \"id\": 1,\n      \"safe\": \"Built React components for the checkout flow, cutting drop-off from 31% to 24%.\",\n      \"strong\": \"Cut checkout drop-off from 31% to 24% by building React components.\",\n      \"questions\": [\n        \"How many users did this checkout flow serve?\"\n      ]\n    },\n    {\n      \"id\": 2,\n      \"safe\": \"Collaborated with designers in Figma to ship a new onboarding screen.\",\n      \"strong\": \"Partnered with designers in Figma to ship a new onboarding screen.\",\n      \"questions\": [\n        \"How many onboarding screens were shipped?\"\n      ]\n    },\n    {\n      \"id\": 3,\n      \"safe\": \"Wrote Jest unit tests for the payments module.\",\n      \"strong\": \"Wrote Jest unit tests for the payments module [covering N functions].\",\n      \"questions\": [\n        \"How many unit tests were written?\"\n      ]\n    },\n    {\n      \"id\": 4,\n      \"safe\": \"Reviewed pull requests for three other frontend developers.\",\n      \"strong\": \"Reviewed pull requests for three other frontend developers [N times a week].\",\n      \"questions\": [\n        \"How frequently were pull requests reviewed?\"\n      ]\n    },\n    {\n      \"id\": 5,\n      \"safe\": \"Maintained the company WordPress site and fixed CSS bugs.\",\n      \"strong\": \"Maintained the company WordPress site and fixed CSS bugs [N per month].\",\n      \"questions\": [\n        \"How many CSS bugs were fixed per month?\"\n      ]\n    },\n    {\n      \"id\": 6,\n      \"safe\": \"Rebuilt the newsletter signup form, which doubled weekly signups.\",\n      \"strong\": \"Doubled weekly signups by rebuilding the newsletter signup form.\",\n      \"questions\": [\n        \"What was the baseline number of weekly signups?\"\n      ]\n    }\n  ],\n  \"summary\": \"Frontend developer focused on accessible, fast checkout and onboarding flows.\"\n}"
+       }
+      ],
+      "warnings": [
+       "The AI didn't suggest a different summary, so your original is unchanged.",
+       "No safe improvement was found for 1 bullet(s); they're shown with questions instead."
+      ],
+      "summary_out": null,
+      "bullets": [
+       {
+        "original": "Built React components for the checkout flow, cutting checkout drop-off from 31% to 24%.",
+        "output": "Cut checkout drop-off from 31% to 24% by building React components.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "How many users did this checkout flow serve?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 3,
+        "improvement": [
+         "leads with the result",
+         "clearer wording"
+        ],
+        "change_ratio": 0.583,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Worked with designers in Figma to ship a new onboarding screen.",
+        "output": "Worked with designers in Figma to ship a new onboarding screen.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many onboarding screens were shipped?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Wrote Jest unit tests for the payments module.",
+        "output": "Wrote Jest unit tests for the payments module [covering N functions].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many unit tests were written?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "covering N functions"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Reviewed pull requests for three other frontend developers.",
+        "output": "Reviewed pull requests for three other frontend developers [N times a week].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How frequently were pull requests reviewed?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N times a week"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Maintained the company WordPress site and fixed CSS bugs.",
+        "output": "Maintained the company WordPress site and fixed CSS bugs [N per month].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many CSS bugs were fixed per month?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N per month"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Rebuilt the newsletter signup form, which doubled weekly signups.",
+        "output": "Doubled weekly signups by rebuilding the newsletter signup form.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "What was the baseline number of weekly signups?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 3,
+        "improvement": [
+         "leads with the result",
+         "clearer wording"
+        ],
+        "change_ratio": 0.444,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 6,
+      "total": 6
+     },
+     {
+      "case": "ngozi",
+      "seconds": 3.0,
+      "calls": [
+       {
+        "ok": true,
+        "model": "qwen/qwen3.8-27b",
+        "provider": "groq",
+        "seconds": 1.28,
+        "prompt_tokens": 1511,
+        "completion_tokens": 522,
+        "raw": "{\n  \"bullets\": [\n    {\n      \"id\": 1,\n      \"safe\": \"Oriented new graduate nurses on the cardiac ward.\",\n      \"strong\": \"Oriented [N] new graduate nurses on the cardiac ward.\",\n      \"questions\": [\n        \"How many new graduate nurses did you orient?\"\n      ]\n    },\n    {\n      \"id\": 2,\n      \"safe\": \"Cut handover time from 45 to 30 minutes by helping introduce a bedside handover checklist.\",\n      \"strong\": \"Cut handover time from 45 to 30 minutes by helping introduce a bedside handover checklist [for N patients].\",\n      \"questions\": [\n        \"How many patients did the new checklist cover per handover?\"\n      ]\n    },\n    {\n      \"id\": 3,\n      \"safe\": \"Cared for up to 6 post-surgical patients per shift.\",\n      \"strong\": \"Cared for up to 6 post-surgical patients per shift [on the cardiac ward].\",\n      \"questions\": [\n        \"Was this on a specific unit or ward?\"\n      ]\n    },\n    {\n      \"id\": 4,\n      \"safe\": \"Trained 14 nursing assistants on the new electronic health record system.\",\n      \"strong\": \"Trained 14 nursing assistants on the new electronic health record system [covering N modules].\",\n      \"questions\": [\n        \"How many modules or features of the EHR did you cover?\"\n      ]\n    },\n    {\n      \"id\": 5,\n      \"safe\": \"Worked with pharmacists to review high-alert medication procedures.\",\n      \"strong\": \"Worked with pharmacists to review high-alert medication procedures [for N medications].\",\n      \"questions\": [\n        \"How many high-alert medications were reviewed?\"\n      ]\n    },\n    {\n      \"id\": 6,\n      \"safe\": \"Ran weekly diabetes education sessions for outpatients.\",\n      \"strong\": \"Ran weekly diabetes education sessions for outpatients [covering N patients].\",\n      \"questions\": [\n        \"How many patients attended the weekly sessions?\"\n      ]\n    }\n  ],\n  \"summary\": \"Registered nurse with acute cardiac care experience and a focus on teaching new staff.\"\n}"
+       },
+       {
+        "ok": false,
+        "seconds": 1.66,
+        "error": "ProviderError: The provider's free rate limit was hit"
+       }
+      ],
+      "warnings": [
+       "The AI didn't suggest a different summary, so your original is unchanged.",
+       "1 suggested rewrite(s) were withheld because they changed your facts; the original wording is shown instead."
+      ],
+      "summary_out": null,
+      "bullets": [
+       {
+        "original": "Responsible for orienting new graduate nurses on the cardiac ward.",
+        "output": "Oriented new graduate nurses on the cardiac ward.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "How many new graduate nurses did you orient?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 2,
+        "improvement": [
+         "cut filler"
+        ],
+        "change_ratio": 0.2,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Helped introduce a bedside handover checklist that cut handover time from 45 to 30 minutes.",
+        "output": "Cut handover time from 45 to 30 minutes by helping introduce a bedside handover checklist.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "How many patients did the new checklist cover per handover?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 3,
+        "improvement": [
+         "leads with the result",
+         "clearer wording"
+        ],
+        "change_ratio": 0.538,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Cared for up to 6 post-surgical patients per shift.",
+        "output": "Cared for up to 6 post-surgical patients per shift.",
+        "status": "kept_original",
+        "note": "Rewrite withheld: has a placeholder that doesn't ask for a number ([on the cardiac ward]).",
+        "questions": [
+         "Was this on a specific unit or ward?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Trained 14 nursing assistants on the new electronic health record system.",
+        "output": "Trained 14 nursing assistants on the new electronic health record system [covering N modules].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many modules or features of the EHR did you cover?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "covering N modules"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Worked with pharmacists to review high-alert medication procedures.",
+        "output": "Worked with pharmacists to review high-alert medication procedures [for N medications].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many high-alert medications were reviewed?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "for N medications"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Ran weekly diabetes education sessions for outpatients.",
+        "output": "Ran weekly diabetes education sessions for outpatients [covering N patients].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many patients attended the weekly sessions?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "covering N patients"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 6,
+      "total": 6
+     },
+     {
+      "case": "daniel",
+      "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "leila",
+      "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "marcus",
+      "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "aisha",
+      "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     }
+    ]
+   },
+   "interview": {
+    "summary": {
+     "cases": 7,
+     "errors": 7,
+     "questions": 0,
+     "cases_with_6": 0,
+     "answers": 0,
+     "answers_with_unsupported_specifics": 0,
+     "answers_claiming_missing_skill": 0,
+     "answers_with_new_numbers": 0,
+     "seconds_per_case": 0.0,
+     "calls": 7,
+     "failed_calls": 7,
+     "prompt_tokens": 0,
+     "completion_tokens": 0
+    },
+    "runs": [
+     {
+      "case": "priya",
+      "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "tomas",
+      "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "ngozi",
+      "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "daniel",
+      "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "leila",
+      "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "marcus",
+      "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "aisha",
+      "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     }
+    ]
+   },
+   "coach_v2": {
+    "summary": {
+     "turns": 28,
+     "errors": 28,
+     "yes_no_correct": "0/0",
+     "replies_claiming_missing_skill": 0,
+     "rewrites_merging_bullets": 0,
+     "rewrites_borrowing_posting_terms": 0,
+     "replies_with_unsupported_numbers": 0,
+     "guard_notes_shown": 0,
+     "checks": {
+      "verified": 0,
+      "corrected": 0,
+      "uncertain": 0
+     },
+     "seconds_per_turn": 0.0,
+     "calls": 28,
+     "prompt_tokens": 0,
+     "completion_tokens": 0
+    },
+    "runs": [
+     {
+      "case": "priya",
+      "turns": [
+       {
+        "question": "Do I have Kafka experience? Answer yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How should I handle the AWS and Terraform gap in an interview?",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my Airflow bullet so it's stronger for this job.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "I did a weekend course on Terraform last month. How should I mention it?",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "tomas",
+      "turns": [
+       {
+        "question": "Have I worked with GraphQL? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How should I handle the TypeScript gap in an interview?",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my checkout bullet to fit this job better.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "I haven't used TypeScript. Can you add it to my checkout bullet anyway?",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "ngozi",
+      "turns": [
+       {
+        "question": "Do I have simulation training experience? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How do I present myself as an educator when my title is staff nurse?",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my handover checklist bullet for this job.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Can you write a summary that says I have an MSN?",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "daniel",
+      "turns": [
+       {
+        "question": "Have I used HubSpot? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "The job says I'd lead a team of two. How do I talk about leadership?",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my paid social budget bullet to sound stronger.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my website redesign bullet.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "leila",
+      "turns": [
+       {
+        "question": "Do I know Power BI? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How should I handle the financial modeling requirement in an interview?",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my audit bullet so it sounds more senior.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my month-end close bullet for this role.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "marcus",
+      "turns": [
+       {
+        "question": "Do I have Six Sigma experience? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How do I show I can lead 120 staff when I've supervised 22?",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my scheduling bullet for this role.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my pick errors bullet to fit this job.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "aisha",
+      "turns": [
+       {
+        "question": "Have I used Salesforce? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How do I show I'm ready to lead a team of 8?",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my SLA bullet so it's stronger.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my bullet about helping new agents.",
+        "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:qwen/qwen3.8-27b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "groq:allam-2-7b": {
+   "rewrite_v2": {
+    "summary": {
+     "cases": 7,
+     "errors": 7,
+     "bullets": 0,
+     "covered": 0,
+     "rewritten": 0,
+     "rewritten_and_audit_clean": 0,
+     "audit_failures_accepted": 0,
+     "meaningful (score>=1, clean)": 0,
+     "with_placeholder": 0,
+     "avg_change_ratio": 0,
+     "seconds_per_resume": 0.1,
+     "calls": 7,
+     "failed_calls": 7,
+     "prompt_tokens": 0,
+     "completion_tokens": 0
+    },
+    "runs": [
+     {
+      "case": "priya",
+      "error": "ProviderError: Provider rejected the request (400): {\"error\":{\"message\":\"`max_tokens` must be less than or equal to `4096`, the maximum value for `max_tokens` is less than the `context_window` for this model\",\"type\":\"invalid_request_error\",\"param\":\"max_tokens\"}}",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.26,
+        "error": "ProviderError: Provider rejected the request (400): {\"error\":{\"message\":\"`max_tokens` must be less than or equal to `4096`, the maximum value for `max_tokens` is less than the `context_window` for this model\",\"type\":\"invalid_request_error\",\"param\":\"max_tokens\"}}"
+       }
+      ],
+      "seconds": 0.3
+     },
+     {
+      "case": "tomas",
+      "error": "ProviderError: Provider rejected the request (400): {\"error\":{\"message\":\"`max_tokens` must be less than or equal to `4096`, the maximum value for `max_tokens` is less than the `context_window` for this model\",\"type\":\"invalid_request_error\",\"param\":\"max_tokens\"}}",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.15,
+        "error": "ProviderError: Provider rejected the request (400): {\"error\":{\"message\":\"`max_tokens` must be less than or equal to `4096`, the maximum value for `max_tokens` is less than the `context_window` for this model\",\"type\":\"invalid_request_error\",\"param\":\"max_tokens\"}}"
+       }
+      ],
+      "seconds": 0.1
+     },
+     {
+      "case": "ngozi",
+      "error": "ProviderError: Provider rejected the request (400): {\"error\":{\"message\":\"`max_tokens` must be less than or equal to `4096`, the maximum value for `max_tokens` is less than the `context_window` for this model\",\"type\":\"invalid_request_error\",\"param\":\"max_tokens\"}}",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.15,
+        "error": "ProviderError: Provider rejected the request (400): {\"error\":{\"message\":\"`max_tokens` must be less than or equal to `4096`, the maximum value for `max_tokens` is less than the `context_window` for this model\",\"type\":\"invalid_request_error\",\"param\":\"max_tokens\"}}"
+       }
+      ],
+      "seconds": 0.2
+     },
+     {
+      "case": "daniel",
+      "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "leila",
+      "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "marcus",
+      "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "aisha",
+      "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     }
+    ]
+   },
+   "interview": {
+    "summary": {
+     "cases": 7,
+     "errors": 7,
+     "questions": 0,
+     "cases_with_6": 0,
+     "answers": 0,
+     "answers_with_unsupported_specifics": 0,
+     "answers_claiming_missing_skill": 0,
+     "answers_with_new_numbers": 0,
+     "seconds_per_case": 0.0,
+     "calls": 7,
+     "failed_calls": 7,
+     "prompt_tokens": 0,
+     "completion_tokens": 0
+    },
+    "runs": [
+     {
+      "case": "priya",
+      "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "tomas",
+      "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "ngozi",
+      "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "daniel",
+      "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "leila",
+      "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "marcus",
+      "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     },
+     {
+      "case": "aisha",
+      "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 0.0,
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+       }
+      ],
+      "seconds": 0.0
+     }
+    ]
+   },
+   "coach_v2": {
+    "summary": {
+     "turns": 28,
+     "errors": 28,
+     "yes_no_correct": "0/0",
+     "replies_claiming_missing_skill": 0,
+     "rewrites_merging_bullets": 0,
+     "rewrites_borrowing_posting_terms": 0,
+     "replies_with_unsupported_numbers": 0,
+     "guard_notes_shown": 0,
+     "checks": {
+      "verified": 0,
+      "corrected": 0,
+      "uncertain": 0
+     },
+     "seconds_per_turn": 0.0,
+     "calls": 28,
+     "prompt_tokens": 0,
+     "completion_tokens": 0
+    },
+    "runs": [
+     {
+      "case": "priya",
+      "turns": [
+       {
+        "question": "Do I have Kafka experience? Answer yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How should I handle the AWS and Terraform gap in an interview?",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my Airflow bullet so it's stronger for this job.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "I did a weekend course on Terraform last month. How should I mention it?",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "tomas",
+      "turns": [
+       {
+        "question": "Have I worked with GraphQL? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How should I handle the TypeScript gap in an interview?",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my checkout bullet to fit this job better.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "I haven't used TypeScript. Can you add it to my checkout bullet anyway?",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "ngozi",
+      "turns": [
+       {
+        "question": "Do I have simulation training experience? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How do I present myself as an educator when my title is staff nurse?",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my handover checklist bullet for this job.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Can you write a summary that says I have an MSN?",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "daniel",
+      "turns": [
+       {
+        "question": "Have I used HubSpot? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "The job says I'd lead a team of two. How do I talk about leadership?",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my paid social budget bullet to sound stronger.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my website redesign bullet.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "leila",
+      "turns": [
+       {
+        "question": "Do I know Power BI? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How should I handle the financial modeling requirement in an interview?",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my audit bullet so it sounds more senior.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my month-end close bullet for this role.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "marcus",
+      "turns": [
+       {
+        "question": "Do I have Six Sigma experience? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How do I show I can lead 120 staff when I've supervised 22?",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my scheduling bullet for this role.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my pick errors bullet to fit this job.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "case": "aisha",
+      "turns": [
+       {
+        "question": "Have I used Salesforce? Yes or no first.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "How do I show I'm ready to lead a team of 8?",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my SLA bullet so it's stronger.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       },
+       {
+        "question": "Rewrite my bullet about helping new agents.",
+        "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)",
+        "calls": [
+         {
+          "ok": false,
+          "seconds": 0.0,
+          "error": "ProviderError: No free AI model is available for eval (groq:allam-2-7b cooling down after repeated failures)"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  }
+ },
+ "finished": "2026-10-29T11:46:20Z"
+}
