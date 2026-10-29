@@ -1,12 +1,11 @@
 {
-  "label": "journey-tokens-nvidia-synthetic",
-  "discover": false,
-  "models": [
-    "nvidia:openai/gpt-oss-20b",
-    "nvidia:nvidia/nemotron-3-ultra-550b-a55b",
-    "nvidia:nvidia/nemotron-3.5-lightning-30b-a3b"
-  ],
-  "tasks": ["interview", "journey"],
+  "label": "groq-discovery-2",
+  "discover": true,
+  "discover_providers": ["groq"],
+  "discover_limit": 40,
+  "auto_add": 0,
+  "models": [],
+  "tasks": [],
   "cases": "all",
   "timeout": 120
 }
