@@ -1,0 +1,94 @@
+{
+ "status": {
+  "groq": "ready"
+ },
+ "listed": {
+  "groq": [
+   "allam-2-7b",
+   "canopylabs/orpheus-arabic-saudi",
+   "canopylabs/orpheus-v1-english",
+   "meta-llama/llama-prompt-guard-2-22m",
+   "meta-llama/llama-prompt-guard-2-86m",
+   "openai/gpt-oss-120b",
+   "openai/gpt-oss-20b",
+   "openai/gpt-oss-safeguard-20b",
+   "qwen/qwen3.8-27b",
+   "whisper-large-v3",
+   "whisper-large-v3-turbo"
+  ]
+ },
+ "probed": [
+  {
+   "provider": "groq",
+   "model": "allam-2-7b",
+   "ok": true,
+   "seconds": 0.5,
+   "reply": "Developed and implemented effective training programs for new cashiers, fostering improved skills and performance.",
+   "prompt_tokens": 34,
+   "completion_tokens": 21,
+   "limits": {
+    "x-ratelimit-limit-requests": "7000",
+    "x-ratelimit-limit-tokens": "6000",
+    "x-ratelimit-remaining-requests": "6998",
+    "x-ratelimit-remaining-tokens": "5987",
+    "x-ratelimit-reset-requests": "24.685s",
+    "x-ratelimit-reset-tokens": "130ms",
+    "status": 200
+   }
+  },
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "ok": true,
+   "seconds": 0.6,
+   "reply": "- Trained new cashiers, ensuring rapid onboarding and consistent adherence to company standards.",
+   "prompt_tokens": 94,
+   "completion_tokens": 124,
+   "limits": {
+    "x-ratelimit-limit-requests": "1000",
+    "x-ratelimit-limit-tokens": "8000",
+    "x-ratelimit-remaining-requests": "998",
+    "x-ratelimit-remaining-tokens": "7829",
+    "x-ratelimit-reset-requests": "2m52.8s",
+    "x-ratelimit-reset-tokens": "1.282s",
+    "status": 200
+   }
+  },
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "ok": true,
+   "seconds": 0.6,
+   "reply": "Led training of new cashiers.",
+   "prompt_tokens": 94,
+   "completion_tokens": 251,
+   "limits": {
+    "x-ratelimit-limit-requests": "1000",
+    "x-ratelimit-limit-tokens": "8000",
+    "x-ratelimit-remaining-requests": "998",
+    "x-ratelimit-remaining-tokens": "7741",
+    "x-ratelimit-reset-requests": "2m52.8s",
+    "x-ratelimit-reset-tokens": "1.942s",
+    "status": 200
+   }
+  },
+  {
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "ok": true,
+   "seconds": 0.1,
+   "reply": "Trained new cashiers.",
+   "prompt_tokens": 38,
+   "completion_tokens": 7,
+   "limits": {
+    "x-ratelimit-limit-requests": "1000",
+    "x-ratelimit-limit-tokens": "8000",
+    "x-ratelimit-remaining-requests": "998",
+    "x-ratelimit-remaining-tokens": "7927",
+    "x-ratelimit-reset-requests": "2m52.8s",
+    "x-ratelimit-reset-tokens": "547ms",
+    "status": 200
+   }
+  }
+ ]
+}

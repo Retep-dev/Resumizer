@@ -1,0 +1,18 @@
+{
+ "request": {
+  "label": "groq-discovery-2",
+  "discover": true,
+  "discover_providers": [
+   "groq"
+  ],
+  "discover_limit": 40,
+  "auto_add": 0,
+  "models": [],
+  "tasks": [],
+  "cases": "all",
+  "timeout": 120
+ },
+ "started": "2026-10-29T11:42:57Z",
+ "models": {},
+ "finished": "2026-10-29T11:42:57Z"
+}
