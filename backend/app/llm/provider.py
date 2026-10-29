@@ -97,13 +97,19 @@ class OpenAICompatibleClient(ChatClient):
     retired: set = field(default_factory=set)
     session: requests.Session = field(default_factory=requests.Session)
     provider: str = "openai"
+    # Groq counts the requested max_tokens against its per-minute token limit, so ask for no more than needed.
+    max_tokens_cap: Optional[int] = None
 
     def _payload(self, model: str, messages, temperature, max_tokens, json_mode):
         name, opts = split_options(model)
+        if self.max_tokens_cap:
+            max_tokens = min(max_tokens, self.max_tokens_cap)
         body = {"model": name, "messages": messages, "temperature": temperature, "max_tokens": max_tokens, "stream": False}
         effort = opts & {"low", "medium", "high"}
         if effort:  # reasoning models (gpt-oss): less reasoning = fewer tokens against the free quota
             body["reasoning_effort"] = effort.pop()
+        elif self.provider == "groq" and "gpt-oss" in name:
+            body["reasoning_effort"] = "low"  # default for the free quota; '@medium' in a chain entry overrides
         if json_mode:
             body["response_format"] = {"type": "json_object"}
         return body
@@ -160,8 +166,8 @@ class OpenAICompatibleClient(ChatClient):
             except (TypeError, ValueError):
                 retry_after = None
             scope = "day" if re.search(r"per day|\b(tpd|rpd)\b", low) else "minute" if re.search(r"per minute|\b(tpm|rpm)\b", low) else None
-            raise ProviderError("rate_limited", "The provider's free rate limit was hit" + (" for today" if scope == "day" else ""),
-                                model, r.status_code, retry_after=retry_after, scope=scope)
+            raise ProviderError("rate_limited", "The provider's free rate limit was hit" + (" for today" if scope == "day" else "")
+                                + f" ({detail[:160]})", model, r.status_code, retry_after=retry_after, scope=scope)
         if r.status_code >= 500:
             raise ProviderError("server", f"Provider error {r.status_code}: {detail}", model, r.status_code)
         raise ProviderError("bad_request", f"Provider rejected the request ({r.status_code}): {detail}", model, r.status_code)

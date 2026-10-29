@@ -1,5 +1,5 @@
 {
-  "label": "groq-round1-all-models",
+  "label": "groq-round1b-all-models",
   "discover": false,
   "parallel_models": true,
   "models": [

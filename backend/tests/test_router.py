@@ -191,3 +191,36 @@ def test_per_minute_limit_waits_for_retry_after_and_daily_limit_fails_over(monke
 def test_provider_keys_are_masked_in_error_text():
     from app.llm.provider import _clean_message
     assert "SECRET" not in _clean_message("bad key gsk_SECRET123 and csk-SECRET456 and nvapi-SECRET")
+
+
+def test_per_minute_limits_pause_briefly_and_never_count_as_failures(monkeypatch):
+    monkeypatch.setattr("time.sleep", lambda s: None)
+    waits = []
+
+    async def fake_sleep(s):
+        waits.append(s)
+        router.HEALTH.cool_until.clear()  # the pause has passed
+    monkeypatch.setattr("asyncio.sleep", fake_sleep)
+    tpm = FakeResponse(429, {"error": {"message": "Rate limit reached on tokens per minute (TPM)"}}, {"retry-after": "4"})
+    session = FakeSession([tpm, tpm, ok("after the pause")])
+    router.provider_client("nvidia").session = session
+    chain = router.ChainClient(task="coach", entries=[("nvidia", "only")])
+    assert asyncio.run(chain.complete([{"role": "user", "content": "x"}])).text == "after the pause"
+    assert waits and waits[0] <= 5 and router.HEALTH.fails.get("nvidia:only", 0) == 0
+
+
+def test_groq_requests_cap_max_tokens_and_default_to_low_reasoning(monkeypatch):
+    monkeypatch.setattr(router.settings, "GROQ_API_KEY", "gsk_test")
+    session = FakeSession([ok("a"), ok("b")])
+    c = router.provider_client("groq")
+    c.session = session
+    asyncio.run(dataclasses_replace(c, ["openai/gpt-oss-120b"]).complete([{"role": "user", "content": "x"}], max_tokens=6000))
+    asyncio.run(dataclasses_replace(c, ["openai/gpt-oss-120b@medium"]).complete([{"role": "user", "content": "x"}], max_tokens=6000))
+    first, second = (call["json"] for call in session.calls)
+    assert first["max_tokens"] == router.GROQ_MAX_TOKENS and first["reasoning_effort"] == "low"
+    assert second["reasoning_effort"] == "medium"
+
+
+def dataclasses_replace(client, models):
+    import dataclasses
+    return dataclasses.replace(client, models=models)

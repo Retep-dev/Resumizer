@@ -78,6 +78,9 @@ def _base_model(model: str) -> str:
     return model.split("@")[0]
 
 FAILS_BEFORE_COOLDOWN = int(os.getenv("MODEL_FAILS_BEFORE_COOLDOWN", "3"))
+# When every model in a chain is only briefly paused by a per-minute limit, wait rather than fail.
+CHAIN_MAX_WAIT_SECONDS = float(os.getenv("CHAIN_MAX_WAIT_SECONDS", "45"))
+GROQ_MAX_TOKENS = int(os.getenv("GROQ_MAX_TOKENS", "3500"))
 COOLDOWN_SECONDS = float(os.getenv("MODEL_COOLDOWN_SECONDS", "300"))
 
 
@@ -166,12 +169,18 @@ class Health:
                     midnight = (now.replace(hour=0, minute=0, second=0, microsecond=0).timestamp() + 86400)
                     self.cool_until[key] = max(midnight, time.time() + (retry_after or 0))
                 else:
-                    self.cool_until[key] = time.time() + max(60.0, retry_after or 0)
+                    # A per-minute limit is expected under load, not a fault: pause briefly, don't count it as a failure.
+                    self.cool_until[key] = time.time() + min(max(retry_after or 10.0, 2.0), 60.0)
+                return
             self.fails[key] = self.fails.get(key, 0) + 1
             if self.fails[key] >= FAILS_BEFORE_COOLDOWN:
                 self.cool_until[key] = time.time() + COOLDOWN_SECONDS
                 self.fails[key] = 0
                 log.warning("%s cooling down for %ss after %s failures", key, COOLDOWN_SECONDS, FAILS_BEFORE_COOLDOWN)
+
+    def wait_seconds(self, provider: str, model: str) -> float:
+        with self.lock:
+            return max(0.0, self.cool_until.get(f"{provider}:{model}", 0) - time.time())
 
     def snapshot(self) -> Dict[str, object]:
         with self.lock:
@@ -195,7 +204,8 @@ def provider_client(provider: str) -> ChatClient:
         if provider == "nvidia":
             c = NvidiaChatClient(api_key=settings.NVIDIA_API_KEY, models=[], base_url=settings.NVIDIA_BASE_URL, timeout=t)
         else:
-            c = OpenAICompatibleClient(api_key=_key(provider), models=[], base_url=FREE_PROVIDERS[provider]["base"], timeout=t, provider=provider)
+            c = OpenAICompatibleClient(api_key=_key(provider), models=[], base_url=FREE_PROVIDERS[provider]["base"], timeout=t, provider=provider,
+                                       max_tokens_cap=GROQ_MAX_TOKENS if provider == "groq" else None)
         _provider_clients[provider] = c
     return _provider_clients[provider]
 
@@ -216,32 +226,49 @@ class ChainClient(ChatClient):
         return out
 
     async def complete(self, messages, *, temperature=0.1, max_tokens=2048, json_mode=False) -> Completion:
-        last: Optional[ProviderError] = None
-        reasons = []
-        for provider, model in self.entries:
-            ok, why = provider_status(provider)
-            if ok:
-                ok, why = HEALTH.available(provider, model)
-            if not ok:
-                reasons.append(f"{provider}:{model} {why}")
+        import asyncio
+        waited = 0.0
+        while True:
+            last: Optional[ProviderError] = None
+            reasons, short_waits = [], []
+            for provider, model in self.entries:
+                ok, why = provider_status(provider)
+                if ok:
+                    ok, why = HEALTH.available(provider, model)
+                    if not ok and why.startswith("cooling"):
+                        wait = HEALTH.wait_seconds(provider, model)
+                        if wait <= CHAIN_MAX_WAIT_SECONDS:
+                            short_waits.append(wait)
+                if not ok:
+                    reasons.append(f"{provider}:{model} {why}")
+                    continue
+                # A per-call copy shares the HTTP session and retired set; safe for parallel stages.
+                client = dataclasses.replace(provider_client(provider), models=[model])
+                try:
+                    out = await client.complete(messages, temperature=temperature, max_tokens=max_tokens, json_mode=json_mode)
+                    HEALTH.record(provider, model, True, tokens=out.prompt_tokens + out.completion_tokens, reported=out.quota)
+                    return out
+                except ProviderError as e:
+                    HEALTH.record(provider, model, False, e.kind, retry_after=e.retry_after, scope=e.scope)
+                    last = e
+                    reasons.append(f"{provider}:{model} {e.kind}")
+                    log.warning("%s: %s:%s failed (%s); trying next", self.task, provider, model, e.kind)
+                    if e.kind == "rate_limited" and e.scope != "day":
+                        wait = HEALTH.wait_seconds(provider, model)
+                        if wait <= CHAIN_MAX_WAIT_SECONDS:
+                            short_waits.append(wait)
+            # Everything usable is only paused for a few seconds by a per-minute limit: wait once, then retry.
+            if short_waits and waited + min(short_waits) <= CHAIN_MAX_WAIT_SECONDS:
+                pause = min(short_waits) + 0.5
+                waited += pause
+                await asyncio.sleep(pause)
                 continue
-            # A per-call copy shares the HTTP session and retired set; safe for parallel stages.
-            client = dataclasses.replace(provider_client(provider), models=[model])
-            try:
-                out = await client.complete(messages, temperature=temperature, max_tokens=max_tokens, json_mode=json_mode)
-                HEALTH.record(provider, model, True, tokens=out.prompt_tokens + out.completion_tokens, reported=out.quota)
-                return out
-            except ProviderError as e:
-                HEALTH.record(provider, model, False, e.kind, retry_after=e.retry_after, scope=e.scope)
-                last = e
-                reasons.append(f"{provider}:{model} {e.kind}")
-                log.warning("%s: %s:%s failed (%s); trying next", self.task, provider, model, e.kind)
-        if last is None:
-            quota = any("quota" in r for r in reasons)
-            raise ProviderError("rate_limited" if quota else "not_configured",
-                                ("Today's free AI capacity is used up" if quota else "No free AI model is available")
-                                + f" for {self.task} (" + "; ".join(reasons) + ")")
-        raise last
+            if last is None:
+                quota = any("quota" in r for r in reasons)
+                raise ProviderError("rate_limited" if quota else "not_configured",
+                                    ("Today's free AI capacity is used up" if quota else "No free AI model is available")
+                                    + f" for {self.task} (" + "; ".join(reasons) + ")")
+            raise last
 
 
 _task_clients: Dict[str, ChatClient] = {}
