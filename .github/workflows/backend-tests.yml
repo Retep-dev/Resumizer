@@ -33,6 +33,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: unit
     env:
+      # Live checks send only the fictional test resumes, so they run in evaluation mode.
+      AI_DEPLOYMENT: evaluation
       NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
     defaults:
       run:
