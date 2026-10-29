@@ -27,6 +27,8 @@ from app.agents.bullet_facts import new_content_words, placeholders, verify_rewr
 from app.agents.career_coach_agent import (  # noqa: E402
     borrowed_from_posting, claimed_missing, coach_reply, merged_bullets, resume_bullets, target_bullets,
 )
+from app.agents.interview_generator_agent import interview_with_ai, unsupported_specifics  # noqa: E402
+from app.agents.pipeline import run_resumizer_pipeline  # noqa: E402
 from app.agents.resume_parser_agent import rule_based_parse  # noqa: E402
 from app.agents.resume_rewrite_agent import change_ratio, improvement_score  # noqa: E402
 from app.agents.resume_rewrite_agent import rewrite_with_ai as rewrite_v2  # noqa: E402
@@ -145,6 +147,89 @@ async def eval_coach(spec: str, case: Dict, ctx: Dict) -> Dict:
     return {"case": case["id"], "turns": turns}
 
 
+def audit_interview(report, case: Dict, ctx: Dict) -> Dict:
+    qs = []
+    for q in report.questions:
+        ans = q.sample_answer or ""
+        qs.append({"type": q.question_type, "question": q.question, "answer": ans,
+                   "unsupported_specifics": sorted(unsupported_specifics(ans, case["resume"])) if ans else [],
+                   "claims_missing_skill": claimed_missing(ans, ctx["missing"], case["resume"]) if ans else [],
+                   "numbers_not_in_resume": sorted(unsupported_numbers(re.sub(r"\[[^\]]*\]", "", ans), case["resume"])) if ans else [],
+                   "placeholders": placeholders(ans)})
+    return {"questions": qs, "types": sorted({q["type"] for q in qs})}
+
+
+async def eval_interview(spec: str, case: Dict, ctx: Dict) -> Dict:
+    rec = Recorder(make_client(spec))
+    reqs = JobRequirements(title=None, requirements=[JobRequirement(term=t) for t in case["requirements"]])
+    t0 = time.monotonic()
+    try:
+        report, warnings, _ = await interview_with_ai(rec, ctx["resume"], case["resume"], reqs, ctx["supported"], ctx["missing"])
+    except Exception as e:
+        return {"case": case["id"], "error": f"{type(e).__name__}: {getattr(e, 'message', e)}"[:400], "calls": rec.take(),
+                "seconds": round(time.monotonic() - t0, 1)}
+    return {"case": case["id"], "seconds": round(time.monotonic() - t0, 1), "calls": rec.take(), "warnings": warnings,
+            **audit_interview(report, case, ctx)}
+
+
+async def eval_journey(spec: str, case: Dict, ctx: Dict) -> Dict:
+    """The whole analysis exactly as the app runs it (AI parsing included), plus 5 coach turns: requests and tokens per task."""
+    recs = {t: Recorder(make_client(spec)) for t in ("analysis", "rewrite", "interview", "coach")}
+    t0 = time.monotonic()
+    out: Dict = {"case": case["id"]}
+    try:
+        result = await run_resumizer_pipeline(case["resume"], case["jd"], clients={t: recs[t] for t in ("analysis", "rewrite", "interview")})
+        out["stages"] = {k: v.status for k, v in result.stages.items()} if getattr(result, "stages", None) else {}
+        analysis = result.model_dump()
+    except Exception as e:
+        out["error"] = f"{type(e).__name__}: {getattr(e, 'message', e)}"[:400]
+        analysis = ctx["analysis"]
+    out["analysis_seconds"] = round(time.monotonic() - t0, 1)
+    history = []
+    for q in (case["coach"] + case["coach"])[:5]:
+        try:
+            res = await coach_reply(q, history, case["resume"], case["jd"], analysis, client=recs["coach"])
+            history += [{"role": "user", "content": q}, {"role": "assistant", "content": res.reply}]
+        except Exception as e:  # noqa: BLE001
+            out.setdefault("coach_errors", []).append(f"{type(e).__name__}: {getattr(e, 'message', e)}"[:200])
+    out["seconds"] = round(time.monotonic() - t0, 1)
+    out["tasks"] = {}
+    for t, rec in recs.items():
+        calls = rec.take()
+        out["tasks"][t] = {"requests": len(calls), "failed": sum(1 for c in calls if not c["ok"]),
+                           "prompt_tokens": sum(c.get("prompt_tokens", 0) for c in calls),
+                           "completion_tokens": sum(c.get("completion_tokens", 0) for c in calls),
+                           "max_request_tokens": max((c.get("prompt_tokens", 0) + c.get("completion_tokens", 0) for c in calls), default=0)}
+    return out
+
+
+def summarize_interview(runs: List[Dict]) -> Dict:
+    qs = [q for r in runs for q in r.get("questions", [])]
+    answered = [q for q in qs if q["answer"]]
+    calls = [c for r in runs for c in r.get("calls", [])]
+    return {"cases": len(runs), "errors": sum(1 for r in runs if "error" in r), "questions": len(qs),
+            "cases_with_6": sum(1 for r in runs if len(r.get("questions", [])) >= 6),
+            "answers": len(answered),
+            "answers_with_unsupported_specifics": sum(1 for q in answered if q["unsupported_specifics"]),
+            "answers_claiming_missing_skill": sum(1 for q in answered if q["claims_missing_skill"]),
+            "answers_with_new_numbers": sum(1 for q in answered if q["numbers_not_in_resume"]),
+            "seconds_per_case": round(sum(r.get("seconds", 0) for r in runs) / max(len(runs), 1), 1),
+            "calls": len(calls), "failed_calls": sum(1 for c in calls if not c["ok"]),
+            "prompt_tokens": sum(c.get("prompt_tokens", 0) for c in calls), "completion_tokens": sum(c.get("completion_tokens", 0) for c in calls)}
+
+
+def summarize_journeys(runs: List[Dict]) -> Dict:
+    tasks = ("analysis", "rewrite", "interview", "coach")
+    per = {t: {k: round(sum(r["tasks"][t][k] for r in runs) / max(len(runs), 1)) for k in ("requests", "prompt_tokens", "completion_tokens")} for t in tasks}
+    total = sum(per[t]["prompt_tokens"] + per[t]["completion_tokens"] for t in tasks)
+    return {"cases": len(runs), "errors": sum(1 for r in runs if "error" in r),
+            "fell_back": sum(1 for r in runs for s in (r.get("stages") or {}).values() if s != "ai") ,
+            "per_journey_avg": per, "tokens_per_journey": total,
+            "max_single_request_tokens": max((r["tasks"][t]["max_request_tokens"] for r in runs for t in tasks), default=0),
+            "failed_requests": sum(r["tasks"][t]["failed"] for r in runs for t in tasks),
+            "analysis_seconds": round(sum(r["analysis_seconds"] for r in runs) / max(len(runs), 1), 1)}
+
+
 def summarize_rewrites(runs: List[Dict]) -> Dict:
     bullets = [b for r in runs for b in r.get("bullets", [])]
     calls = [c for r in runs for c in r.get("calls", [])]
@@ -208,6 +293,20 @@ async def main(req: Dict, out_dir: Path):
                 runs.append(await eval_coach(spec, c, ctxs[c["id"]]))
             entry[f"coach_{impl}"] = {"summary": summarize_coach(runs), "runs": runs}
             print(json.dumps(entry[f"coach_{impl}"]["summary"]), flush=True)
+        if "interview" in req.get("tasks", []):
+            runs = []
+            for c in cases:
+                print(f"[{spec}] interview/{c['id']}", flush=True)
+                runs.append(await eval_interview(spec, c, ctxs[c["id"]]))
+            entry["interview"] = {"summary": summarize_interview(runs), "runs": runs}
+            print(json.dumps(entry["interview"]["summary"]), flush=True)
+        if "journey" in req.get("tasks", []):
+            runs = []
+            for c in cases:
+                print(f"[{spec}] journey/{c['id']}", flush=True)
+                runs.append(await eval_journey(spec, c, ctxs[c["id"]]))
+            entry["journey"] = {"summary": summarize_journeys(runs), "runs": runs}
+            print(json.dumps(entry["journey"]["summary"]), flush=True)
         (out_dir / "results.json").write_text(json.dumps(results, indent=1, ensure_ascii=False))
     results["finished"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     (out_dir / "results.json").write_text(json.dumps(results, indent=1, ensure_ascii=False))

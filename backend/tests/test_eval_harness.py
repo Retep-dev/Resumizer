@@ -31,3 +31,14 @@ def test_harness_runs_rewrites_and_coach_and_audits(monkeypatch, tmp_path):
     assert coach_turns[0]["audit"]["answered_no_first"] is True
     assert m["coach_v2"]["summary"]["turns"] == len(CASES[0]["coach"])
     assert (tmp_path / "results.json").exists()
+
+
+def test_harness_runs_interview_and_full_journey(monkeypatch, tmp_path):
+    from tests.conftest import healthy_client
+    monkeypatch.setattr(run_eval, "make_client", lambda spec: healthy_client())
+    req = {"models": ["fake:model"], "tasks": ["interview", "journey"], "cases": ["priya"]}
+    out = asyncio.run(run_eval.main(req, tmp_path))
+    m = out["models"]["fake:model"]
+    assert m["interview"]["summary"]["questions"] > 0 and m["interview"]["summary"]["errors"] == 0
+    j = m["journey"]["summary"]
+    assert j["errors"] == 0 and j["per_journey_avg"]["analysis"]["requests"] == 2 and j["per_journey_avg"]["coach"]["requests"] >= 5
