@@ -152,7 +152,8 @@ def audit_interview(report, case: Dict, ctx: Dict) -> Dict:
     for q in report.questions:
         ans = q.sample_answer or ""
         qs.append({"type": q.question_type, "question": q.question, "answer": ans,
-                   "unsupported_specifics": sorted(unsupported_specifics(ans, case["resume"])) if ans else [],
+                   # Gap questions name the missing skill; saying so honestly is fine (claims are checked below).
+                   "unsupported_specifics": sorted(unsupported_specifics(ans, case["resume"] + "\n" + q.question + "\n" + " ".join(ctx["missing"]))) if ans else [],
                    "claims_missing_skill": claimed_missing(ans, ctx["missing"], case["resume"]) if ans else [],
                    "numbers_not_in_resume": sorted(unsupported_numbers(re.sub(r"\[[^\]]*\]", "", ans), case["resume"])) if ans else [],
                    "placeholders": placeholders(ans)})
@@ -231,7 +232,7 @@ def summarize_journeys(runs: List[Dict]) -> Dict:
     per = {t: {k: round(sum(r["tasks"][t][k] for r in runs) / max(len(runs), 1)) for k in ("requests", "prompt_tokens", "completion_tokens")} for t in tasks}
     total = sum(per[t]["prompt_tokens"] + per[t]["completion_tokens"] for t in tasks)
     return {"cases": len(runs), "errors": sum(1 for r in runs if "error" in r),
-            "fell_back": sum(1 for r in runs for s in (r.get("stages") or {}).values() if s != "ai") ,
+            "fell_back": sum(1 for r in runs for k, s in (r.get("stages") or {}).items() if k != "scoring" and s != "ai"),
             "per_journey_avg": per, "tokens_per_journey": total,
             "max_single_request_tokens": max((r["tasks"][t]["max_request_tokens"] for r in runs for t in tasks), default=0),
             "failed_requests": sum(r["tasks"][t]["failed"] for r in runs for t in tasks),

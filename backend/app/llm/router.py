@@ -48,6 +48,7 @@ DEFAULT_QUOTAS: Dict[str, Dict[str, int]] = {
     "groq:openai/gpt-oss-120b": {"rpd": 1000, "tpd": 200_000, "tpm": 8_000, "rpm": 30},
     "groq:openai/gpt-oss-20b": {"rpd": 1000, "tpd": 200_000, "tpm": 8_000, "rpm": 30},
     "groq:qwen/qwen3.8-27b": {"rpd": 1000, "tpd": 200_000, "tpm": 8_000, "rpm": 30},
+    "groq:allam-2-7b": {"rpd": 7000, "tpm": 6_000, "rpm": 30},  # from this account's rate-limit headers, 29 Oct 2026
 }
 QUOTA_HEADROOM = float(os.getenv("QUOTA_HEADROOM", "0.9"))  # stop at 90% so one long request can't push past the limit
 

@@ -1,11 +1,16 @@
 {
-  "label": "groq-discovery-2",
-  "discover": true,
-  "discover_providers": ["groq"],
-  "discover_limit": 40,
-  "auto_add": 0,
-  "models": [],
-  "tasks": [],
+  "label": "groq-round1-all-models",
+  "discover": false,
+  "parallel_models": true,
+  "models": [
+    "groq:openai/gpt-oss-120b",
+    "groq:openai/gpt-oss-20b",
+    "groq:qwen/qwen3.8-27b",
+    "groq:allam-2-7b"
+  ],
+  "pipelines": ["v2"],
+  "tasks": ["rewrite", "interview", "coach"],
+  "coach": ["v2"],
   "cases": "all",
   "timeout": 120
 }
