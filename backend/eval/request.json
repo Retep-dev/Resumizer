@@ -1,14 +1,11 @@
 {
-  "label": "round4-calibrated-coach-final",
-  "discover": false,
-  "models": [
-    "nvidia:nvidia/nemotron-3-ultra-550b-a55b",
-    "nvidia:openai/gpt-oss-20b",
-    "nvidia:nvidia/nemotron-3.5-lightning-30b-a3b"
-  ],
-  "pipelines": ["v2"],
-  "tasks": ["rewrite", "coach"],
-  "coach": ["v2"],
+  "label": "groq-discovery-1",
+  "discover": true,
+  "discover_providers": ["groq"],
+  "discover_limit": 40,
+  "auto_add": 0,
+  "models": [],
+  "tasks": [],
   "cases": "all",
   "timeout": 120
 }

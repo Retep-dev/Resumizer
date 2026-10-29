@@ -25,7 +25,17 @@ import dataclasses  # noqa: E402
 INTERESTING = re.compile(
     r"(gpt-oss|nemotron|qwen3|qwen2\.5-72b|llama-4|llama-3\.3-70b|llama-3\.1-405b|llama-3\.1-70b|mistral-(?:large|medium|small-3)|"
     r"mixtral-8x22b|deepseek|kimi|gemma-(?:3|4)|phi-4|granite-3|glm|minimax|seed-oss|magistral)", re.I)
-SKIP = re.compile(r"(embed|rerank|guard|safety|reward|vision|-vl|vlm|parse|retriever|clip|ocr|asr|tts|audio|coder|math|translate|nemoguard|content)", re.I)
+SKIP = re.compile(r"(embed|rerank|guard|safety|reward|vision|-vl|vlm|parse|retriever|clip|ocr|asr|tts|audio|coder|math|translate|nemoguard|content|whisper|playai|orpheus|distil|compound)", re.I)
+
+
+def rate_limits(base: str, key: str, model: str) -> dict:
+    """One tiny request to read the provider's own quota headers for this key (Groq: requests per day, tokens per minute)."""
+    try:
+        r = requests.post(f"{base}/chat/completions", headers={"Authorization": f"Bearer {key}"}, timeout=30,
+                          json={"model": model, "messages": [{"role": "user", "content": "Reply with OK."}], "max_tokens": 2})
+        return {k.lower(): v for k, v in r.headers.items() if k.lower().startswith("x-ratelimit")} | {"status": r.status_code}
+    except Exception as e:  # noqa: BLE001
+        return {"error": type(e).__name__}
 
 PROMPT = [{"role": "user", "content": "Rewrite this resume bullet more strongly without adding facts. Reply with the bullet only.\n"
                                       "Responsible for training new cashiers."}]
@@ -44,8 +54,9 @@ async def probe(model: str, timeout: float, provider: str = "nvidia"):
 
 async def main(out: Path, timeout: float, limit: int, providers=("nvidia",)):
     out.mkdir(parents=True, exist_ok=True)
-    listed_all, results = {}, []
+    listed_all, results, status = {}, [], {}
     for provider in providers:
+        status[provider] = provider_status(provider)[1]
         if not provider_status(provider)[0]:
             print(f"{provider}: skipped ({provider_status(provider)[1]})")
             continue
@@ -63,9 +74,11 @@ async def main(out: Path, timeout: float, limit: int, providers=("nvidia",)):
         for i in range(0, len(candidates), 4):
             batch = await asyncio.gather(*(probe(m, timeout, provider) for m in candidates[i:i + 4]))
             for r in batch:
+                if r["ok"] and provider != "nvidia":
+                    r["limits"] = rate_limits(base, key, r["model"])
                 print(json.dumps(r), flush=True)
             results += batch
-    (out / "discover.json").write_text(json.dumps({"listed": listed_all, "probed": results}, indent=1))
+    (out / "discover.json").write_text(json.dumps({"status": status, "listed": listed_all, "probed": results}, indent=1))
     ok = [r for r in results if r["ok"]]
     print(f"\nUsable: {len(ok)}/{len(results)}")
     for r in sorted(ok, key=lambda r: r["seconds"]):
