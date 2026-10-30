@@ -234,6 +234,25 @@ def _plain(text: str) -> str:
     return normalize(re.sub(r"\[[^\]]*\]", " ", text or "")).lower()
 
 
+_UP_WORDS = {"increase", "raise", "rise", "rose", "grow", "grew", "boost", "lift"}
+_DOWN_WORDS = {"reduce", "cut", "decrease", "lower", "drop", "shrink"}
+
+
+def _stated_equivalents(original: str) -> Set[str]:
+    """Outcome words that only restate what the original already says, so they add nothing:
+    a direction word matching a stated "from X to Y" change, and "ensure" for "making sure"."""
+    out: Set[str] = set()
+    for m in re.finditer(r"\bfrom\s+\$?(\d[\d,.]*)\s*%?\s*(?:\w+\s+){0,3}?to\s+\$?(\d[\d,.]*)", normalize(original), re.IGNORECASE):
+        try:
+            a, b = float(m.group(1).replace(",", "").rstrip(".")), float(m.group(2).replace(",", "").rstrip("."))
+        except ValueError:
+            continue
+        out |= {lemma(w) for w in (_UP_WORDS if b > a else _DOWN_WORDS if b < a else set())}
+    if re.search(r"\b(make|makes|making|made) sure\b", original, re.IGNORECASE):
+        out.add(lemma("ensure"))
+    return out
+
+
 def meaning_problems(original: str, rewrite: str) -> List[str]:
     """Changes of meaning that keep every fact word-for-word but still misdescribe the work."""
     o, r = _plain(original), _plain(rewrite)
@@ -326,7 +345,9 @@ def verify_rewrite(original: str, rewrite: str, *, missing: Iterable[str] = (), 
     leading = sorted({w for ph in placeholders(rewrite) for w in words(ph) if lemma(w) in _OUTCOME_LEMMAS and lemma(w) not in orig_lemmas})
     if leading:
         problems.append(f"has a placeholder that suggests a result you may not have ({', '.join(leading)}); placeholders should only ask for scale or scope")
-    new_outcomes = sorted({w for w in words(rewrite, keep_brackets=False) if lemma(w) in _OUTCOME_LEMMAS and lemma(w) not in orig_lemmas})
+    stated = _stated_equivalents(original)
+    new_outcomes = sorted({w for w in words(rewrite, keep_brackets=False)
+                           if lemma(w) in _OUTCOME_LEMMAS and lemma(w) not in orig_lemmas and lemma(w) not in stated})
     if new_outcomes:
         problems.append(f"added an outcome or claim the original doesn't state ({', '.join(new_outcomes)})")
 

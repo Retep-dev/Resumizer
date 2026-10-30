@@ -224,3 +224,10 @@ def test_groq_requests_cap_max_tokens_and_default_to_low_reasoning(monkeypatch):
 def dataclasses_replace(client, models):
     import dataclasses
     return dataclasses.replace(client, models=models)
+
+
+def test_groq_output_ceiling_fits_the_per_minute_limit():
+    long_prompt = [{"role": "user", "content": "x" * 16000}]  # ~5,000 tokens
+    fitted = router.fit_max_tokens("groq", "qwen/qwen3.8-27b", long_prompt, 3500)
+    assert 512 <= fitted < 3500 and fitted + 5000 <= 8000
+    assert router.fit_max_tokens("nvidia", "any", long_prompt, 3500) == 3500  # no published limit: unchanged

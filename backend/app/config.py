@@ -12,10 +12,13 @@ def _csv(value: str):
 # Each task leads with a different model because Groq's free quotas are per model. Provisional until the
 # Groq evaluation (backend/eval) confirms the choice.
 PRODUCTION_CHAINS = {
-    "analysis": ["groq:openai/gpt-oss-20b", "groq:qwen/qwen3.8-27b"],
-    "interview": ["groq:openai/gpt-oss-20b", "groq:qwen/qwen3.8-27b"],
-    "rewrite": ["groq:openai/gpt-oss-120b", "groq:qwen/qwen3.8-27b"],
-    "coach": ["groq:qwen/qwen3.8-27b", "groq:openai/gpt-oss-120b"],
+    # Groq round 1b (29 Oct 2026, 7 fictional resumes): gpt-oss-120b gave the most genuine rewordings with no
+    # unsafe rewrites; qwen3.8-27b wrote the most grounded interview answers; gpt-oss-20b was the most
+    # concise, accurate coach. Analysis shares gpt-oss-120b, whose quota rewriting barely uses.
+    "analysis": ["groq:openai/gpt-oss-120b", "groq:openai/gpt-oss-20b"],
+    "rewrite": ["groq:openai/gpt-oss-120b", "groq:openai/gpt-oss-20b"],
+    "interview": ["groq:qwen/qwen3.8-27b", "groq:openai/gpt-oss-120b"],
+    "coach": ["groq:openai/gpt-oss-20b", "groq:qwen/qwen3.8-27b"],
 }
 
 

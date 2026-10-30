@@ -156,7 +156,8 @@ def audit_interview(report, case: Dict, ctx: Dict) -> Dict:
                    "unsupported_specifics": sorted(unsupported_specifics(ans, case["resume"] + "\n" + q.question + "\n" + " ".join(ctx["missing"]))) if ans else [],
                    "claims_missing_skill": claimed_missing(ans, ctx["missing"], case["resume"]) if ans else [],
                    "numbers_not_in_resume": sorted(unsupported_numbers(re.sub(r"\[[^\]]*\]", "", ans), case["resume"])) if ans else [],
-                   "placeholders": placeholders(ans)})
+                   "placeholders": placeholders(ans),
+                   "marked_only_if_true": ans.count("[only if true:")})
     return {"questions": qs, "types": sorted({q["type"] for q in qs})}
 
 
@@ -222,6 +223,7 @@ def summarize_interview(runs: List[Dict]) -> Dict:
             "answers_with_unsupported_specifics": sum(1 for q in answered if q["unsupported_specifics"]),
             "answers_claiming_missing_skill": sum(1 for q in answered if q["claims_missing_skill"]),
             "answers_with_new_numbers": sum(1 for q in answered if q["numbers_not_in_resume"]),
+            "answers_with_marked_parts": sum(1 for q in answered if q.get("marked_only_if_true")),
             "seconds_per_case": round(sum(r.get("seconds", 0) for r in runs) / max(len(runs), 1), 1),
             "calls": len(calls), "failed_calls": sum(1 for c in calls if not c["ok"]),
             "prompt_tokens": sum(c.get("prompt_tokens", 0) for c in calls), "completion_tokens": sum(c.get("completion_tokens", 0) for c in calls)}
@@ -282,6 +284,8 @@ def summarize_coach(runs: List[Dict]) -> Dict:
 
 async def run_model(spec: str, req: Dict, cases: List[Dict], ctxs: Dict, results: Dict, out_dir: Path):
     entry = results["models"].setdefault(spec, {})
+    if spec in req.get("per_model_tasks", {}):  # e.g. only the journey for the production chains
+        req = dict(req, tasks=req["per_model_tasks"][spec])
     journey_cases = [c for c in cases if req.get("journey_cases", "all") == "all" or c["id"] in req["journey_cases"]]
 
     def save():

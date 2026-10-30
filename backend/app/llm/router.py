@@ -210,6 +210,16 @@ def provider_client(provider: str) -> ChatClient:
     return _provider_clients[provider]
 
 
+def fit_max_tokens(provider: str, model: str, messages, max_tokens: int) -> int:
+    """Groq refuses a request whose prompt plus requested output exceeds the per-minute token limit
+    ("Request too large"), so ask for no more output than fits. Prompt size is estimated at ~3.2 characters a token."""
+    tpm = (quotas().get(f"{provider}:{_base_model(model)}") or {}).get("tpm")
+    if not tpm:
+        return max_tokens
+    prompt = int(sum(len(str(m.get("content", ""))) for m in messages) / 3.2) + 50 * len(messages)
+    return max(512, min(max_tokens, tpm - prompt - 300))
+
+
 @dataclass
 class ChainClient(ChatClient):
     """Tries each free (provider, model) in order; skips unusable ones; never anything paid."""
@@ -245,7 +255,8 @@ class ChainClient(ChatClient):
                 # A per-call copy shares the HTTP session and retired set; safe for parallel stages.
                 client = dataclasses.replace(provider_client(provider), models=[model])
                 try:
-                    out = await client.complete(messages, temperature=temperature, max_tokens=max_tokens, json_mode=json_mode)
+                    out = await client.complete(messages, temperature=temperature, max_tokens=fit_max_tokens(provider, model, messages, max_tokens),
+                                                json_mode=json_mode)
                     HEALTH.record(provider, model, True, tokens=out.prompt_tokens + out.completion_tokens, reported=out.quota)
                     return out
                 except ProviderError as e:

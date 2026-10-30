@@ -46,6 +46,11 @@ GOOD = [
      "Helped move the help centre to a new platform in 2020."),
     ("Handled around 60 chats a day with a customer satisfaction score of 4.7 out of 5.",
      "Handled around 60 chats a day while keeping a 4.7 out of 5 customer satisfaction score."),
+    # Restating a stated change or "making sure" in other words (round 5: the SLA bullet was over-rejected).
+    ("Responsible for making sure SLAs were met, which went from 82% to 95% over the year.",
+     "Ensured SLAs were met, raising the rate from 82% to 95% over the year."),
+    ("Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks.",
+     "Lowered nightly load failures from 9 to 2 per month by adding data quality checks."),
     # Meaning-preserving edits that the meaning checks must still accept.
     ("Worked closely with the product team giving them feedback from customers about bugs.",
      "Collaborated with the product team, sharing customer feedback on bugs."),
@@ -80,6 +85,10 @@ BAD = [
      "Led cross-functional collaboration with designers in Figma to ship a new onboarding screen.", "invented leadership"),
     ("Maintained the company WordPress site and fixed CSS bugs.",
      "Maintained the company WordPress site and fixed CSS bugs, improving site performance and SEO.", "invented results"),
+    ("SLA attainment went from 95% to 82% during the platform migration.",
+     "Increased SLA attainment from 95% to 82% during the platform migration.", "direction reversed"),
+    ("Responsible for making sure SLAs were met, which went from 82% to 95% over the year.",
+     "Ensured SLAs were met, improving customer satisfaction from 82% to 95% over the year.", "changed what the number measures"),
     # Meaning changes that keep every fact word-for-word (round 5).
     ("Helped new agents get up to speed by answering their questions and sitting with them on calls.",
      "Helped new agents ramp up by answering questions and shadowing calls.", "reversed who watched whom"),

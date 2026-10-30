@@ -65,3 +65,25 @@ def test_interview_answers_inventing_technical_details_are_repaired_or_removed()
     # The fixture's two behavioural questions share text, so both are repaired; the rest stay removed.
     assert all(a and "[how you made loads reliable]" in a for a in answers[:2])
     assert all(a is None for a in answers[2:]) and "technical details" in warnings[0]
+
+def test_interview_sentences_the_resume_doesnt_support_are_marked_not_presented_as_fact():
+    from app.agents.interview_generator_agent import mark_unsupported
+    from app.schemas.resume import InterviewPrepReport, InterviewQuestion
+    from eval.cases import CASES
+    marcus = next(c for c in CASES if c["id"] == "marcus")["resume"]
+    invented = ("I hold a forklift certification and have trained new hires on forklift safety at Pennine Retail. "
+                "I conduct hands-on training sessions and reinforce safety protocols to maintain a safe working environment.")
+    honest = "At Northway Fulfilment I cut pick errors from 1.8% to 0.6% by introducing barcode scan checks at packing [how you did it]."
+    report = InterviewPrepReport(questions=[
+        InterviewQuestion(question_type="technical", question="What experience do you have with forklift safety?", sample_answer=invented),
+        InterviewQuestion(question_type="behavioral", question="Tell me about reducing errors.", sample_answer=honest)])
+    out, marked = mark_unsupported(report, marcus)
+    assert marked == 1
+    # The forklift certification IS on Marcus's resume, so that sentence stays as it is.
+    assert out.questions[0].sample_answer.startswith("I hold a forklift certification and have trained")
+    assert "[only if true: I conduct hands-on training sessions" in out.questions[0].sample_answer
+    ngozi = next(c for c in CASES if c["id"] == "ngozi")["resume"]
+    acls = InterviewPrepReport(questions=[InterviewQuestion(question_type="technical", question="Are you ACLS certified?",
+        sample_answer="I hold an ACLS certification and work in acute cardiac care.")])
+    assert mark_unsupported(acls, ngozi)[0].questions[0].sample_answer.startswith("[only if true: I hold an ACLS certification")
+    assert out.questions[1].sample_answer == honest

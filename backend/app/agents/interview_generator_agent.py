@@ -21,7 +21,7 @@ For each question give:
 - question
 - context_or_reason: why an interviewer would ask it, referring to the posting or the resume
 - star_guide: how to structure the answer with Situation, Task, Action, Result, pointing to a specific role or bullet from the resume when one fits
-- sample_answer: a model answer built ONLY from facts in the resume. Describe actions only at the level of detail the resume gives: if the resume says what was done but not how, write a placeholder such as "[how you did it]". Never name commands, functions, column or table names, configuration settings, tools or techniques the resume doesn't mention. Where the answer needs a detail the resume doesn't give, write a bracketed placeholder such as "[the number of users affected]" instead of inventing it. Only use digits that are copied from the resume; otherwise write a bracketed placeholder. Never invent numbers, employers, projects or tools. For gap questions, be honest that the candidate hasn't used the skill and focus on related experience from the resume.
+- sample_answer: a model answer built ONLY from facts in the resume. Describe actions only at the level of detail the resume gives: if the resume says what was done but not how, write a placeholder such as "[how you did it]". Never name commands, functions, column or table names, configuration settings, tools or techniques the resume doesn't mention. Where the answer needs a detail the resume doesn't give, write a bracketed placeholder such as "[the number of users affected]" instead of inventing it. Only use digits that are copied from the resume; otherwise write a bracketed placeholder. Never invent numbers, employers, projects or tools. For gap questions, be honest that the candidate hasn't used the skill and focus on related experience from the resume. Every sentence of a sample answer must be backed by a resume line: don't add certifications, meetings, methods, tools, collaborators or results the resume doesn't state ("[how you did it]" and "[the result]" are better than a plausible guess).
 
 Return one JSON object: {"questions": [ ... 6 objects ... ]}"""
 INTERVIEW_SYSTEM_PROMPT += UNTRUSTED_DATA_NOTE
@@ -59,6 +59,45 @@ def unsupported_specifics(answer: str, allowed_text: str) -> Set[str]:
             found.add(term)
     return found
 _STAR = "Situation: set the scene in one sentence. Task: what you were responsible for. Action: what you did, in order. Result: what changed — use a real number if you have one."
+
+
+_ANSWER_HEDGE = re.compile(r"\b(would|could|might|plan to|planning to|want to|eager to|keen to|ready to|hope to|will|haven'?t|have not|hasn'?t|"
+                           r"never|not yet|don'?t|do not|didn'?t|did not|if|whether|aim to|intend to|learn|learning)\b", re.IGNORECASE)
+
+
+def answer_problems(answer: str, allowed_text: str, resume_text: Optional[str] = None) -> List[str]:
+    """Sentences of a sample answer that state things the resume doesn't: an unknown tool or name, or three or
+    more content words found nowhere in the resume or the question. Hedged sentences (plans, gaps) are fine;
+    bracketed placeholders are ignored."""
+    from app.agents.bullet_facts import FUNCTION_WORDS, lemma
+    from app.agents.coach_checks import _GENERIC_CLAIM, sentences
+
+    allowed_lemmas = {lemma(w) for w in re.findall(r"[a-z][a-z0-9+#'’-]*", normalize(allowed_text).lower())}
+    out = []
+    for sent in sentences(answer or ""):
+        plain = re.sub(r"\[[^\]]*\]", " ", sent)
+        if _ANSWER_HEDGE.search(plain):
+            continue
+        specifics = unsupported_specifics(plain, allowed_text)
+        content = {w for w in re.findall(r"[a-z][a-z0-9+#.-]*", normalize(plain).lower())
+                   if len(w) >= 4 and lemma(w) not in allowed_lemmas and w not in _GENERIC_CLAIM
+                   and lemma(w) not in _GENERIC_CLAIM and w not in FUNCTION_WORDS and lemma(w) not in _ANSWER_GENERIC}
+        credential = _CREDENTIAL.search(plain) and not _CREDENTIAL.search(resume_text if resume_text is not None else allowed_text)
+        if specifics or credential or len(content) >= 3:
+            out.append(sent)
+    return out
+
+
+# A credential the resume doesn't list is never a safe guess, however short the sentence.
+_CREDENTIAL = re.compile(r"\b(certifi\w*|certificate\w*|licen[cs]\w*|accredit\w*|chartered|diploma|degree|award\w*|qualified)\b", re.IGNORECASE)
+
+
+# Words that frame an answer rather than claim anything ("as a result", "the team", "my role").
+_ANSWER_GENERIC = {"notice", "noticed", "occur", "occurring", "times", "pull", "pulled", "organize", "organized", "organise",
+                   "result", "situation", "task", "action", "approach", "role", "responsible", "responsibility", "time",
+                   "example", "instance", "context", "help", "make", "take", "work", "team", "colleague", "member", "member",
+                   "able", "ensure", "sure", "clear", "clearly", "specific", "specifically", "each", "every", "also", "then",
+                   "first", "next", "finally", "during", "within", "while", "when", "after", "before", "through", "across"}
 
 
 def validate_questions(report: InterviewPrepReport, resume_text: str) -> Tuple[InterviewPrepReport, int]:
@@ -105,6 +144,10 @@ async def interview_with_ai(client: ChatClient, resume: ResumeSchema, resume_tex
         if len(retry.questions) > len(report.questions):
             report, removed = retry, removed2
     warnings = [f"{removed} sample answer(s) were removed because they included numbers or technical details that aren't in your resume."] if removed else []
+    report, marked = mark_unsupported(report, resume_text)
+    if marked:
+        warnings.append(f"{marked} sample answer(s) include details your resume doesn't show. Those parts are marked "
+                        "\"[only if true: …]\": keep them only if they really happened, or replace them with what you did.")
     if 0 < len(report.questions) < 4:
         # Top up with template questions for the types the AI didn't cover, labelled as such.
         have = {q.question_type for q in report.questions}
@@ -116,6 +159,22 @@ async def interview_with_ai(client: ChatClient, resume: ResumeSchema, resume_tex
     if not report.questions:
         warnings.append("The AI didn't return usable interview questions.")
     return report, warnings, model
+
+
+def mark_unsupported(report: InterviewPrepReport, resume_text: str) -> Tuple[InterviewPrepReport, int]:
+    """Wrap each sample-answer sentence the resume doesn't support in "[only if true: …]", so nothing invented
+    reads as the candidate's own experience. No extra AI call: deterministic and free."""
+    out, marked = [], 0
+    for q in report.questions:
+        ans = q.sample_answer
+        bad = answer_problems(ans, resume_text + "\n" + q.question, resume_text) if ans else []
+        if bad:
+            for sent in bad:
+                ans = ans.replace(sent, f"[only if true: {sent.rstrip()}]", 1)
+            marked += 1
+            q = q.model_copy(update={"sample_answer": ans})
+        out.append(q)
+    return InterviewPrepReport(questions=out), marked
 
 
 class _Answer(BaseModel):
