@@ -1,0 +1,27 @@
+{
+ "request": {
+  "label": "groq-limits-probe",
+  "discover": true,
+  "discover_providers": [
+   "groq"
+  ],
+  "discover_limit": 4,
+  "probe_models": [
+   "groq:qwen/qwen3.8-27b",
+   "groq:openai/gpt-oss-120b",
+   "groq:openai/gpt-oss-20b"
+  ],
+  "probe_max_tokens": [
+   1000,
+   2000,
+   3500
+  ],
+  "auto_add": 0,
+  "models": [],
+  "tasks": [],
+  "cases": "all"
+ },
+ "started": "2026-10-30T00:19:35Z",
+ "models": {},
+ "finished": "2026-10-30T00:19:35Z"
+}

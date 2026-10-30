@@ -1,0 +1,204 @@
+{
+ "status": {
+  "groq": "ready"
+ },
+ "listed": {
+  "groq": [
+   "allam-2-7b",
+   "canopylabs/orpheus-arabic-saudi",
+   "canopylabs/orpheus-v1-english",
+   "meta-llama/llama-prompt-guard-2-22m",
+   "meta-llama/llama-prompt-guard-2-86m",
+   "openai/gpt-oss-120b",
+   "openai/gpt-oss-20b",
+   "openai/gpt-oss-safeguard-20b",
+   "qwen/qwen3.8-27b",
+   "whisper-large-v3",
+   "whisper-large-v3-turbo"
+  ]
+ },
+ "probed": [
+  {
+   "provider": "groq",
+   "model": "allam-2-7b",
+   "ok": true,
+   "seconds": 0.4,
+   "reply": "Proficient in efficiently training new cashiers and ensuring seamless integration of their skills and knowledge into the team.",
+   "prompt_tokens": 34,
+   "completion_tokens": 25,
+   "limits": {
+    "x-ratelimit-limit-requests": "7000",
+    "x-ratelimit-limit-tokens": "6000",
+    "x-ratelimit-remaining-requests": "6998",
+    "x-ratelimit-remaining-tokens": "5964",
+    "x-ratelimit-reset-requests": "24.685s",
+    "x-ratelimit-reset-tokens": "360ms",
+    "status": 200
+   }
+  },
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "ok": true,
+   "seconds": 0.4,
+   "reply": "- Trained and onboarded new cashiers, accelerating their proficiency and performance.",
+   "prompt_tokens": 94,
+   "completion_tokens": 34,
+   "limits": {
+    "x-ratelimit-limit-requests": "1000",
+    "x-ratelimit-limit-tokens": "8000",
+    "x-ratelimit-remaining-requests": "966",
+    "x-ratelimit-remaining-tokens": "7888",
+    "x-ratelimit-reset-requests": "48m57.6s",
+    "x-ratelimit-reset-tokens": "840ms",
+    "status": 200
+   }
+  },
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "ok": true,
+   "seconds": 0.3,
+   "reply": "Led comprehensive onboarding and skill development for new cashiers.",
+   "prompt_tokens": 94,
+   "completion_tokens": 25,
+   "limits": {
+    "x-ratelimit-limit-requests": "1000",
+    "x-ratelimit-limit-tokens": "8000",
+    "x-ratelimit-remaining-requests": "949",
+    "x-ratelimit-remaining-tokens": "7923",
+    "x-ratelimit-reset-requests": "1h13m26.4s",
+    "x-ratelimit-reset-tokens": "577ms",
+    "status": 200
+   }
+  },
+  {
+   "provider": "groq",
+   "model": "qwen/qwen3.8-27b",
+   "ok": true,
+   "seconds": 0.2,
+   "reply": "Trained new cashiers.",
+   "prompt_tokens": 38,
+   "completion_tokens": 7,
+   "limits": {
+    "x-ratelimit-limit-requests": "1000",
+    "x-ratelimit-limit-tokens": "8000",
+    "x-ratelimit-remaining-requests": "994",
+    "x-ratelimit-remaining-tokens": "7706",
+    "x-ratelimit-reset-requests": "8m38.4s",
+    "x-ratelimit-reset-tokens": "2.205s",
+    "status": 200
+   }
+  }
+ ],
+ "max_tokens_probes": [
+  {
+   "model": "groq:qwen/qwen3.8-27b",
+   "max_tokens": 1000,
+   "status": 200,
+   "body": "",
+   "x-ratelimit-limit-requests": "1000",
+   "x-ratelimit-limit-tokens": "8000",
+   "x-ratelimit-remaining-requests": "993",
+   "x-ratelimit-remaining-tokens": "6982",
+   "x-ratelimit-reset-requests": "10m4.8s",
+   "x-ratelimit-reset-tokens": "7.635s"
+  },
+  {
+   "model": "groq:qwen/qwen3.8-27b",
+   "max_tokens": 2000,
+   "status": 200,
+   "body": "",
+   "x-ratelimit-limit-requests": "1000",
+   "x-ratelimit-limit-tokens": "8000",
+   "x-ratelimit-remaining-requests": "992",
+   "x-ratelimit-remaining-tokens": "7972",
+   "x-ratelimit-reset-requests": "11m31.2s",
+   "x-ratelimit-reset-tokens": "210ms"
+  },
+  {
+   "model": "groq:qwen/qwen3.8-27b",
+   "max_tokens": 3500,
+   "status": 429,
+   "body": "{\"error\":{\"message\":\"Request too large for model `qwen/qwen3.8-27b` in organization `org_01m63kyvbre1w8wqk22vb4wk9n` service tier `on_demand` on output tokens per minute (OTPM): Limit 1000, Requested 1075. The request's expected output tokens exceed the enforced limit; reduce max_tokens (or the request's expected output) and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing\",\"type\":\"tokens\",\"code\":\"rate_limit_exceeded\"}}\n",
+   "x-ratelimit-limit-requests": "1000",
+   "x-ratelimit-limit-tokens": "8000",
+   "x-ratelimit-remaining-requests": "992",
+   "x-ratelimit-remaining-tokens": "7992",
+   "x-ratelimit-reset-requests": "11m31.2s",
+   "x-ratelimit-reset-tokens": "120ms"
+  },
+  {
+   "model": "groq:openai/gpt-oss-120b",
+   "max_tokens": 1000,
+   "status": 200,
+   "body": "",
+   "x-ratelimit-limit-requests": "1000",
+   "x-ratelimit-limit-tokens": "8000",
+   "x-ratelimit-remaining-requests": "965",
+   "x-ratelimit-remaining-tokens": "7111",
+   "x-ratelimit-reset-requests": "50m24s",
+   "x-ratelimit-reset-tokens": "6.667s"
+  },
+  {
+   "model": "groq:openai/gpt-oss-120b",
+   "max_tokens": 2000,
+   "status": 200,
+   "body": "",
+   "x-ratelimit-limit-requests": "1000",
+   "x-ratelimit-limit-tokens": "8000",
+   "x-ratelimit-remaining-requests": "964",
+   "x-ratelimit-remaining-tokens": "7046",
+   "x-ratelimit-reset-requests": "51m50.399s",
+   "x-ratelimit-reset-tokens": "7.154s"
+  },
+  {
+   "model": "groq:openai/gpt-oss-120b",
+   "max_tokens": 3500,
+   "status": 200,
+   "body": "",
+   "x-ratelimit-limit-requests": "1000",
+   "x-ratelimit-limit-tokens": "8000",
+   "x-ratelimit-remaining-requests": "963",
+   "x-ratelimit-remaining-tokens": "7787",
+   "x-ratelimit-reset-requests": "53m16.799s",
+   "x-ratelimit-reset-tokens": "1.597s"
+  },
+  {
+   "model": "groq:openai/gpt-oss-20b",
+   "max_tokens": 1000,
+   "status": 200,
+   "body": "",
+   "x-ratelimit-limit-requests": "1000",
+   "x-ratelimit-limit-tokens": "8000",
+   "x-ratelimit-remaining-requests": "948",
+   "x-ratelimit-remaining-tokens": "7679",
+   "x-ratelimit-reset-requests": "1h14m52.8s",
+   "x-ratelimit-reset-tokens": "2.407s"
+  },
+  {
+   "model": "groq:openai/gpt-oss-20b",
+   "max_tokens": 2000,
+   "status": 200,
+   "body": "",
+   "x-ratelimit-limit-requests": "1000",
+   "x-ratelimit-limit-tokens": "8000",
+   "x-ratelimit-remaining-requests": "947",
+   "x-ratelimit-remaining-tokens": "6893",
+   "x-ratelimit-reset-requests": "1h16m19.2s",
+   "x-ratelimit-reset-tokens": "8.302s"
+  },
+  {
+   "model": "groq:openai/gpt-oss-20b",
+   "max_tokens": 3500,
+   "status": 200,
+   "body": "",
+   "x-ratelimit-limit-requests": "1000",
+   "x-ratelimit-limit-tokens": "8000",
+   "x-ratelimit-remaining-requests": "946",
+   "x-ratelimit-remaining-tokens": "6827",
+   "x-ratelimit-reset-requests": "1h17m45.6s",
+   "x-ratelimit-reset-tokens": "8.797s"
+  }
+ ]
+}
