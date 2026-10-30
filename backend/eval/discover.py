@@ -33,7 +33,11 @@ def rate_limits(base: str, key: str, model: str) -> dict:
     try:
         r = requests.post(f"{base}/chat/completions", headers={"Authorization": f"Bearer {key}"}, timeout=30,
                           json={"model": model, "messages": [{"role": "user", "content": "Reply with OK."}], "max_tokens": 2})
-        return {k.lower(): v for k, v in r.headers.items() if k.lower().startswith("x-ratelimit")} | {"status": r.status_code}
+        out = {k.lower(): v for k, v in r.headers.items() if k.lower().startswith("x-ratelimit") or k.lower() == "retry-after"}
+        out["status"] = r.status_code
+        if r.status_code != 200:
+            out["body"] = r.text[:600]
+        return out
     except Exception as e:  # noqa: BLE001
         return {"error": type(e).__name__}
 
@@ -52,7 +56,18 @@ async def probe(model: str, timeout: float, provider: str = "nvidia"):
         return {"provider": provider, "model": model, "ok": False, "seconds": round(time.monotonic() - t0, 1), "error": e.kind, "detail": e.message[:160]}
 
 
-async def main(out: Path, timeout: float, limit: int, providers=("nvidia",)):
+def big_output_probe(base: str, key: str, model: str, max_tokens: int) -> dict:
+    """Does a request asking for many output tokens get refused, and with what message?"""
+    try:
+        r = requests.post(f"{base}/chat/completions", headers={"Authorization": f"Bearer {key}"}, timeout=60,
+                          json={"model": model, "messages": [{"role": "user", "content": "Reply with OK."}], "max_tokens": max_tokens})
+        return {"max_tokens": max_tokens, "status": r.status_code, "body": "" if r.status_code == 200 else r.text[:600],
+                **{k.lower(): v for k, v in r.headers.items() if k.lower().startswith("x-ratelimit") or k.lower() == "retry-after"}}
+    except Exception as e:  # noqa: BLE001
+        return {"max_tokens": max_tokens, "error": type(e).__name__}
+
+
+async def main(out: Path, timeout: float, limit: int, providers=("nvidia",), probe_models=(), probe_max_tokens=()):
     out.mkdir(parents=True, exist_ok=True)
     listed_all, results, status = {}, [], {}
     for provider in providers:
@@ -78,7 +93,14 @@ async def main(out: Path, timeout: float, limit: int, providers=("nvidia",)):
                     r["limits"] = rate_limits(base, key, r["model"])
                 print(json.dumps(r), flush=True)
             results += batch
-    (out / "discover.json").write_text(json.dumps({"status": status, "listed": listed_all, "probed": results}, indent=1))
+    big = []
+    for spec in probe_models:
+        provider, _, model = spec.partition(":")
+        if provider_status(provider)[0]:
+            base = settings.NVIDIA_BASE_URL if provider == "nvidia" else FREE_PROVIDERS[provider]["base"]
+            for n in probe_max_tokens:
+                big.append({"model": spec, **big_output_probe(base, provider_client(provider).api_key, model, n)})
+    (out / "discover.json").write_text(json.dumps({"status": status, "listed": listed_all, "probed": results, "max_tokens_probes": big}, indent=1))
     ok = [r for r in results if r["ok"]]
     print(f"\nUsable: {len(ok)}/{len(results)}")
     for r in sorted(ok, key=lambda r: r["seconds"]):

@@ -24,7 +24,8 @@ async def main():
     notice("providers", "free only: nvidia, groq, cerebras (no paid provider exists in the code)")
     if req.get("discover"):
         await discover.main(out, timeout=float(req.get("discover_timeout", 60)), limit=int(req.get("discover_limit", 60)),
-                            providers=tuple(req.get("discover_providers", ["nvidia"])))
+                            providers=tuple(req.get("discover_providers", ["nvidia"])),
+                            probe_models=tuple(req.get("probe_models", [])), probe_max_tokens=tuple(req.get("probe_max_tokens", [])))
         found = json.loads((out / "discover.json").read_text())["probed"]
         ok = sorted([r for r in found if r["ok"] and r["seconds"] <= float(req.get("auto_max_seconds", 30))], key=lambda r: r["seconds"])
         have = {m.split(":", 1)[-1].split("@")[0] for m in req["models"]}

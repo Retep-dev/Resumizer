@@ -165,9 +165,9 @@ class OpenAICompatibleClient(ChatClient):
                 retry_after = float((getattr(r, "headers", None) or {}).get("retry-after", ""))
             except (TypeError, ValueError):
                 retry_after = None
-            scope = "day" if re.search(r"per day|\b(tpd|rpd)\b", low) else "minute" if re.search(r"per minute|\b(tpm|rpm)\b", low) else None
+            scope = "day" if re.search(r"per day|\b(tpd|rpd|otpd)\b", low) else "minute" if re.search(r"per minute|\b(tpm|rpm|otpm)\b", low) else None
             raise ProviderError("rate_limited", "The provider's free rate limit was hit" + (" for today" if scope == "day" else "")
-                                + f" ({detail[:160]})", model, r.status_code, retry_after=retry_after, scope=scope)
+                                + f" ({detail[:300]})", model, r.status_code, retry_after=retry_after, scope=scope)
         if r.status_code >= 500:
             raise ProviderError("server", f"Provider error {r.status_code}: {detail}", model, r.status_code)
         raise ProviderError("bad_request", f"Provider rejected the request ({r.status_code}): {detail}", model, r.status_code)

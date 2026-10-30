@@ -1,19 +1,12 @@
 {
-  "label": "groq-round2-production-chains",
-  "discover": false,
-  "parallel_models": true,
-  "models": [
-    "production-chains",
-    "groq:openai/gpt-oss-120b",
-    "groq:qwen/qwen3.8-27b"
-  ],
-  "per_model_tasks": {
-    "production-chains": ["journey"],
-    "groq:openai/gpt-oss-120b": ["rewrite"],
-    "groq:qwen/qwen3.8-27b": ["interview"]
-  },
-  "pipelines": ["v2"],
-  "tasks": ["rewrite", "interview", "journey"],
-  "cases": "all",
-  "timeout": 120
+  "label": "groq-limits-probe",
+  "discover": true,
+  "discover_providers": ["groq"],
+  "discover_limit": 4,
+  "probe_models": ["groq:qwen/qwen3.8-27b", "groq:openai/gpt-oss-120b", "groq:openai/gpt-oss-20b"],
+  "probe_max_tokens": [1000, 2000, 3500],
+  "auto_add": 0,
+  "models": [],
+  "tasks": [],
+  "cases": "all"
 }
