@@ -47,7 +47,8 @@ PROVIDERS = tuple(FREE_PROVIDERS)
 DEFAULT_QUOTAS: Dict[str, Dict[str, int]] = {
     "groq:openai/gpt-oss-120b": {"rpd": 1000, "tpd": 200_000, "tpm": 8_000, "rpm": 30},
     "groq:openai/gpt-oss-20b": {"rpd": 1000, "tpd": 200_000, "tpm": 8_000, "rpm": 30},
-    "groq:qwen/qwen3.8-27b": {"rpd": 1000, "tpd": 200_000, "tpm": 8_000, "rpm": 30},
+    # qwen also has a 1,000 output-tokens-per-minute limit (probe, 30 Oct 2026): long answers are refused.
+    "groq:qwen/qwen3.8-27b": {"rpd": 1000, "tpd": 200_000, "tpm": 8_000, "rpm": 30, "otpm": 1_000, "max_output": 2_000},
     "groq:allam-2-7b": {"rpd": 7000, "tpm": 6_000, "rpm": 30},  # from this account's rate-limit headers, 29 Oct 2026
 }
 QUOTA_HEADROOM = float(os.getenv("QUOTA_HEADROOM", "0.9"))  # stop at 90% so one long request can't push past the limit
@@ -213,7 +214,10 @@ def provider_client(provider: str) -> ChatClient:
 def fit_max_tokens(provider: str, model: str, messages, max_tokens: int) -> int:
     """Groq refuses a request whose prompt plus requested output exceeds the per-minute token limit
     ("Request too large"), so ask for no more output than fits. Prompt size is estimated at ~3.2 characters a token."""
-    tpm = (quotas().get(f"{provider}:{_base_model(model)}") or {}).get("tpm")
+    q = quotas().get(f"{provider}:{_base_model(model)}") or {}
+    if q.get("max_output"):
+        max_tokens = min(max_tokens, q["max_output"])
+    tpm = q.get("tpm")
     if not tpm:
         return max_tokens
     prompt = int(sum(len(str(m.get("content", ""))) for m in messages) / 3.2) + 50 * len(messages)

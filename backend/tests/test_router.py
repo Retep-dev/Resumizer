@@ -231,3 +231,7 @@ def test_groq_output_ceiling_fits_the_per_minute_limit():
     fitted = router.fit_max_tokens("groq", "qwen/qwen3.8-27b", long_prompt, 3500)
     assert 512 <= fitted < 3500 and fitted + 5000 <= 8000
     assert router.fit_max_tokens("nvidia", "any", long_prompt, 3500) == 3500  # no published limit: unchanged
+
+
+def test_qwen_output_ceiling_respects_its_output_token_limit():
+    assert router.fit_max_tokens("groq", "qwen/qwen3.8-27b", [{"role": "user", "content": "hi"}], 3500) == 2000

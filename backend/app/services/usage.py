@@ -40,9 +40,10 @@ class Limits:
     PIPELINE_TIMEOUT_SECONDS = float(os.getenv("PIPELINE_TIMEOUT_SECONDS", "240"))
     CHAT_TIMEOUT_SECONDS = float(os.getenv("CHAT_TIMEOUT_SECONDS", "90"))
     DUPLICATE_CACHE_SECONDS = _env_int("DUPLICATE_CACHE_SECONDS", 6 * 3600)
-    # Measured cost of one journey (backend/eval journey task). Tokens per analysis stage and per coach message.
-    # Override with JOURNEY_TOKENS="analysis:7000,rewrite:4000,interview:5000,coach:3500".
-    JOURNEY_TOKENS_DEFAULT = {"analysis": 7000, "rewrite": 4500, "interview": 5000, "coach": 3500}
+    # Measured on Groq with the production chains (eval round 2, 30 Oct 2026, 7 fictional resumes): averages of
+    # 2,106 (analysis), 2,883 (rewrite), 2,338 (interview) and 2,770 per coach message, rounded up by ~25%
+    # because real resumes are longer than the fictional ones. Override with JOURNEY_TOKENS="analysis:2600,...".
+    JOURNEY_TOKENS_DEFAULT = {"analysis": 2600, "rewrite": 3600, "interview": 2900, "coach": 3500}
     EXPECTED_COACH_MESSAGES = _env_int("EXPECTED_COACH_MESSAGES", 4)  # per analysis, for sizing the global caps
     FALLBACK_GLOBAL = (300, 2000)  # used only when no chain model has a published quota (e.g. evaluation)
 

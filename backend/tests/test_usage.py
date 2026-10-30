@@ -128,9 +128,9 @@ def test_global_caps_come_from_the_groq_free_quota(monkeypatch):
     monkeypatch.setattr(router.settings, "GROQ_API_KEY", "gsk_test")
     monkeypatch.setenv("JOURNEY_TOKENS", "analysis:6000,rewrite:4000,interview:5000,coach:3000")
     g = usage.global_limits()
-    # analysis + rewrite share gpt-oss-120b: 10,000 tokens a session → 180,000 / 10,000 = 18 sessions;
-    # interview on qwen: 36; coach on gpt-oss-20b: 4 messages x 3,000 → 15. The smallest wins.
-    assert g["analyses_per_day"] == 15 and g["coach_messages_per_day"] == 60
+    # analysis + rewrite + interview share gpt-oss-120b: 15,000 tokens a session → 180,000 / 15,000 = 12;
+    # coach on gpt-oss-20b: 4 messages x 3,000 = 12,000 → 15. The smallest wins.
+    assert g["analyses_per_day"] == 12 and g["coach_messages_per_day"] == 48
     assert g["concurrent_analyses"] == 1  # 8,000 tokens a minute can't run two analyses at once
     assert any("200,000 tokens/day" in b for b in g["basis"])
 
