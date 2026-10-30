@@ -1,0 +1,1684 @@
+{
+ "request": {
+  "label": "groq-round2-production-chains",
+  "discover": false,
+  "parallel_models": true,
+  "models": [
+   "production-chains",
+   "groq:openai/gpt-oss-120b",
+   "groq:qwen/qwen3.8-27b"
+  ],
+  "per_model_tasks": {
+   "production-chains": [
+    "journey"
+   ],
+   "groq:openai/gpt-oss-120b": [
+    "rewrite"
+   ],
+   "groq:qwen/qwen3.8-27b": [
+    "interview"
+   ]
+  },
+  "pipelines": [
+   "v2"
+  ],
+  "tasks": [
+   "rewrite",
+   "interview",
+   "journey"
+  ],
+  "cases": "all",
+  "timeout": 120
+ },
+ "started": "2026-10-30T00:06:50Z",
+ "models": {
+  "production-chains": {
+   "journey": {
+    "summary": {
+     "cases": 7,
+     "errors": 0,
+     "fell_back": 0,
+     "per_journey_avg": {
+      "analysis": {
+       "requests": 2,
+       "prompt_tokens": 1220,
+       "completion_tokens": 886
+      },
+      "rewrite": {
+       "requests": 1,
+       "prompt_tokens": 1974,
+       "completion_tokens": 909
+      },
+      "interview": {
+       "requests": 1,
+       "prompt_tokens": 985,
+       "completion_tokens": 1353
+      },
+      "coach": {
+       "requests": 7,
+       "prompt_tokens": 13055,
+       "completion_tokens": 795
+      }
+     },
+     "tokens_per_journey": 21177,
+     "max_single_request_tokens": 2759,
+     "failed_requests": 0,
+     "analysis_seconds": 12.9
+    },
+    "runs": [
+     {
+      "case": "priya",
+      "stages": {
+       "job": "ai",
+       "parse": "ai",
+       "scoring": "rule_based",
+       "rewrite": "ai",
+       "interview": "ai"
+      },
+      "analysis_seconds": 4.5,
+      "seconds": 56.9,
+      "tasks": {
+       "analysis": {
+        "requests": 2,
+        "failed": 0,
+        "prompt_tokens": 1192,
+        "completion_tokens": 787,
+        "max_request_tokens": 1103
+       },
+       "rewrite": {
+        "requests": 1,
+        "failed": 0,
+        "prompt_tokens": 1476,
+        "completion_tokens": 506,
+        "max_request_tokens": 1982
+       },
+       "interview": {
+        "requests": 1,
+        "failed": 0,
+        "prompt_tokens": 783,
+        "completion_tokens": 1343,
+        "max_request_tokens": 2126
+       },
+       "coach": {
+        "requests": 7,
+        "failed": 0,
+        "prompt_tokens": 13317,
+        "completion_tokens": 909,
+        "max_request_tokens": 2379
+       }
+      }
+     },
+     {
+      "case": "tomas",
+      "stages": {
+       "job": "ai",
+       "parse": "ai",
+       "scoring": "rule_based",
+       "interview": "ai",
+       "rewrite": "ai"
+      },
+      "analysis_seconds": 27.0,
+      "seconds": 125.1,
+      "tasks": {
+       "analysis": {
+        "requests": 2,
+        "failed": 0,
+        "prompt_tokens": 1231,
+        "completion_tokens": 888,
+        "max_request_tokens": 1066
+       },
+       "rewrite": {
+        "requests": 1,
+        "failed": 0,
+        "prompt_tokens": 1568,
+        "completion_tokens": 1003,
+        "max_request_tokens": 2571
+       },
+       "interview": {
+        "requests": 1,
+        "failed": 0,
+        "prompt_tokens": 867,
+        "completion_tokens": 1029,
+        "max_request_tokens": 1896
+       },
+       "coach": {
+        "requests": 6,
+        "failed": 0,
+        "prompt_tokens": 11716,
+        "completion_tokens": 1029,
+        "max_request_tokens": 2611
+       }
+      }
+     },
+     {
+      "case": "ngozi",
+      "stages": {
+       "parse": "ai",
+       "job": "ai",
+       "scoring": "rule_based",
+       "rewrite": "ai",
+       "interview": "ai"
+      },
+      "analysis_seconds": 28.9,
+      "seconds": 93.1,
+      "tasks": {
+       "analysis": {
+        "requests": 2,
+        "failed": 0,
+        "prompt_tokens": 1221,
+        "completion_tokens": 798,
+        "max_request_tokens": 1169
+       },
+       "rewrite": {
+        "requests": 2,
+        "failed": 0,
+        "prompt_tokens": 2904,
+        "completion_tokens": 515,
+        "max_request_tokens": 1908
+       },
+       "interview": {
+        "requests": 2,
+        "failed": 0,
+        "prompt_tokens": 1910,
+        "completion_tokens": 1425,
+        "max_request_tokens": 2026
+       },
+       "coach": {
+        "requests": 6,
+        "failed": 0,
+        "prompt_tokens": 11067,
+        "completion_tokens": 908,
+        "max_request_tokens": 2334
+       }
+      }
+     },
+     {
+      "case": "daniel",
+      "stages": {
+       "job": "ai",
+       "parse": "ai",
+       "scoring": "rule_based",
+       "interview": "ai",
+       "rewrite": "ai"
+      },
+      "analysis_seconds": 14.6,
+      "seconds": 115.3,
+      "tasks": {
+       "analysis": {
+        "requests": 2,
+        "failed": 0,
+        "prompt_tokens": 1226,
+        "completion_tokens": 869,
+        "max_request_tokens": 1133
+       },
+       "rewrite": {
+        "requests": 1,
+        "failed": 0,
+        "prompt_tokens": 1571,
+        "completion_tokens": 900,
+        "max_request_tokens": 2471
+       },
+       "interview": {
+        "requests": 1,
+        "failed": 0,
+        "prompt_tokens": 863,
+        "completion_tokens": 1450,
+        "max_request_tokens": 2313
+       },
+       "coach": {
+        "requests": 7,
+        "failed": 0,
+        "prompt_tokens": 12339,
+        "completion_tokens": 517,
+        "max_request_tokens": 2096
+       }
+      }
+     },
+     {
+      "case": "leila",
+      "stages": {
+       "job": "ai",
+       "parse": "ai",
+       "scoring": "rule_based",
+       "rewrite": "ai",
+       "interview": "ai"
+      },
+      "analysis_seconds": 4.4,
+      "seconds": 91.9,
+      "tasks": {
+       "analysis": {
+        "requests": 2,
+        "failed": 0,
+        "prompt_tokens": 1200,
+        "completion_tokens": 868,
+        "max_request_tokens": 1215
+       },
+       "rewrite": {
+        "requests": 1,
+        "failed": 0,
+        "prompt_tokens": 1533,
+        "completion_tokens": 694,
+        "max_request_tokens": 2227
+       },
+       "interview": {
+        "requests": 1,
+        "failed": 0,
+        "prompt_tokens": 801,
+        "completion_tokens": 1328,
+        "max_request_tokens": 2129
+       },
+       "coach": {
+        "requests": 8,
+        "failed": 0,
+        "prompt_tokens": 15868,
+        "completion_tokens": 925,
+        "max_request_tokens": 2474
+       }
+      }
+     },
+     {
+      "case": "marcus",
+      "stages": {
+       "parse": "ai",
+       "job": "ai",
+       "scoring": "rule_based",
+       "interview": "ai",
+       "rewrite": "ai"
+      },
+      "analysis_seconds": 5.6,
+      "seconds": 82.8,
+      "tasks": {
+       "analysis": {
+        "requests": 2,
+        "failed": 0,
+        "prompt_tokens": 1206,
+        "completion_tokens": 1142,
+        "max_request_tokens": 1243
+       },
+       "rewrite": {
+        "requests": 1,
+        "failed": 0,
+        "prompt_tokens": 1523,
+        "completion_tokens": 1236,
+        "max_request_tokens": 2759
+       },
+       "interview": {
+        "requests": 1,
+        "failed": 0,
+        "prompt_tokens": 803,
+        "completion_tokens": 1442,
+        "max_request_tokens": 2245
+       },
+       "coach": {
+        "requests": 7,
+        "failed": 0,
+        "prompt_tokens": 13382,
+        "completion_tokens": 538,
+        "max_request_tokens": 2386
+       }
+      }
+     },
+     {
+      "case": "aisha",
+      "stages": {
+       "job": "ai",
+       "parse": "ai",
+       "scoring": "rule_based",
+       "interview": "ai",
+       "rewrite": "ai"
+      },
+      "analysis_seconds": 5.3,
+      "seconds": 95.9,
+      "tasks": {
+       "analysis": {
+        "requests": 2,
+        "failed": 0,
+        "prompt_tokens": 1262,
+        "completion_tokens": 849,
+        "max_request_tokens": 1260
+       },
+       "rewrite": {
+        "requests": 2,
+        "failed": 0,
+        "prompt_tokens": 3240,
+        "completion_tokens": 1507,
+        "max_request_tokens": 2723
+       },
+       "interview": {
+        "requests": 1,
+        "failed": 0,
+        "prompt_tokens": 870,
+        "completion_tokens": 1457,
+        "max_request_tokens": 2327
+       },
+       "coach": {
+        "requests": 7,
+        "failed": 0,
+        "prompt_tokens": 13693,
+        "completion_tokens": 742,
+        "max_request_tokens": 2251
+       }
+      }
+     }
+    ]
+   }
+  },
+  "groq:openai/gpt-oss-120b": {
+   "rewrite_v2": {
+    "summary": {
+     "cases": 7,
+     "errors": 0,
+     "bullets": 42,
+     "covered": 42,
+     "rewritten": 31,
+     "rewritten_and_audit_clean": 31,
+     "audit_failures_accepted": 0,
+     "meaningful (score>=1, clean)": 31,
+     "with_placeholder": 22,
+     "avg_change_ratio": 0.114,
+     "seconds_per_resume": 37.0,
+     "calls": 9,
+     "failed_calls": 0,
+     "prompt_tokens": 13535,
+     "completion_tokens": 6219
+    },
+    "runs": [
+     {
+      "case": "priya",
+      "seconds": 1.5,
+      "calls": [
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-120b",
+        "provider": "groq",
+        "seconds": 1.45,
+        "prompt_tokens": 1473,
+        "completion_tokens": 498,
+        "raw": "{\"bullets\":[{\"id\":1,\"safe\":\"Maintained Airflow pipelines that load shipment data into Snowflake.\",\"strong\":\"Maintained Airflow pipelines that load shipment data into Snowflake [across N pipelines].\",\"questions\":[\"How many Airflow pipelines are maintained?\"]},{\"id\":2,\"safe\":\"Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks.\",\"strong\":\"Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks [across N jobs].\",\"questions\":[\"Across how many jobs were the data quality checks applied?\"]},{\"id\":3,\"safe\":\"Mentored two junior engineers.\",\"strong\":\"Mentored two junior engineers [for X months].\",\"questions\":[\"For how many months did the mentorship last?\"]},{\"id\":4,\"safe\":\"Built weekly claims dashboards in Tableau for the operations team.\",\"strong\":\"Built weekly claims dashboards in Tableau for the operations team [N dashboards].\",\"questions\":[\"How many weekly dashboards were built?\"]},{\"id\":5,\"safe\":\"Wrote SQL models that the pricing team used for monthly reporting.\",\"strong\":\"Wrote SQL models that the pricing team used for monthly reporting [N models].\",\"questions\":[\"How many SQL models were written?\"]}],\"summary\":\"Data engineer who builds reliable pipelines for logistics and insurance analytics.\"}"
+       }
+      ],
+      "warnings": [
+       "The AI didn't suggest a different summary, so your original is unchanged."
+      ],
+      "summary_out": null,
+      "bullets": [
+       {
+        "original": "Maintain Airflow pipelines that load shipment data into Snowflake.",
+        "output": "Maintained Airflow pipelines that load shipment data into Snowflake [across N pipelines].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many Airflow pipelines are maintained?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "across N pipelines"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks.",
+        "output": "Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks [across N jobs].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "Across how many jobs were the data quality checks applied?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "across N jobs"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Mentored two junior engineers.",
+        "output": "Mentored two junior engineers [for X months].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "For how many months did the mentorship last?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "for X months"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Built weekly claims dashboards in Tableau for the operations team.",
+        "output": "Built weekly claims dashboards in Tableau for the operations team [N dashboards].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many weekly dashboards were built?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N dashboards"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Wrote SQL models that the pricing team used for monthly reporting.",
+        "output": "Wrote SQL models that the pricing team used for monthly reporting [N models].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many SQL models were written?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N models"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 5,
+      "total": 5
+     },
+     {
+      "case": "tomas",
+      "seconds": 2.2,
+      "calls": [
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-120b",
+        "provider": "groq",
+        "seconds": 2.17,
+        "prompt_tokens": 1564,
+        "completion_tokens": 857,
+        "raw": "{\"bullets\":[{\"id\":1,\"safe\":\"Built React components for the checkout flow, reducing checkout drop‑off from 31% to 24%.\",\"strong\":\"Built React components for the checkout flow, reducing checkout drop‑off from 31% to 24%.\",\"questions\":[\"How many React components were created for the checkout flow?\",\"What timeframe did the drop‑off reduction occur over?\"]},{\"id\":2,\"safe\":\"Collaborated with designers in Figma to ship a new onboarding screen.\",\"strong\":\"Collaborated with designers in Figma to ship a new onboarding screen.\",\"questions\":[\"How many onboarding screens were delivered?\",\"What was the primary user goal of the new onboarding screen?\"]},{\"id\":3,\"safe\":\"Wrote Jest unit tests for the payments module.\",\"strong\":\"Wrote Jest unit tests for the payments module.\",\"questions\":[\"How many Jest unit tests were written for the payments module?\",\"What coverage percentage did the tests achieve?\"]},{\"id\":4,\"safe\":\"Reviewed pull requests for three other frontend developers.\",\"strong\":\"Reviewed pull requests for three other frontend developers.\",\"questions\":[\"How many pull requests were reviewed per week?\",\"What was the average turnaround time for each review?\"]},{\"id\":5,\"safe\":\"Maintained the company WordPress site and fixed CSS bugs.\",\"strong\":\"Maintained the company WordPress site and fixed CSS bugs.\",\"questions\":[\"How many CSS bugs were resolved during the period?\",\"How frequently was the WordPress site updated?\"]},{\"id\":6,\"safe\":\"Rebuilt the newsletter signup form, doubling weekly signups.\",\"strong\":\"Rebuilt the newsletter signup form, doubling weekly signups.\",\"questions\":[\"What was the original weekly signup count before the rebuild?\",\"What changes were made to the signup form to achieve the increase?\"]}],\"summary\":\"Frontend developer specializing in accessible, high‑speed checkout and onboarding flows.\"}"
+       }
+      ],
+      "warnings": [
+       "No safe improvement was found for 6 bullet(s); they're shown with questions instead."
+      ],
+      "summary_out": "Frontend developer specializing in accessible, high‑speed checkout and onboarding flows.",
+      "bullets": [
+       {
+        "original": "Built React components for the checkout flow, cutting checkout drop-off from 31% to 24%.",
+        "output": "Built React components for the checkout flow, cutting checkout drop-off from 31% to 24%.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many React components were created for the checkout flow?",
+         "What timeframe did the drop‑off reduction occur over?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Worked with designers in Figma to ship a new onboarding screen.",
+        "output": "Worked with designers in Figma to ship a new onboarding screen.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many onboarding screens were delivered?",
+         "What was the primary user goal of the new onboarding screen?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Wrote Jest unit tests for the payments module.",
+        "output": "Wrote Jest unit tests for the payments module.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many Jest unit tests were written for the payments module?",
+         "What coverage percentage did the tests achieve?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Reviewed pull requests for three other frontend developers.",
+        "output": "Reviewed pull requests for three other frontend developers.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many pull requests were reviewed per week?",
+         "What was the average turnaround time for each review?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Maintained the company WordPress site and fixed CSS bugs.",
+        "output": "Maintained the company WordPress site and fixed CSS bugs.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "How many CSS bugs were resolved during the period?",
+         "How frequently was the WordPress site updated?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Rebuilt the newsletter signup form, which doubled weekly signups.",
+        "output": "Rebuilt the newsletter signup form, which doubled weekly signups.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "What was the original weekly signup count before the rebuild?",
+         "What changes were made to the signup form to achieve the increase?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 6,
+      "total": 6
+     },
+     {
+      "case": "ngozi",
+      "seconds": 16.9,
+      "calls": [
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-120b",
+        "provider": "groq",
+        "seconds": 16.83,
+        "prompt_tokens": 1533,
+        "completion_tokens": 954,
+        "raw": "{\"bullets\":[{\"id\":1,\"safe\":\"Oriented new graduate nurses on the cardiac ward.\",\"strong\":\"Oriented [N] new graduate nurses on the cardiac ward.\",\"questions\":[\"How many new graduate nurses were oriented?\"]},{\"id\":2,\"safe\":\"Helped introduce a bedside handover checklist that cut handover time from 45 to 30 minutes.\",\"strong\":\"Helped introduce a bedside handover checklist that cut handover time from 45 to 30 minutes [for N staff].\",\"questions\":[\"How many staff members used the checklist?\"]},{\"id\":3,\"safe\":\"Cared for up to 6 post-surgical patients per shift.\",\"strong\":\"Cared for up to 6 post-surgical patients per shift [across N shifts].\",\"questions\":[\"Across how many shifts was this workload maintained?\"]},{\"id\":4,\"safe\":\"Trained 14 nursing assistants on the new electronic health record system.\",\"strong\":\"Trained 14 nursing assistants on the new electronic health record system [across N units].\",\"questions\":[\"In how many units were the nursing assistants trained?\"]},{\"id\":5,\"safe\":\"Collaborated with pharmacists to review high-alert medication procedures.\",\"strong\":\"Collaborated with pharmacists to review high-alert medication procedures [for N medications].\",\"questions\":[\"How many high‑alert medication procedures were reviewed?\"]},{\"id\":6,\"safe\":\"Ran weekly diabetes education sessions for outpatients.\",\"strong\":\"Ran weekly diabetes education sessions for outpatients [attended by N patients].\",\"questions\":[\"How many patients attended each session?\"]}],\"summary\":\"Registered nurse with acute cardiac care experience who orients new graduate nurses and trains staff on electronic health records. Also delivers weekly diabetes education for outpatients and collaborates on high‑alert medication safety.\"}"
+       }
+      ],
+      "warnings": [],
+      "summary_out": "Registered nurse with acute cardiac care experience who orients new graduate nurses and trains staff on electronic health records. Also delivers weekly diabetes education for outpatients and collaborates on high‑alert medication safety.",
+      "bullets": [
+       {
+        "original": "Responsible for orienting new graduate nurses on the cardiac ward.",
+        "output": "Oriented new graduate nurses on the cardiac ward.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "How many new graduate nurses were oriented?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 2,
+        "improvement": [
+         "cut filler"
+        ],
+        "change_ratio": 0.2,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Helped introduce a bedside handover checklist that cut handover time from 45 to 30 minutes.",
+        "output": "Helped introduce a bedside handover checklist that cut handover time from 45 to 30 minutes [for N staff].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many staff members used the checklist?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "for N staff"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Cared for up to 6 post-surgical patients per shift.",
+        "output": "Cared for up to 6 post-surgical patients per shift [across N shifts].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "Across how many shifts was this workload maintained?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "across N shifts"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Trained 14 nursing assistants on the new electronic health record system.",
+        "output": "Trained 14 nursing assistants on the new electronic health record system [across N units].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "In how many units were the nursing assistants trained?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "across N units"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Worked with pharmacists to review high-alert medication procedures.",
+        "output": "Collaborated with pharmacists to review high-alert medication procedures [for N medications].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many high‑alert medication procedures were reviewed?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.125,
+        "placeholders": [
+         "for N medications"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Ran weekly diabetes education sessions for outpatients.",
+        "output": "Ran weekly diabetes education sessions for outpatients [attended by N patients].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many patients attended each session?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "attended by N patients"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 6,
+      "total": 6
+     },
+     {
+      "case": "daniel",
+      "seconds": 22.0,
+      "calls": [
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-120b",
+        "provider": "groq",
+        "seconds": 21.98,
+        "prompt_tokens": 1566,
+        "completion_tokens": 797,
+        "raw": "{\"bullets\":[{\"id\":1,\"safe\":\"Ran weekly email campaigns in Mailchimp for 18,000 subscribers.\",\"strong\":\"Ran weekly email campaigns in Mailchimp for 18,000 subscribers [N campaigns per week].\",\"questions\":[\"How many email campaigns were sent each week?\"]},{\"id\":2,\"safe\":\"Collaborated on the website redesign with the design agency.\",\"strong\":\"Collaborated on the website redesign with the design agency [N months].\",\"questions\":[\"How long did the redesign project last?\"]},{\"id\":3,\"safe\":\"Increased Instagram followers from 2,300 to 9,800 in 12 months.\",\"strong\":\"Increased Instagram followers from 2,300 to 9,800 in 12 months [N posts].\",\"questions\":[\"How many Instagram posts were made during the 12 months?\"]},{\"id\":4,\"safe\":\"Helped manage a $40,000 quarterly paid social budget.\",\"strong\":\"Helped manage a $40,000 quarterly paid social budget [N platforms].\",\"questions\":[\"How many paid social platforms were included in the budget?\"]},{\"id\":5,\"safe\":\"Wrote blog posts and product descriptions.\",\"strong\":\"Wrote blog posts and product descriptions [N pieces].\",\"questions\":[\"How many blog posts and product descriptions were written?\"]},{\"id\":6,\"safe\":\"Reported weekly campaign results to the marketing lead.\",\"strong\":\"Reported weekly campaign results to the marketing lead [N reports].\",\"questions\":[\"How many weekly reports were submitted?\"]}],\"summary\":\"Managed weekly email campaigns to 18,000 subscribers and grew Instagram followers to 9,800. Collaborated on a website redesign and helped manage a $40,000 quarterly paid social budget.\"}"
+       }
+      ],
+      "warnings": [],
+      "summary_out": "Managed weekly email campaigns to 18,000 subscribers and grew Instagram followers to 9,800. Collaborated on a website redesign and helped manage a $40,000 quarterly paid social budget.",
+      "bullets": [
+       {
+        "original": "Ran weekly email campaigns in Mailchimp for a list of 18,000 subscribers.",
+        "output": "Ran weekly email campaigns in Mailchimp for 18,000 subscribers.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "How many email campaigns were sent each week?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "clearer wording"
+        ],
+        "change_ratio": 0.273,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Worked on the website redesign with the design agency.",
+        "output": "Collaborated on the website redesign with the design agency [N months].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How long did the redesign project last?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 3,
+        "improvement": [
+         "cut filler",
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.111,
+        "placeholders": [
+         "N months"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Increased Instagram followers from 2,300 to 9,800 in 12 months.",
+        "output": "Increased Instagram followers from 2,300 to 9,800 in 12 months [N posts].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many Instagram posts were made during the 12 months?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N posts"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Helped manage a $40,000 quarterly paid social budget.",
+        "output": "Helped manage a $40,000 quarterly paid social budget [N platforms].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many paid social platforms were included in the budget?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N platforms"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Wrote blog posts and product descriptions.",
+        "output": "Wrote blog posts and product descriptions [N pieces].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many blog posts and product descriptions were written?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N pieces"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Reported weekly campaign results to the marketing lead.",
+        "output": "Reported weekly campaign results to the marketing lead [N reports].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many weekly reports were submitted?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N reports"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 6,
+      "total": 6
+     },
+     {
+      "case": "leila",
+      "seconds": 53.0,
+      "calls": [
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-120b",
+        "provider": "groq",
+        "seconds": 17.82,
+        "prompt_tokens": 1517,
+        "completion_tokens": 685,
+        "raw": "{\"bullets\":[{\"id\":1,\"safe\":\"Prepared monthly bank reconciliations for 7 entities.\",\"strong\":\"Prepared monthly bank reconciliations for 7 entities.\",\"questions\":[]},{\"id\":2,\"safe\":\"Reduced month-end close from 8 days to 5 days by automating journal entry templates in Excel.\",\"strong\":\"Reduced month-end close from 8 days to 5 days by automating journal entry templates in Excel.\",\"questions\":[]},{\"id\":3,\"safe\":\"Assisted with the annual external audit.\",\"strong\":\"Assisted with the annual external audit.\",\"questions\":[]},{\"id\":4,\"safe\":\"Built a variance report comparing actual spend to budget for department heads.\",\"strong\":\"Built a variance report comparing actual spend to budget for [N] department heads.\",\"questions\":[\"How many department heads used the variance report?\"]},{\"id\":5,\"safe\":\"Answered vendor payment queries.\",\"strong\":\"Answered vendor payment queries [N] per week.\",\"questions\":[\"Approximately how many vendor payment queries were handled each week?\"]},{\"id\":6,\"safe\":\"Processed around 400 invoices a month in NetSuite.\",\"strong\":\"Processed around 400 invoices per month in NetSuite.\",\"questions\":[]}],\"summary\":\"Staff accountant handling reconciliations and month-end close for a multi-entity group.\"}"
+       },
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-120b",
+        "provider": "groq",
+        "seconds": 35.21,
+        "prompt_tokens": 1244,
+        "completion_tokens": 141,
+        "raw": "{\"bullets\":[{\"id\":5,\"safe\":\"Responded to vendor payment queries.\",\"strong\":\"Responded to [N] vendor payment queries.\",\"questions\":[\"Approximately how many vendor payment queries were handled?\",\"What time period does the query count cover?\"]}],\"summary\":null}"
+       }
+      ],
+      "warnings": [
+       "The AI didn't suggest a different summary, so your original is unchanged.",
+       "No safe improvement was found for 4 bullet(s); they're shown with questions instead."
+      ],
+      "summary_out": null,
+      "bullets": [
+       {
+        "original": "Prepared monthly bank reconciliations for 7 entities.",
+        "output": "Prepared monthly bank reconciliations for 7 entities.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "What changed because of this work, and who relied on it?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Reduced month-end close from 8 days to 5 days by automating journal entry templates in Excel.",
+        "output": "Reduced month-end close from 8 days to 5 days by automating journal entry templates in Excel.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "What changed because of this work, and who relied on it?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Assisted with the annual external audit.",
+        "output": "Assisted with the annual external audit.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "Can you add a number that shows scale or result — how many, how often, how much, or how much faster?",
+         "What changed because of this work, and who relied on it?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Built a variance report comparing actual spend to budget for department heads.",
+        "output": "Built a variance report comparing actual spend to budget for [N] department heads.",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many department heads used the variance report?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Answered vendor payment queries.",
+        "output": "Responded to vendor payment queries.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "Approximately how many vendor payment queries were handled?",
+         "What time period does the query count cover?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "clearer wording"
+        ],
+        "change_ratio": 0.4,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Processed around 400 invoices a month in NetSuite.",
+        "output": "Processed around 400 invoices a month in NetSuite.",
+        "status": "kept_original",
+        "note": "No stronger wording was found that keeps your facts exactly. Answer the questions below to strengthen it.",
+        "questions": [
+         "What changed because of this work, and who relied on it?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 6,
+      "total": 6
+     },
+     {
+      "case": "marcus",
+      "seconds": 13.8,
+      "calls": [
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-120b",
+        "provider": "groq",
+        "seconds": 13.82,
+        "prompt_tokens": 1532,
+        "completion_tokens": 840,
+        "raw": "{\"bullets\":[{\"id\":1,\"safe\":\"Supervised a night shift of 22 warehouse associates.\",\"strong\":\"Supervised a night shift of 22 warehouse associates [N nights per week].\",\"questions\":[\"How many nights per week did you supervise the shift?\"]},{\"id\":2,\"safe\":\"Scheduled shifts and approved overtime.\",\"strong\":\"Scheduled shifts and approved overtime [N times per week].\",\"questions\":[\"How often were shift schedules created and overtime approved?\"]},{\"id\":3,\"safe\":\"Reduced pick errors from 1.8% to 0.6% by introducing barcode scan checks at packing.\",\"strong\":\"Reduced pick errors from 1.8% to 0.6% by introducing barcode scan checks at packing [over N months].\",\"questions\":[\"Over what time period did the error reduction occur?\"]},{\"id\":4,\"safe\":\"Coordinated with carriers to schedule outbound trucks.\",\"strong\":\"Coordinated with carriers to schedule outbound trucks [N trucks per day].\",\"questions\":[\"How many outbound trucks were scheduled each day?\"]},{\"id\":5,\"safe\":\"Trained new hires on forklift safety.\",\"strong\":\"Trained new hires on forklift safety [N hires].\",\"questions\":[\"How many new hires did you train on forklift safety?\"]},{\"id\":6,\"safe\":\"Picked and packed orders for next-day delivery.\",\"strong\":\"Picked and packed orders for next-day delivery [N orders per shift].\",\"questions\":[\"How many orders did you pick and pack each shift?\"]}],\"summary\":\"Warehouse supervisor running night‑shift fulfilment for an e‑commerce distribution centre.\"}"
+       }
+      ],
+      "warnings": [
+       "The AI didn't suggest a different summary, so your original is unchanged."
+      ],
+      "summary_out": null,
+      "bullets": [
+       {
+        "original": "Supervised a night shift of 22 warehouse associates.",
+        "output": "Supervised a night shift of 22 warehouse associates [N nights per week].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many nights per week did you supervise the shift?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N nights per week"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Responsible for scheduling shifts and approving overtime.",
+        "output": "Scheduled shifts and approved overtime.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "How often were shift schedules created and overtime approved?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 3,
+        "improvement": [
+         "cut filler",
+         "clearer wording"
+        ],
+        "change_ratio": 0.286,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Cut pick errors from 1.8% to 0.6% by introducing barcode scan checks at packing.",
+        "output": "Reduced pick errors from 1.8% to 0.6% by introducing barcode scan checks at packing [over N months].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "Over what time period did the error reduction occur?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.083,
+        "placeholders": [
+         "over N months"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Coordinated with carriers to schedule outbound trucks.",
+        "output": "Coordinated with carriers to schedule outbound trucks [N trucks per day].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many outbound trucks were scheduled each day?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N trucks per day"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Trained new hires on forklift safety.",
+        "output": "Trained new hires on forklift safety [N hires].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many new hires did you train on forklift safety?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N hires"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Picked and packed orders for next-day delivery.",
+        "output": "Picked and packed orders for next-day delivery [N orders per shift].",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many orders did you pick and pack each shift?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N orders per shift"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 6,
+      "total": 6
+     },
+     {
+      "case": "aisha",
+      "seconds": 149.9,
+      "calls": [
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-120b",
+        "provider": "groq",
+        "seconds": 132.07,
+        "prompt_tokens": 1655,
+        "completion_tokens": 956,
+        "raw": "{\"bullets\":[{\"id\":1,\"safe\":\"Handled customer complaints via email and phone for the UK market.\",\"strong\":\"Handled customer complaints via email and phone for the UK market [N complaints per week].\",\"questions\":[\"Approximately how many complaints were handled each week?\"]},{\"id\":2,\"safe\":\"Compiled weekly ticket volume reports for management using Zendesk and Excel.\",\"strong\":\"Compiled weekly ticket volume reports for management using Zendesk and Excel [covering N tickets].\",\"questions\":[\"How many tickets were included in a typical weekly report?\"]},{\"id\":3,\"safe\":\"Ensured SLA compliance increased from 82% to 95% over the year.\",\"strong\":\"Ensured SLA compliance increased from 82% to 95% over the year [across N tickets].\",\"questions\":[\"Approximately how many tickets were tracked for SLA compliance?\"]},{\"id\":4,\"safe\":\"Supported new agents by answering questions and shadowing them on calls.\",\"strong\":\"Supported new agents [N agents] by answering questions and shadowing them on calls.\",\"questions\":[\"How many new agents did you regularly support?\"]},{\"id\":5,\"safe\":\"Collaborated with the product team to convey customer bug feedback.\",\"strong\":\"Collaborated with the product team to convey customer bug feedback [N bug reports].\",\"questions\":[\"Roughly how many bug reports were communicated to the product team?\"]},{\"id\":6,\"safe\":\"Contributed to migrating the help centre to a new platform in 2020.\",\"strong\":\"Contributed to migrating the help centre to a new platform in 2020 [covering N knowledge‑base articles].\",\"questions\":[\"How many knowledge‑base articles were moved during the migration?\"]},{\"id\":7,\"safe\":\"Handled ~60 chats daily with a customer satisfaction score of 4.7/5.\",\"strong\":\"Handled ~60 chats daily with a customer satisfaction score of 4.7/5 [over N days].\",\"questions\":[\"For how many days was this chat volume and satisfaction level maintained?\"]}],\"summary\":\"Customer support professional with experience handling email, phone, and chat for a subscription business.\"}"
+       },
+       {
+        "ok": true,
+        "model": "openai/gpt-oss-120b",
+        "provider": "groq",
+        "seconds": 17.75,
+        "prompt_tokens": 1451,
+        "completion_tokens": 491,
+        "raw": "{\"bullets\":[{\"id\":3,\"safe\":\"Ensured SLA compliance, increasing the rate from 82% to 95% over the year.\",\"strong\":\"Ensured SLA compliance, raising the rate from 82% to 95% over the year [across N tickets].\",\"questions\":[\"How many tickets were covered during the year?\"]},{\"id\":4,\"safe\":\"Helped new agents get up to speed by answering their questions and sitting with them on calls.\",\"strong\":\"Helped [N] new agents get up to speed by answering their questions and sitting with them on calls.\",\"questions\":[\"How many new agents did you assist?\"]}],\"summary\":\"Customer support professional with experience across email, phone and chat for a subscription business. Managed SLA compliance, raising performance from 82% to 95%.\"}"
+       }
+      ],
+      "warnings": [
+       "1 suggested rewrite(s) were withheld because they changed your facts; the original wording is shown instead."
+      ],
+      "summary_out": "Customer support professional with experience handling email, phone, and chat for a subscription business.",
+      "bullets": [
+       {
+        "original": "Was in charge of handling customer complaints that came in through email and phone for the UK market.",
+        "output": "Handled customer complaints via email and phone for the UK market.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "Approximately how many complaints were handled each week?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 3,
+        "improvement": [
+         "cut filler",
+         "clearer wording"
+        ],
+        "change_ratio": 0.444,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Did weekly reporting on ticket volumes for management using Zendesk and Excel.",
+        "output": "Compiled weekly ticket volume reports for management using Zendesk and Excel.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "How many tickets were included in a typical weekly report?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 3,
+        "improvement": [
+         "cut filler",
+         "clearer wording"
+        ],
+        "change_ratio": 0.25,
+        "placeholders": [],
+        "new_words": [
+         "compiled"
+        ],
+        "numbers_kept": true
+       },
+       {
+        "original": "Responsible for making sure SLAs were met, which went from 82% to 95% over the year.",
+        "output": "Responsible for making sure SLAs were met, which went from 82% to 95% over the year.",
+        "status": "kept_original",
+        "note": "Rewrite withheld: added an outcome or claim the original doesn't state (compliance).",
+        "questions": [
+         "Approximately how many tickets were tracked for SLA compliance?"
+        ],
+        "changed": false,
+        "audit_problems": [],
+        "improvement_score": 0,
+        "improvement": [],
+        "change_ratio": 0.0,
+        "placeholders": [],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Helped new agents get up to speed by answering their questions and sitting with them on calls.",
+        "output": "Helped [N] new agents get up to speed by answering their questions and sitting with them on calls.",
+        "status": "rewritten",
+        "note": "Replace the [bracketed] parts with your real details, or delete them, before using this.",
+        "questions": [
+         "How many new agents did you assist?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "asks for a missing metric"
+        ],
+        "change_ratio": 0.0,
+        "placeholders": [
+         "N"
+        ],
+        "new_words": [],
+        "numbers_kept": true
+       },
+       {
+        "original": "Worked closely with the product team giving them feedback from customers about bugs.",
+        "output": "Collaborated with the product team to convey customer bug feedback.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "Roughly how many bug reports were communicated to the product team?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "clearer wording"
+        ],
+        "change_ratio": 0.538,
+        "placeholders": [],
+        "new_words": [
+         "convey"
+        ],
+        "numbers_kept": true
+       },
+       {
+        "original": "Part of the team that moved the help centre to a new platform in 2020.",
+        "output": "Contributed to migrating the help centre to a new platform in 2020.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "How many knowledge‑base articles were moved during the migration?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 3,
+        "improvement": [
+         "cut filler",
+         "clearer wording"
+        ],
+        "change_ratio": 0.429,
+        "placeholders": [],
+        "new_words": [
+         "migrating"
+        ],
+        "numbers_kept": true
+       },
+       {
+        "original": "Handled around 60 chats a day with a customer satisfaction score of 4.7 out of 5.",
+        "output": "Handled ~60 chats daily with a customer satisfaction score of 4.7/5.",
+        "status": "rewritten",
+        "note": null,
+        "questions": [
+         "For how many days was this chat volume and satisfaction level maintained?"
+        ],
+        "changed": true,
+        "audit_problems": [],
+        "improvement_score": 1,
+        "improvement": [
+         "clearer wording"
+        ],
+        "change_ratio": 0.385,
+        "placeholders": [],
+        "new_words": [
+         "daily"
+        ],
+        "numbers_kept": true
+       }
+      ],
+      "covered": 7,
+      "total": 7
+     }
+    ]
+   }
+  },
+  "groq:qwen/qwen3.8-27b": {
+   "interview": {
+    "summary": {
+     "cases": 7,
+     "errors": 5,
+     "questions": 12,
+     "cases_with_6": 2,
+     "answers": 12,
+     "answers_with_unsupported_specifics": 0,
+     "answers_claiming_missing_skill": 1,
+     "answers_with_new_numbers": 0,
+     "answers_with_marked_parts": 5,
+     "seconds_per_case": 40.3,
+     "calls": 7,
+     "failed_calls": 5,
+     "prompt_tokens": 1564,
+     "completion_tokens": 2669
+    },
+    "runs": [
+     {
+      "case": "priya",
+      "seconds": 3.2,
+      "calls": [
+       {
+        "ok": true,
+        "model": "qwen/qwen3.8-27b",
+        "provider": "groq",
+        "seconds": 3.04,
+        "prompt_tokens": 773,
+        "completion_tokens": 1360,
+        "raw": "{\n  \"questions\": [\n    {\n      \"question_type\": \"behavioral\",\n      \"question\": \"Tell me about a time you had to manage a conflict or provide guidance to a team member. How did you handle it?\",\n      \"context_or_reason\": \"The resume states that the candidate 'Mentored two junior engineers' at Halcyon Freight. Interviewers often ask this to assess leadership and interpersonal skills, which are critical for a Senior Data Engineer role.\",\n      \"star_guide\": \"Situation: Describe the context of mentoring the two junior engineers at Halcyon Freight. Task: Explain your responsibility to guide them. Action: Describe how you provided mentorship. Result: State the outcome of the mentoring relationship.\",\n      \"sample_answer\": \"At Halcyon Freight, I mentored two junior engineers. My task was to support their development. I [how you provided mentorship]. The result was [the outcome of the mentoring].\"\n    },\n    {\n      \"question_type\": \"behavioral\",\n      \"question\": \"Describe a situation where you identified a problem in a process and took steps to improve it. What was the impact?\",\n      \"context_or_reason\": \"The resume highlights that the candidate 'Reduced nightly load failures from 9 per month to 2 per month by adding data quality checks.' This is a strong example of problem-solving and process improvement that interviewers will want to explore in depth.\",\n      \"star_guide\": \"Situation: Describe the state of the Airflow pipelines at Halcyon Freight with 9 nightly load failures per month. Task: Explain your goal to reduce these failures. Action: Describe adding data quality checks. Result: State that failures were reduced to 2 per month.\",\n      \"sample_answer\": \"At Halcyon Freight, I maintained Airflow pipelines that load shipment data into Snowflake. There were 9 nightly load failures per month. My task was to improve reliability. I added data quality checks. As a result, nightly load failures were reduced from 9 per month to 2 per month.\"\n    },\n    {\n      \"question_type\": \"technical\",\n      \"question\": \"Can you walk me through how you use Airflow and Snowflake together in your current role?\",\n      \"context_or_reason\": \"The job posting requires Airflow and Snowflake, and the resume explicitly states the candidate 'Maintain[s] Airflow pipelines that load shipment data into Snowflake.' This question tests the candidate's practical understanding of these core technologies.\",\n      \"star_guide\": \"Situation: Describe your role at Halcyon Freight. Task: Explain the purpose of the pipelines. Action: Describe maintaining the Airflow pipelines that load data into Snowflake. Result: Mention the reliability improvements, such as reducing failures.\",\n      \"sample_answer\": \"At Halcyon Freight, I maintain Airflow pipelines that load shipment data into Snowflake. My task is to ensure these pipelines run reliably. I [how you maintain the pipelines]. This has helped reduce nightly load failures from 9 per month to 2 per month.\"\n    },\n    {\n      \"question_type\": \"technical\",\n      \"question\": \"How have you used SQL in your recent projects to support business needs?\",\n      \"context_or_reason\": \"SQL is a required skill in the posting and listed in the resume. The resume mentions 'Wrote SQL models that the pricing team used for monthly reporting' at Brightwell Insurance. This question probes the candidate's ability to apply SQL in a business context.\",\n      \"star_guide\": \"Situation: Describe your role as a Data Analyst at Brightwell Insurance. Task: Explain the need for monthly reporting for the pricing team. Action: Describe writing the SQL models. Result: State that the pricing team used these models for monthly reporting.\",\n      \"sample_answer\": \"At Brightwell Insurance, I was a Data Analyst. The pricing team needed data for monthly reporting. I wrote SQL models. The pricing team used these SQL models for their monthly reporting.\"\n    },\n    {\n      \"question_type\": \"gap_focused\",\n      \"question\": \"The role requires experience with Kafk"
+       }
+      ],
+      "warnings": [],
+      "questions": [
+       {
+        "type": "behavioral",
+        "question": "Tell me about a time you had to manage a conflict or provide guidance to a team member. How did you handle it?",
+        "answer": "At Halcyon Freight, I mentored two junior engineers. My task was to support their development. I [how you provided mentorship]. The result was [the outcome of the mentoring].",
+        "unsupported_specifics": [],
+        "claims_missing_skill": [],
+        "numbers_not_in_resume": [],
+        "placeholders": [
+         "how you provided mentorship",
+         "the outcome of the mentoring"
+        ],
+        "marked_only_if_true": 0
+       },
+       {
+        "type": "behavioral",
+        "question": "Describe a situation where you identified a problem in a process and took steps to improve it. What was the impact?",
+        "answer": "At Halcyon Freight, I maintained Airflow pipelines that load shipment data into Snowflake. There were 9 nightly load failures per month. My task was to improve reliability. I added data quality checks. As a result, nightly load failures were reduced from 9 per month to 2 per month.",
+        "unsupported_specifics": [],
+        "claims_missing_skill": [],
+        "numbers_not_in_resume": [],
+        "placeholders": [],
+        "marked_only_if_true": 0
+       },
+       {
+        "type": "technical",
+        "question": "Can you walk me through how you use Airflow and Snowflake together in your current role?",
+        "answer": "At Halcyon Freight, I maintain Airflow pipelines that load shipment data into Snowflake. My task is to ensure these pipelines run reliably. I [how you maintain the pipelines]. This has helped reduce nightly load failures from 9 per month to 2 per month.",
+        "unsupported_specifics": [],
+        "claims_missing_skill": [],
+        "numbers_not_in_resume": [],
+        "placeholders": [
+         "how you maintain the pipelines"
+        ],
+        "marked_only_if_true": 0
+       },
+       {
+        "type": "technical",
+        "question": "How have you used SQL in your recent projects to support business needs?",
+        "answer": "At Brightwell Insurance, I was a Data Analyst. The pricing team needed data for monthly reporting. I wrote SQL models. The pricing team used these SQL models for their monthly reporting.",
+        "unsupported_specifics": [],
+        "claims_missing_skill": [],
+        "numbers_not_in_resume": [],
+        "placeholders": [],
+        "marked_only_if_true": 0
+       },
+       {
+        "type": "gap_focused",
+        "question": "The role requires experience with Kafka, but I don't see that on your resume. How would you approach learning and implementing Kafka for a new project?",
+        "answer": "I have not used Kafka. However, I have experience maintaining Airflow pipelines that load data into Snowflake at Halcyon Freight. To learn Kafka, I would [how you would learn Kafka]. I would then [how you would integrate it with Airflow and Snowflake]. I am confident I could implement it for a new project.",
+        "unsupported_specifics": [],
+        "claims_missing_skill": [],
+        "numbers_not_in_resume": [],
+        "placeholders": [
+         "how you would learn Kafka",
+         "how you would integrate it with Airflow and Snowflake"
+        ],
+        "marked_only_if_true": 0
+       },
+       {
+        "type": "gap_focused",
+        "question": "This position involves working with AWS and Terraform, which are not listed in your experience. How would you handle infrastructure management in a new environment?",
+        "answer": "I have not used AWS or Terraform. However, I have experience maintaining Airflow pipelines that load data into Snowflake at Halcyon Freight. To manage infrastructure in a new environment, I would [how you would approach it]. I would leverage my experience with Snowflake and Airflow to [how you would apply it]. I am confident I could adapt to using AWS and Terraform.",
+        "unsupported_specifics": [],
+        "claims_missing_skill": [],
+        "numbers_not_in_resume": [],
+        "placeholders": [
+         "how you would approach it",
+         "how you would apply it"
+        ],
+        "marked_only_if_true": 0
+       }
+      ],
+      "types": [
+       "behavioral",
+       "gap_focused",
+       "technical"
+      ]
+     },
+     {
+      "case": "tomas",
+      "seconds": 23.3,
+      "calls": [
+       {
+        "ok": true,
+        "model": "qwen/qwen3.8-27b",
+        "provider": "groq",
+        "seconds": 23.16,
+        "prompt_tokens": 791,
+        "completion_tokens": 1309,
+        "raw": "{\n  \"questions\": [\n    {\n      \"question_type\": \"behavioral\",\n      \"question\": \"Tell me about a time you had to collaborate with designers to implement a new feature. How did you ensure the final product matched their vision while meeting technical constraints?\",\n      \"context_or_reason\": \"The resume mentions working with designers in Figma to ship a new onboarding screen at Kitebird. Interviewers often ask about cross-functional collaboration to assess communication skills and ability to translate design specs into code.\",\n      \"star_guide\": \"Situation: Describe the context of the onboarding screen project at Kitebird. Task: Explain your responsibility in translating the Figma designs into React components. Action: Detail how you communicated with the designers, reviewed the designs in Figma, and implemented the screen. Result: Mention the successful shipping of the new onboarding screen.\",\n      \"sample_answer\": \"At Kitebird, I worked with designers in Figma to ship a new onboarding screen. My task was to implement the design as a functional component. I reviewed the designs in Figma and built the corresponding React components. The result was the successful launch of the new onboarding screen.\"\n    },\n    {\n      \"question_type\": \"behavioral\",\n      \"question\": \"Describe a situation where you had to improve a user-facing process. What was the impact of your changes?\",\n      \"context_or_reason\": \"The resume states that you built React components for the checkout flow, cutting checkout drop-off from 31% to 24%. This question probes your ability to drive business impact through technical work.\",\n      \"star_guide\": \"Situation: Set the scene regarding the checkout flow at Kitebird. Task: Explain your goal to reduce drop-off rates. Action: Describe building the React components for the checkout flow. Result: State the reduction in drop-off from 31% to 24%.\",\n      \"sample_answer\": \"At Kitebird, I was responsible for the checkout flow. My task was to improve the user experience to reduce drop-off. I built React components for the checkout flow. As a result, checkout drop-off was cut from 31% to 24%.\"\n    },\n    {\n      \"question_type\": \"technical\",\n      \"question\": \"How do you approach writing unit tests for complex modules, such as a payments system?\",\n      \"context_or_reason\": \"The resume lists Jest as a skill and mentions writing Jest unit tests for the payments module at Kitebird. This question assesses your testing strategy and familiarity with Jest.\",\n      \"star_guide\": \"Situation: Refer to the payments module at Kitebird. Task: Explain the need for unit tests in this module. Action: Describe writing Jest unit tests for the payments module. Result: Mention the coverage or stability gained from these tests (if known, otherwise state the completion of the tests).\",\n      \"sample_answer\": \"At Kitebird, I worked on the payments module. My task was to ensure the reliability of this module. I wrote Jest unit tests for the payments module. The result was a tested payments module.\"\n    },\n    {\n      \"question_type\": \"technical\",\n      \"question\": \"Can you discuss your experience with React and how you structure components for maintainability?\",\n      \"context_or_reason\": \"React is a core skill listed in the resume and used for building checkout components at Kitebird. This question evaluates your depth of React knowledge and component architecture practices.\",\n      \"star_guide\": \"Situation: Describe your role as a Frontend Developer at Kitebird. Task: Explain your responsibility for building React components. Action: Detail how you built React components for the checkout flow. Result: Mention the impact on checkout drop-off (31% to 24%).\",\n      \"sample_answer\": \"As a Frontend Developer at Kitebird, I built React components for the checkout flow. My task was to create maintainable and efficient components. I implemented these components to handle the checkout process. This work contributed to cutting checkout drop-off from "
+       }
+      ],
+      "warnings": [
+       "5 sample answer(s) include details your resume doesn't show. Those parts are marked \"[only if true: …]\": keep them only if they really happened, or replace them with what you did."
+      ],
+      "questions": [
+       {
+        "type": "behavioral",
+        "question": "Tell me about a time you had to collaborate with designers to implement a new feature. How did you ensure the final product matched their vision while meeting technical constraints?",
+        "answer": "At Kitebird, I worked with designers in Figma to ship a new onboarding screen. [only if true: My task was to implement the design as a functional component.] [only if true: I reviewed the designs in Figma and built the corresponding React components.] [only if true: The result was the successful launch of the new onboarding screen.]",
+        "unsupported_specifics": [],
+        "claims_missing_skill": [],
+        "numbers_not_in_resume": [],
+        "placeholders": [
+         "only if true: My task was to implement the design as a functional component.",
+         "only if true: I reviewed the designs in Figma and built the corresponding React components.",
+         "only if true: The result was the successful launch of the new onboarding screen."
+        ],
+        "marked_only_if_true": 3
+       },
+       {
+        "type": "behavioral",
+        "question": "Describe a situation where you had to improve a user-facing process. What was the impact of your changes?",
+        "answer": "At Kitebird, I was responsible for the checkout flow. [only if true: My task was to improve the user experience to reduce drop-off.] I built React components for the checkout flow. As a result, checkout drop-off was cut from 31% to 24%.",
+        "unsupported_specifics": [],
+        "claims_missing_skill": [],
+        "numbers_not_in_resume": [],
+        "placeholders": [
+         "only if true: My task was to improve the user experience to reduce drop-off."
+        ],
+        "marked_only_if_true": 1
+       },
+       {
+        "type": "technical",
+        "question": "How do you approach writing unit tests for complex modules, such as a payments system?",
+        "answer": "At Kitebird, I worked on the payments module. [only if true: My task was to ensure the reliability of this module.] I wrote Jest unit tests for the payments module. The result was a tested payments module.",
+        "unsupported_specifics": [],
+        "claims_missing_skill": [],
+        "numbers_not_in_resume": [],
+        "placeholders": [
+         "only if true: My task was to ensure the reliability of this module."
+        ],
+        "marked_only_if_true": 1
+       },
+       {
+        "type": "technical",
+        "question": "Can you discuss your experience with React and how you structure components for maintainability?",
+        "answer": "As a Frontend Developer at Kitebird, I built React components for the checkout flow. [only if true: My task was to create maintainable and efficient components.] [only if true: I implemented these components to handle the checkout process.] This work contributed to cutting checkout drop-off from 31% to 24%.",
+        "unsupported_specifics": [],
+        "claims_missing_skill": [],
+        "numbers_not_in_resume": [],
+        "placeholders": [
+         "only if true: My task was to create maintainable and efficient components.",
+         "only if true: I implemented these components to handle the checkout process."
+        ],
+        "marked_only_if_true": 2
+       },
+       {
+        "type": "gap_focused",
+        "question": "I notice the job requires TypeScript, but your resume highlights JavaScript. How would you approach transitioning your existing React codebase to TypeScript?",
+        "answer": "My resume lists JavaScript and React as my primary skills, and I have not listed TypeScript. I have experience building React components for the checkout flow at Kitebird. I would apply my understanding of React and JavaScript to learn TypeScript and integrate it into my workflow.",
+        "unsupported_specifics": [],
+        "claims_missing_skill": [],
+        "numbers_not_in_resume": [],
+        "placeholders": [],
+        "marked_only_if_true": 0
+       },
+       {
+        "type": "gap_focused",
+        "question": "The role involves working with GraphQL, which isn't mentioned in your resume. What is your experience with data fetching, and how would you pick up GraphQL?",
+        "answer": "[only if true: My resume does not list GraphQL.] I have experience as a Frontend Developer at Kitebird, where I built React components for the checkout flow. I am familiar with frontend development workflows and would learn GraphQL to handle data fetching for this role.",
+        "unsupported_specifics": [],
+        "claims_missing_skill": [
+         "GraphQL"
+        ],
+        "numbers_not_in_resume": [],
+        "placeholders": [
+         "only if true: My resume does not list GraphQL."
+        ],
+        "marked_only_if_true": 1
+       }
+      ],
+      "types": [
+       "behavioral",
+       "gap_focused",
+       "technical"
+      ]
+     },
+     {
+      "case": "ngozi",
+      "error": "ProviderError: The provider's free rate limit was hit ({\"error\":{\"message\":\"Request too large for model `qwen/qwen3.8-27b` in organization `org_01m63kyvbre1w8wqk22vb4wk9n` service tier `on_demand` on output tokens p)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 52.41,
+        "error": "ProviderError: The provider's free rate limit was hit ({\"error\":{\"message\":\"Request too large for model `qwen/qwen3.8-27b` in organization `org_01m63kyvbre1w8wqk22vb4wk9n` service tier `on_demand` on output tokens p)"
+       }
+      ],
+      "seconds": 52.4
+     },
+     {
+      "case": "daniel",
+      "error": "ProviderError: The provider's free rate limit was hit ({\"error\":{\"message\":\"Request too large for model `qwen/qwen3.8-27b` in organization `org_01m63kyvbre1w8wqk22vb4wk9n` service tier `on_demand` on output tokens p)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 50.35,
+        "error": "ProviderError: The provider's free rate limit was hit ({\"error\":{\"message\":\"Request too large for model `qwen/qwen3.8-27b` in organization `org_01m63kyvbre1w8wqk22vb4wk9n` service tier `on_demand` on output tokens p)"
+       }
+      ],
+      "seconds": 50.3
+     },
+     {
+      "case": "leila",
+      "error": "ProviderError: The provider's free rate limit was hit ({\"error\":{\"message\":\"Request too large for model `qwen/qwen3.8-27b` in organization `org_01m63kyvbre1w8wqk22vb4wk9n` service tier `on_demand` on output tokens p)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 50.35,
+        "error": "ProviderError: The provider's free rate limit was hit ({\"error\":{\"message\":\"Request too large for model `qwen/qwen3.8-27b` in organization `org_01m63kyvbre1w8wqk22vb4wk9n` service tier `on_demand` on output tokens p)"
+       }
+      ],
+      "seconds": 50.4
+     },
+     {
+      "case": "marcus",
+      "error": "ProviderError: The provider's free rate limit was hit ({\"error\":{\"message\":\"Request too large for model `qwen/qwen3.8-27b` in organization `org_01m63kyvbre1w8wqk22vb4wk9n` service tier `on_demand` on output tokens p)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 52.03,
+        "error": "ProviderError: The provider's free rate limit was hit ({\"error\":{\"message\":\"Request too large for model `qwen/qwen3.8-27b` in organization `org_01m63kyvbre1w8wqk22vb4wk9n` service tier `on_demand` on output tokens p)"
+       }
+      ],
+      "seconds": 52.0
+     },
+     {
+      "case": "aisha",
+      "error": "ProviderError: The provider's free rate limit was hit ({\"error\":{\"message\":\"Request too large for model `qwen/qwen3.8-27b` in organization `org_01m63kyvbre1w8wqk22vb4wk9n` service tier `on_demand` on output tokens p)",
+      "calls": [
+       {
+        "ok": false,
+        "seconds": 50.31,
+        "error": "ProviderError: The provider's free rate limit was hit ({\"error\":{\"message\":\"Request too large for model `qwen/qwen3.8-27b` in organization `org_01m63kyvbre1w8wqk22vb4wk9n` service tier `on_demand` on output tokens p)"
+       }
+      ],
+      "seconds": 50.3
+     }
+    ]
+   }
+  }
+ },
+ "finished": "2026-10-30T00:17:51Z"
+}
