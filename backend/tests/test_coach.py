@@ -389,3 +389,21 @@ def test_live_preview_coach_cases(case_id, question, reply, flag):
     ctx = context(case)
     led = build_ledger(case["resume"], ctx["analysis"], [question])
     assert bool(check_reply(reply, question, led, ctx["analysis"], case["resume"], case["jd"], question)) is flag
+
+
+def test_owned_project_claim_is_caught_even_when_hedged_and_removal_notes_collapse():
+    from app.agents.career_coach_agent import check_reply, resolve
+    from app.agents.coach_evidence import build_ledger
+    from eval.cases import CASES
+    from eval.run_eval import context
+    case = next(c for c in CASES if c["id"] == "tomas")
+    ctx = context(case)
+    q = "How should I handle the TypeScript gap in an interview?"
+    reply = "Offer: \"If it helps, I can walk you through my TypeScript conversion project or write a small component on the spot.\""
+    led = build_ledger(case["resume"], ctx["analysis"], [q])
+    problems = check_reply(reply, q, led, ctx["analysis"], case["resume"], case["jd"], q)
+    assert problems and "TypeScript" in problems[0].detail
+    from app.agents.coach_checks import Problem
+    many = "A. B. C."
+    out = resolve(many, [Problem("claim", "A.", "x"), Problem("claim", "B.", "y"), Problem("claim", "C.", "z")])
+    assert out.count("Removed") == 1

@@ -273,6 +273,7 @@ _CLAIM_VERB_RE = re.compile(
     r"delivered|maintained|treat|comfortable|familiar|experienced|proficient|learning|studying|taking|building|completing|"
     r"working|running|tracking|leading|managing|owning|refactoring|read|reading|practiced|practised|practicing|"
     r"practising|enrolled|attending|attended|finished|passed|earned|shipped|migrated|designed|designing|contributed)\b", re.IGNORECASE)
+_OWNED_WORK_RE = re.compile(r"\bmy\s+(?:[\w.+#/-]+\s+){0,4}?(?:project|repo|repository|app|portfolio|course|certificat\w*|side project|prototype)s?\b", re.IGNORECASE)
 # "I'm following a course" is a claim; "I recommend the following" is not.
 _ONGOING_RE = re.compile(r"\b(?:i'm|i’m|i am|i've been|i’ve been|i have been|we're|we are)\s+(?:currently\s+)?following\b", re.IGNORECASE)
 _HEDGE_CLAUSE_RE = re.compile(r"\b(if|whether|unless|only if|cannot|can't|can’t|unable|any|haven't|have not|hasn't|not|never|no|don't|didn't|without|"
@@ -317,7 +318,14 @@ def unsupported_claims(reply: str, ledger: Ledger, resume_text: str, user_text: 
             skip_next = False
             continue
         sents += sentences(line)
+    owned_missing = [m for m in ledger.missing if m not in ledger.may_claim()
+                     and ledger.said_in_chat.get(m) not in ("course_or_project", "learning")]
     for s in sents:
+        # "my TypeScript conversion project" claims work the resume doesn't show, even inside "If it helps, …".
+        hit = next((m for m in owned_missing if _OWNED_WORK_RE.search(s) and term_in_text(m, _OWNED_WORK_RE.search(s).group(0))), None)
+        if hit:
+            out.append(Problem("claim", s, f"implies a {hit} project or course your resume doesn't show"))
+            continue
         # Judge hedges per comma-separated part, so "no" or "could" in one part doesn't clear a claim in another;
         # a claim's content runs on through the later unhedged parts of the same clause ("I run X: a, b, c").
         found = False

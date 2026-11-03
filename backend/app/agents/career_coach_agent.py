@@ -145,6 +145,9 @@ def resolve(reply: str, problems: List[Problem]) -> str:
             out = "\n".join(lines)
         else:
             out += "\n\n" + replacement
+    # Several removals in a row read as noise: keep one note for the run.
+    out = re.sub(r"(?:[\"”]?\s*_\(Removed a suggestion that [^)]*\)\)?_[\"”]?\s*){2,}",
+                 " _(Removed suggestions that went beyond your resume.)_ ", out)
     return out
 
 
