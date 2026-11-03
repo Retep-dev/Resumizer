@@ -1,0 +1,42 @@
+name: Preview end-to-end test
+
+# Drives the deployed preview (Vercel frontend + Render preview backend) with the fictional resumes in
+# e2e/fixtures. Runs when e2e/request.json changes on a design branch. Never touches production.
+on:
+  push:
+    branches: ["design/**"]
+    paths: ["e2e/request.json"]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      E2E_FRONTEND: https://resumizer-git-design-resumize-166c48-engopee-gmailcoms-projects.vercel.app
+      E2E_BACKEND: https://resumizer-backend-preview.onrender.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm i --no-save playwright@1.48.2 && npx playwright install --with-deps chromium
+      - name: Reachability
+        run: |
+          curl -sS -o /dev/null -w "frontend %{http_code}\n" "$E2E_FRONTEND/"
+          curl -sS -o /dev/null -w "backend %{http_code}\n" "$E2E_BACKEND/api/v1/status"
+      - name: Run end-to-end test
+        run: node e2e/run.mjs
+      - name: Publish results to the eval/results branch
+        if: always()
+        run: |
+          label=$(python3 -c "import json;print(json.load(open('e2e/request.json')).get('label','e2e'))")
+          dest="e2e/$(date -u +%Y%m%d-%H%M)-${label}"
+          git config user.name "resumizer-eval"
+          git config user.email "resumizer-eval@users.noreply.github.com"
+          git fetch -q origin eval/results
+          git worktree add -q /tmp/res FETCH_HEAD && cd /tmp/res && git checkout -q -B eval/results
+          mkdir -p "$dest" && cp -r "$GITHUB_WORKSPACE/e2e_out/." "$dest/" 2>/dev/null || true
+          git add -A && git commit -qm "e2e: $dest (${GITHUB_SHA::7})" && git push -q origin HEAD:eval/results
+          echo "::notice title=results::pushed $dest to eval/results"
