@@ -1,0 +1,94 @@
+{
+ "started": "2026-11-03T14:11:16.823Z",
+ "frontend": "https://resumizer-git-design-resumize-166c48-engopee-gmailcoms-projects.vercel.app",
+ "backend": "https://resumizer-backend-preview.onrender.com",
+ "runs": [],
+ "hosts": {},
+ "problems": [],
+ "status_before": {
+  "mode": "production",
+  "paid": "none: Resumizer only routes to free providers",
+  "commit": "6c80b9f",
+  "chains": {
+   "analysis": [
+    "groq:openai/gpt-oss-120b ready",
+    "groq:openai/gpt-oss-20b ready"
+   ],
+   "rewrite": [
+    "groq:openai/gpt-oss-120b ready",
+    "groq:openai/gpt-oss-20b ready"
+   ],
+   "interview": [
+    "groq:openai/gpt-oss-120b ready",
+    "groq:openai/gpt-oss-20b ready"
+   ],
+   "coach": [
+    "groq:openai/gpt-oss-20b ready",
+    "groq:qwen/qwen3.8-27b ready"
+   ]
+  },
+  "limits": {
+   "per_user": {
+    "analyses_per_day": 3,
+    "analyses_per_hour": 3,
+    "coach_messages_per_analysis": 10,
+    "coach_messages_per_day": 20
+   },
+   "global": {
+    "analyses_per_day": 12,
+    "coach_messages_per_day": 48,
+    "concurrent_analyses": 1,
+    "overridden": [],
+    "basis": [
+     "groq:openai/gpt-oss-120b: 200,000 tokens/day x 90% / 9,100 per session = 19",
+     "groq:openai/gpt-oss-20b: 200,000 tokens/day x 90% / 14,000 per session = 12"
+    ],
+    "primary_models": {
+     "analysis": "groq:openai/gpt-oss-120b",
+     "rewrite": "groq:openai/gpt-oss-120b",
+     "interview": "groq:openai/gpt-oss-120b",
+     "coach": "groq:openai/gpt-oss-20b"
+    },
+    "journey_tokens": {
+     "analysis": 2600,
+     "rewrite": 3600,
+     "interview": 2900,
+     "coach": 3500
+    },
+    "expected_coach_messages_per_analysis": 4
+   }
+  },
+  "usage": {
+   "day": "2026-11-03",
+   "requests_today": {
+    "groq": 9,
+    "groq:openai/gpt-oss-120b": 6,
+    "groq:openai/gpt-oss-20b": 3
+   },
+   "tokens_today": {
+    "groq": 13329,
+    "groq:openai/gpt-oss-120b": 8408,
+    "groq:openai/gpt-oss-20b": 4921
+   },
+   "provider_reported": {
+    "groq:openai/gpt-oss-120b": {
+     "limit-requests": "1000",
+     "limit-tokens": "8000",
+     "remaining-requests": "995",
+     "remaining-tokens": "889",
+     "reset-requests": "7m12s",
+     "reset-tokens": "53.332s"
+    },
+    "groq:openai/gpt-oss-20b": {
+     "limit-requests": "1000",
+     "limit-tokens": "8000",
+     "remaining-requests": "997",
+     "remaining-tokens": "5889",
+     "reset-requests": "4m19.2s",
+     "reset-tokens": "15.832s"
+    }
+   },
+   "cooling_down": {}
+  }
+ }
+}
