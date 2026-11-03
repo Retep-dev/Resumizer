@@ -177,7 +177,10 @@ def scripted_claims(reply: str, ledger: Ledger, resume_text: str) -> List[Proble
     missing = [m for m in ledger.missing if m not in ledger.may_claim()]
     out = []
     for s in sentences(reply):
-        claimed = claimed_missing(s, missing, resume_text)
+        # Learning or a course the candidate told the coach about may be described as exactly that.
+        told = {m for m, kind in ledger.said_in_chat.items() if kind in ("course_or_project", "learning")}
+        candidates = [m for m in missing if not (m in told and _ACTIVITY_RE.search(s))]
+        claimed = claimed_missing(s, candidates, resume_text)
         if claimed:
             out.append(Problem("claim", s, f"implies experience with {', '.join(claimed)}, which your resume doesn't show"))
     return out
@@ -273,6 +276,11 @@ _CLAIM_VERB_RE = re.compile(
     r"delivered|maintained|treat|comfortable|familiar|experienced|proficient|learning|studying|taking|building|completing|"
     r"working|running|tracking|leading|managing|owning|refactoring|read|reading|practiced|practised|practicing|"
     r"practising|enrolled|attending|attended|finished|passed|earned|shipped|migrated|designed|designing|contributed)\b", re.IGNORECASE)
+_FIRST_PERSON_RE = re.compile(r"(?:^|[\s\"“(])(?:i|i've|i’ve|i'm|i’m|my|me)\b", re.IGNORECASE)
+_ACTIVITY_RE = re.compile(r"\b(?:started learning|learning|studying|reading (?:the )?(?:official )?(?:docs|documentation|handbook)|practi[cs]ing|"
+                          r"tutorials?|courses?|converting|bootcamp|side projects?|small projects?|personal projects?|sandbox|certif\w*)\b", re.IGNORECASE)
+_CONDITIONAL_RE = re.compile(r"\b(?:if|only if|unless|whether|haven'?t|have not|never|not yet|plan to|would|could|might|want to|will|can|"
+                             r"i'd|i’d|i'll|i’ll|we'd|we'll|going to|next month|this week)\b", re.IGNORECASE)
 _OWNED_WORK_RE = re.compile(r"\bmy\s+(?:[\w.+#/-]+\s+){0,4}?(?:project|repo|repository|app|portfolio|course|certificat\w*|side project|prototype)s?\b", re.IGNORECASE)
 # "I'm following a course" is a claim; "I recommend the following" is not.
 _ONGOING_RE = re.compile(r"\b(?:i'm|i’m|i am|i've been|i’ve been|i have been|we're|we are)\s+(?:currently\s+)?following\b", re.IGNORECASE)
@@ -326,6 +334,14 @@ def unsupported_claims(reply: str, ledger: Ledger, resume_text: str, user_text: 
         if hit:
             out.append(Problem("claim", s, f"implies a {hit} project or course your resume doesn't show"))
             continue
+        # A first-person learning or practice activity with a missing skill ("I've started learning TypeScript,
+        # reading the docs and converting utilities") is a claim the candidate hasn't made, unless negated or conditional.
+        low_s = normalize(s).lower()
+        if _FIRST_PERSON_RE.search(low_s) and _ACTIVITY_RE.search(low_s) and not _CONDITIONAL_RE.search(low_s):
+            hit = next((m for m in owned_missing if term_in_text(m, s)), None)
+            if hit:
+                out.append(Problem("claim", s, f"claims {hit} learning or practice the candidate hasn't mentioned"))
+                continue
         # Judge hedges per comma-separated part, so "no" or "could" in one part doesn't clear a claim in another;
         # a claim's content runs on through the later unhedged parts of the same clause ("I run X: a, b, c").
         found = False

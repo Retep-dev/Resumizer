@@ -407,3 +407,34 @@ def test_owned_project_claim_is_caught_even_when_hedged_and_removal_notes_collap
     many = "A. B. C."
     out = resolve(many, [Problem("claim", "A.", "x"), Problem("claim", "B.", "y"), Problem("claim", "C.", "z")])
     assert out.count("Removed") == 1
+
+
+@pytest.mark.parametrize("reply,flag", [
+    ("“I understand the benefits of static typing and have started learning TypeScript on my own—reading the official docs, practicing with small projects, and converting a few utility functions to TypeScript.”", True),
+    ("If you've started learning TypeScript, say so and name what you've built.", False),
+    ("I haven't used TypeScript yet, but I'd plan to learn it through the official handbook.", False),
+])
+def test_unprompted_learning_claims_about_a_missing_skill(reply, flag):
+    from app.agents.career_coach_agent import check_reply
+    from app.agents.coach_evidence import build_ledger
+    from eval.cases import CASES
+    from eval.run_eval import context
+    case = next(c for c in CASES if c["id"] == "tomas")
+    ctx = context(case)
+    q = "What's the most honest way to answer a question about TypeScript?"
+    led = build_ledger(case["resume"], ctx["analysis"], [q])
+    assert bool(check_reply(reply, q, led, ctx["analysis"], case["resume"], case["jd"], q)) is flag
+
+
+def test_learning_the_candidate_mentioned_is_not_flagged():
+    from app.agents.career_coach_agent import check_reply
+    from app.agents.coach_evidence import build_ledger
+    from eval.cases import CASES
+    from eval.run_eval import context
+    case = next(c for c in CASES if c["id"] == "tomas")
+    ctx = context(case)
+    said = "I'm learning TypeScript through a course right now."
+    q = "How should I mention that?"
+    led = build_ledger(case["resume"], ctx["analysis"], [said, q])
+    reply = "Say: “I'm learning TypeScript through a course.”"
+    assert not check_reply(reply, q, led, ctx["analysis"], case["resume"], case["jd"], said + "\n" + q)
