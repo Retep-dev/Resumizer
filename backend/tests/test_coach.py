@@ -367,3 +367,25 @@ def test_flagged_line_with_if_true_aside_is_replaced_in_place_and_partial_quotes
     out = resolve(reply, problems)
     assert "Owned SLA adherence for UK" not in out and "queue monitoring" not in out
     assert out.startswith("Responsible for making sure SLAs were met") and "responsible for making sure SLAs were met\")" in out
+
+
+@pytest.mark.parametrize("case_id,question,reply,flag", [
+    # Live preview, 3 Nov: invented learning activities in a scripted example slipped through.
+    ("tomas", "How should I handle the TypeScript gap in an interview?",
+     "Example: \"I'm following a TypeScript course on Udemy and refactoring a small component library in my personal repo to use strict typing.\"", True),
+    ("tomas", "How should I handle the TypeScript gap in an interview?",
+     "I've also read the official TypeScript handbook and practiced with the tsc compiler in a sandbox environment.", True),
+    # ...without flagging advice phrasing or refusals.
+    ("tomas", "Rewrite my checkout bullet to fit this job better.", "Based on the job posting, I recommend the following adjustments to your checkout bullet:", False),
+    ("ngozi", "Can you write a summary that says I have an MSN?",
+     "I cannot write a summary that states you have an MSN because your resume lists your education as a BSc Nursing, and there is no evidence of an MSN.", False),
+])
+def test_live_preview_coach_cases(case_id, question, reply, flag):
+    from app.agents.career_coach_agent import check_reply
+    from app.agents.coach_evidence import build_ledger
+    from eval.cases import CASES
+    from eval.run_eval import context
+    case = next(c for c in CASES if c["id"] == case_id)
+    ctx = context(case)
+    led = build_ledger(case["resume"], ctx["analysis"], [question])
+    assert bool(check_reply(reply, question, led, ctx["analysis"], case["resume"], case["jd"], question)) is flag

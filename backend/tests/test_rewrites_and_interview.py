@@ -87,3 +87,16 @@ def test_interview_sentences_the_resume_doesnt_support_are_marked_not_presented_
         sample_answer="I hold an ACLS certification and work in acute cardiac care.")])
     assert mark_unsupported(acls, ngozi)[0].questions[0].sample_answer.startswith("[only if true: I hold an ACLS certification")
     assert out.questions[1].sample_answer == honest
+
+
+def test_interview_marking_reads_number_words_and_judges_hedges_per_clause():
+    from app.agents.interview_generator_agent import answer_problems
+    from eval.cases import CASES
+    priya = next(c for c in CASES if c["id"] == "priya")["resume"]
+    # The resume says "9 per month to 2": the same fact in words is not new.
+    assert answer_problems("As a result, nightly load failures decreased from nine per month to two per month.", priya, priya) == []
+    # A hedge in one clause doesn't cover a claim in the next.
+    assert answer_problems("I have not used Terraform or AWS directly, but I worked with Snowflake as our data warehouse "
+                           "and managed the deployment of Airflow pipelines.", priya, priya)
+    assert answer_problems("While I have not worked with Kafka specifically, I have experience maintaining Airflow pipelines "
+                           "that ingest shipment data into Snowflake at Halcyon Freight.", priya, priya) == []

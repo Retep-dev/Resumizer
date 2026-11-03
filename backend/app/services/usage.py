@@ -160,14 +160,17 @@ DAY, HOUR = 86400.0, 3600.0
 
 def check_analyze(client: str):
     g = global_limits()
-    for key, limit, window, code, msg in (
+    checks = [
         ("global:analyze", g["analyses_per_day"], DAY, "daily_capacity_reached",
          "Resumizer has reached today's limit of free analyses. Please try again tomorrow."),
-        (f"{client}:analyze:h", Limits.ANALYZE_PER_HOUR, HOUR, "rate_limited",
-         f"You've run {Limits.ANALYZE_PER_HOUR} analyses in the last hour. Please wait before running another."),
+        # The daily limit first: when both are reached, the longer wait is the true one.
         (f"{client}:analyze:d", Limits.ANALYZE_PER_DAY, DAY, "rate_limited",
          f"You've reached today's limit of {Limits.ANALYZE_PER_DAY} analyses. Please come back tomorrow."),
-    ):
+    ]
+    if Limits.ANALYZE_PER_HOUR < Limits.ANALYZE_PER_DAY:
+        checks.append((f"{client}:analyze:h", Limits.ANALYZE_PER_HOUR, HOUR, "rate_limited",
+                       f"You've run {Limits.ANALYZE_PER_HOUR} analyses in the last hour. Please wait before running another."))
+    for key, limit, window, code, msg in checks:
         wait = WINDOWS.check(key, limit, window)
         if wait:
             raise LimitExceeded(code, msg, wait)

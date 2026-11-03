@@ -73,11 +73,18 @@ def answer_problems(answer: str, allowed_text: str, resume_text: Optional[str] =
     from app.agents.coach_checks import _GENERIC_CLAIM, sentences
 
     allowed_lemmas = {lemma(w) for w in re.findall(r"[a-z][a-z0-9+#'’-]*", normalize(allowed_text).lower())}
+    # "nine" is the resume's "9": a number written in words isn't new content when its digits are there.
+    from app.agents.bullet_facts import _WORD_NUM
+    digits = set(re.findall(r"\d+(?:\.\d+)?", allowed_text))
+    allowed_lemmas |= {w for w, d in _WORD_NUM.items() if d in digits}
     out = []
     for sent in sentences(answer or ""):
-        plain = re.sub(r"\[[^\]]*\]", " ", sent)
-        if _ANSWER_HEDGE.search(plain):
+        # "I haven't used Terraform, but I managed X": the hedge covers only its own clause.
+        clauses = [c for c in re.split(r"\bbut\b|\bhowever\b|;", re.sub(r"\[[^\]]*\]", " ", sent), flags=re.IGNORECASE)
+                   if not _ANSWER_HEDGE.search(c)]
+        if not clauses:
             continue
+        plain = " ".join(clauses)
         specifics = unsupported_specifics(plain, allowed_text)
         content = {w for w in re.findall(r"[a-z][a-z0-9+#.-]*", normalize(plain).lower())
                    if len(w) >= 4 and lemma(w) not in allowed_lemmas and w not in _GENERIC_CLAIM
@@ -93,7 +100,8 @@ _CREDENTIAL = re.compile(r"\b(certifi\w*|certificate\w*|licen[cs]\w*|accredit\w*
 
 
 # Words that frame an answer rather than claim anything ("as a result", "the team", "my role").
-_ANSWER_GENERIC = {"notice", "noticed", "occur", "occurring", "times", "pull", "pulled", "organize", "organized", "organise",
+_ANSWER_GENERIC = {"decrease", "decreased", "increase", "increased", "reduce", "reduced", "drop", "dropped", "rise", "rose",
+                   "notice", "noticed", "occur", "occurring", "times", "pull", "pulled", "organize", "organized", "organise",
                    "result", "situation", "task", "action", "approach", "role", "responsible", "responsibility", "time",
                    "example", "instance", "context", "help", "make", "take", "work", "team", "colleague", "member", "member",
                    "able", "ensure", "sure", "clear", "clearly", "specific", "specifically", "each", "every", "also", "then",

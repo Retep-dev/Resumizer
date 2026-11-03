@@ -271,8 +271,11 @@ _CLAIM_VERB_RE = re.compile(
     r"(worked|work|used|use|built|build|written|wrote|write|begun|began|started|completed|deployed|deploy|explored|exploring|"
     r"learned|studied|done|created|managed|manage|led|lead|run|ran|set up|configured|implemented|developed|handled|owned|own|"
     r"delivered|maintained|treat|comfortable|familiar|experienced|proficient|learning|studying|taking|building|completing|"
-    r"working|running|tracking|leading|managing|owning)\b", re.IGNORECASE)
-_HEDGE_CLAUSE_RE = re.compile(r"\b(if|whether|unless|only if|haven't|have not|hasn't|not|never|no|don't|didn't|without|"
+    r"working|running|tracking|leading|managing|owning|refactoring|read|reading|practiced|practised|practicing|"
+    r"practising|enrolled|attending|attended|finished|passed|earned|shipped|migrated|designed|designing|contributed)\b", re.IGNORECASE)
+# "I'm following a course" is a claim; "I recommend the following" is not.
+_ONGOING_RE = re.compile(r"\b(?:i'm|i’m|i am|i've been|i’ve been|i have been|we're|we are)\s+(?:currently\s+)?following\b", re.IGNORECASE)
+_HEDGE_CLAUSE_RE = re.compile(r"\b(if|whether|unless|only if|cannot|can't|can’t|unable|any|haven't|have not|hasn't|not|never|no|don't|didn't|without|"
                               r"aren't|isn't|wasn't|would|could|might|plan to|want to|ready to|eager to|keen to|happy to)\b", re.IGNORECASE)
 _GENERIC_CLAIM = {
     "comfortable", "ready", "quickly", "learn", "concept", "role", "team", "work", "experience", "skill", "tool", "years",
@@ -285,6 +288,7 @@ _GENERIC_CLAIM = {
     "area", "areas", "matter", "matters", "most", "pattern", "patterns", "protect", "right", "space", "learning", "focus",
     "idea", "ideas", "basics", "fundamentals", "quickly", "first", "next", "able", "sure", "time",
     "being", "were", "will", "just", "even", "only", "about", "across", "each", "other", "than", "then", "very",
+    "because", "since", "confident",
 }
 
 
@@ -314,18 +318,28 @@ def unsupported_claims(reply: str, ledger: Ledger, resume_text: str, user_text: 
             continue
         sents += sentences(line)
     for s in sents:
-        for clause in re.split(r"\bbut\b|\bhowever\b|;", s, flags=re.IGNORECASE):
-            low = normalize(clause).lower()
-            if not _CLAIM_VERB_RE.search(low) or _HEDGE_CLAUSE_RE.search(low):
-                continue
-            specifics = sorted(x for x in unsupported_specifics(clause, allowed)
-                               if x in clause and x.lower() not in _COMMON_WORD_TOOLS)
-            content = sorted({w for w in re.findall(r"[a-z][a-z0-9+#.-]*", re.sub(r"\[[^\]]*\]", " ", low))
-                              if len(w) >= 4 and lemma(w) not in allowed_lemmas and w not in _GENERIC_CLAIM
-                              and lemma(w) not in _GENERIC_CLAIM and w not in FUNCTION_WORDS})
-            if specifics or len(content) >= 3:
-                what = ", ".join(specifics) if specifics else ", ".join(content[:4])
-                out.append(Problem("claim", s, f"claims experience your resume doesn't show ({what})"))
+        # Judge hedges per comma-separated part, so "no" or "could" in one part doesn't clear a claim in another;
+        # a claim's content runs on through the later unhedged parts of the same clause ("I run X: a, b, c").
+        found = False
+        for chunk in re.split(r"\bbut\b|\bhowever\b|;", s, flags=re.IGNORECASE):
+            parts = re.split(r",\s+", chunk)
+            for i, part in enumerate(parts):
+                low_part = normalize(part).lower()
+                if not (_CLAIM_VERB_RE.search(low_part) or _ONGOING_RE.search(low_part)) or _HEDGE_CLAUSE_RE.search(low_part):
+                    continue
+                clause = ", ".join(p for p in parts[i:] if p == part or not _HEDGE_CLAUSE_RE.search(normalize(p).lower()))
+                low = normalize(clause).lower()
+                specifics = sorted(x for x in unsupported_specifics(clause, allowed)
+                                   if x in clause and x.lower() not in _COMMON_WORD_TOOLS)
+                content = sorted({w for w in re.findall(r"[a-z][a-z0-9+#.-]*", re.sub(r"\[[^\]]*\]", " ", low))
+                                  if len(w) >= 4 and lemma(w) not in allowed_lemmas and w not in _GENERIC_CLAIM
+                                  and lemma(w) not in _GENERIC_CLAIM and w not in FUNCTION_WORDS})
+                if specifics or len(content) >= 3:
+                    what = ", ".join(specifics) if specifics else ", ".join(content[:4])
+                    out.append(Problem("claim", s, f"claims experience your resume doesn't show ({what})"))
+                    found = True
+                    break
+            if found:
                 break
     return out
 

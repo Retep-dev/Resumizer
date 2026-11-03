@@ -141,3 +141,11 @@ def test_global_caps_fall_back_when_no_quota_is_known(monkeypatch):
     monkeypatch.setattr(router.settings, "NVIDIA_API_KEY", "nvapi-test")
     g = usage.global_limits()
     assert (g["analyses_per_day"], g["coach_messages_per_day"]) == Limits.FALLBACK_GLOBAL
+
+
+def test_when_hourly_and_daily_limits_are_equal_the_message_says_tomorrow():
+    for _ in range(Limits.ANALYZE_PER_DAY):
+        check_analyze("same-person")
+    with pytest.raises(LimitExceeded) as e:
+        check_analyze("same-person")
+    assert "today's limit" in e.value.message and e.value.retry_after > 3600

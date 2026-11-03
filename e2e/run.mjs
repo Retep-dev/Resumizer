@@ -10,6 +10,9 @@ const OUT = 'e2e_out';
 fs.mkdirSync(`${OUT}/shots`, { recursive: true });
 const postings = JSON.parse(fs.readFileSync('e2e/fixtures/postings.json', 'utf8'));
 const report = { started: new Date().toISOString(), frontend: FRONTEND, backend: BACKEND, runs: [], hosts: {}, problems: [] };
+// Vercel preview deployments sit behind Vercel's login. With the project's "Protection Bypass for Automation"
+// secret (repository secret VERCEL_AUTOMATION_BYPASS_SECRET) the runner can reach them; without it they redirect.
+const BYPASS = process.env.VERCEL_BYPASS ? { 'x-vercel-protection-bypass': process.env.VERCEL_BYPASS, 'x-vercel-set-bypass-cookie': 'true' } : {};
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const save = () => fs.writeFileSync(`${OUT}/report.json`, JSON.stringify(report, null, 1));
 
@@ -72,8 +75,8 @@ async function ask(page, msg) {
 
 async function fullRun(browser, id, file, jd, questions, { mobile = false } = {}) {
   const ctx = await browser.newContext(mobile
-    ? { viewport: { width: 375, height: 812 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
-    : { viewport: { width: 1366, height: 900 } });
+    ? { viewport: { width: 375, height: 812 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, extraHTTPHeaders: BYPASS }
+    : { viewport: { width: 1366, height: 900 }, extraHTTPHeaders: BYPASS });
   const page = await ctx.newPage();
   watchHosts(page);
   const tag = `${id}${mobile ? '-mobile' : ''}`;
@@ -119,7 +122,7 @@ async function fullRun(browser, id, file, jd, questions, { mobile = false } = {}
 process.on('unhandledRejection', (e) => { report.problems.push('unhandled: ' + String(e).slice(0, 400)); save(); });
 try { report.status_before = await status(); } catch (e) { report.problems.push('status: ' + String(e).slice(0, 300)); }
 try {
-  const r = await fetch(FRONTEND, { redirect: 'manual' });
+  const r = await fetch(FRONTEND, { redirect: 'manual', headers: BYPASS });
   report.frontend_http = { status: r.status, location: r.headers.get('location'), server: r.headers.get('server') };
 } catch (e) { report.problems.push('frontend fetch: ' + String(e).slice(0, 300)); }
 save();
@@ -128,7 +131,7 @@ try { browser = await chromium.launch(); } catch (e) { report.problems.push('lau
 
 // Which backend does the deployed frontend call? Read it from the shipped bundle.
 try {
-  const ctx = await browser.newContext();
+  const ctx = await browser.newContext({ extraHTTPHeaders: BYPASS });
   const page = await ctx.newPage();
   await page.goto(FRONTEND, { waitUntil: 'networkidle' });
   report.bundle_backends = await page.evaluate(async () => {
