@@ -116,12 +116,18 @@ async function fullRun(browser, id, file, jd, questions, { mobile = false } = {}
   await ctx.close();
 }
 
-report.status_before = await status();
+process.on('unhandledRejection', (e) => { report.problems.push('unhandled: ' + String(e).slice(0, 400)); save(); });
+try { report.status_before = await status(); } catch (e) { report.problems.push('status: ' + String(e).slice(0, 300)); }
+try {
+  const r = await fetch(FRONTEND, { redirect: 'manual' });
+  report.frontend_http = { status: r.status, location: r.headers.get('location'), server: r.headers.get('server') };
+} catch (e) { report.problems.push('frontend fetch: ' + String(e).slice(0, 300)); }
 save();
-const browser = await chromium.launch();
+let browser;
+try { browser = await chromium.launch(); } catch (e) { report.problems.push('launch: ' + String(e).slice(0, 400)); save(); process.exit(1); }
 
 // Which backend does the deployed frontend call? Read it from the shipped bundle.
-{
+try {
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   await page.goto(FRONTEND, { waitUntil: 'networkidle' });
@@ -133,8 +139,10 @@ const browser = await chromium.launch();
     }
     return [...found];
   });
+  report.frontend_title = await page.title();
+  await page.screenshot({ path: `${OUT}/shots/landing.png` });
   await ctx.close();
-}
+} catch (e) { report.problems.push('bundle: ' + String(e).slice(0, 400)); save(); }
 
 const F = 'e2e/fixtures';
 await fullRun(browser, 'aisha', `${F}/aisha_bello_resume.txt`, postings.aisha, [
